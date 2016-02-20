@@ -64,6 +64,8 @@ namespace Snoop
                     return Brushes.Green;
                 if (DXMethods.IsIFrameworkRenderElementContext(Visual))
                     return Brushes.Red;
+                if(DXMethods.IsBaseLayoutItem(Visual))
+                    return Brushes.Aquamarine;
                 return base.Foreground;
             }
         }

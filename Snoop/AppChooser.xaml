@@ -211,12 +211,12 @@ All other rights reserved.
 		<!-- application label -->
 		<StackPanel Orientation="Horizontal">
 			<TextBlock
-				Text="SNOOP"
+				Text="SNOOP[dx]"
 				Margin="4,0,0,4"
 				VerticalAlignment="Center"
 				Width="Auto"
 				Height="Auto"
-				FontSize="18"
+				FontSize="13"
 				FontWeight="Normal"
 				Foreground="#B2FFFFFF"
 				TextAlignment="Center"
