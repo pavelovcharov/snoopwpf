@@ -52,6 +52,8 @@ namespace Snoop
 		#region Public Constructor
 		public SnoopUI()
 		{
+            DxThemeHelper.DisableDxTheme(this);
+
 			this.filterCall = new DelayedCall(this.ProcessFilter, DispatcherPriority.Background);
 
 			this.InheritanceBehavior = InheritanceBehavior.SkipToThemeNext;

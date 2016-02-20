@@ -317,4 +317,52 @@ namespace Snoop {
             return propertyType;
         }
     }
+    public class TypeProvider {
+        public static TypeProvider Current = new TypeProvider();
+        public virtual IEnumerable<Assembly> Assemblies { get { return AppDomain.CurrentDomain.GetAssemblies(); } }//TODO
+        protected static readonly Dictionary<string, Type> TypesCache = new Dictionary<string, Type>();
+        public virtual Type GetTypeByName(string typeName) {
+            if(Assemblies == null)
+                return null;
+            Type type = null;
+            if(TypesCache.TryGetValue(typeName, out type)) {
+                return type;
+            }
+
+            //first, search in executing assembly
+            Assembly executing = Assembly.GetExecutingAssembly();
+            type = executing.GetTypes().FirstOrDefault(t => t.Name == typeName);
+            if(type != null) {
+                TypesCache[typeName] = type;
+                return type;
+            }
+
+            foreach(Assembly asm in Assemblies) {
+                if(asm == executing) {
+                    continue;
+                }
+                try {
+                    type = asm.GetTypes().FirstOrDefault(t => t.Name == typeName);
+                    if(type != null) {
+                        TypesCache[typeName] = type;
+                        return type;
+                    }
+                }
+                catch(ReflectionTypeLoadException) { }
+            }
+            return null;
+        }
+    }
+    public static class DxThemeHelper {
+        public static void DisableDxTheme(System.Windows.DependencyObject obj) {
+            try {
+                var type = TypeProvider.Current.GetTypeByName("ThemeManager");
+                if(type != null) {
+                    var method = type.GetMethod("SetThemeName", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public);
+                    if(method != null) method.Invoke(null, new object[] { obj, "None" });
+                }
+            }
+            catch { }
+        }
+    }
 }
