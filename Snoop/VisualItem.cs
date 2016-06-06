@@ -109,11 +109,12 @@ namespace Snoop
             if (visual_ == null) {                
                 var frec = (dynamic)this.Visual;
                 if (frec != null && CommonTreeHelper.IsVisible(frec)) {
-                    var fe = DXMethods.GetParent(frec.ElementHost);
+                    FrameworkElement fe = DXMethods.GetParent(frec.ElementHost);
                     visual_ = fe;
-                    var transform = RenderTreeHelper.TransformToRoot(frec).Inverse;
-                    var trrec = transform.TransformBounds(new Rect(fe.RenderSize));
-                    offset = new Thickness(-trrec.Left, -trrec.Top, fe.RenderSize.Width - trrec.Right, fe.RenderSize.Height - trrec.Bottom);
+                    Rect rect =
+                        ((Transform) RenderTreeHelper.TransformToRoot(frec)).TransformBounds(new Rect(frec.RenderSize));
+                    offset = new Thickness(rect.Left, rect.Top, fe.RenderSize.Width - rect.Right,
+                        fe.RenderSize.Height - rect.Bottom);
                 }
 
             }

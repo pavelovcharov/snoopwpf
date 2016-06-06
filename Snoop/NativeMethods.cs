@@ -178,6 +178,13 @@ namespace Snoop
         public static FrameworkElement GetParent(object elementHost) {
             return ReflectionHelper.CreateInstanceMethodHandler<Func<object, FrameworkElement>>(elementHost, "get_Parent", BindingFlags.Public | BindingFlags.Instance, GetCoreAssembly(elementHost).GetType("DevExpress.Xpf.Core.Native.IElementHost"), false, null, typeof(object))(elementHost);
         }
+        public static string GetName(object frameworkRenderElementContext) {
+            var result = ReflectionHelper.CreateInstanceMethodHandler<Func<object, string>>(frameworkRenderElementContext, "get_Name", BindingFlags.Instance | BindingFlags.Public, frameworkRenderElementContext.GetType(), castParameters: true, forcedThisArgType: typeof(object))(frameworkRenderElementContext);
+            Guid gresult;
+            if (Guid.TryParse(result, out gresult))
+                return null;
+            return result;
+        }
         public static bool Is(object obj, string typeName, string typeNamespace, bool isInterface) {
             if (obj == null)
                 return false;

@@ -181,8 +181,11 @@ namespace Snoop
 		/// </summary>
 		public void Reload()
 		{
-			this.name = (this.target is FrameworkElement) ? ((FrameworkElement)this.target).Name : string.Empty;
-
+            if (this.target is IFrameworkInputElement) {
+                this.name = ((IFrameworkInputElement)this.target).Name;
+            } else if (DXMethods.IsFrameworkRenderElementContext(target)) {
+                this.name = DXMethods.GetName(target);
+            }
 			this.nameLower = (this.name ?? "").ToLower();
 			this.typeNameLower = this.Target != null ? this.Target.GetType().Name.ToLower() : string.Empty;
 

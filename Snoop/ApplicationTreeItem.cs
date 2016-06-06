@@ -34,8 +34,7 @@ namespace Snoop
 		protected override void Reload(List<VisualTreeItem> toBeRemoved)
 		{
 			// having the call to base.Reload here ... puts the application resources at the very top of the tree view
-			base.Reload(toBeRemoved);
-
+			base.Reload(toBeRemoved);            
 			// what happens in the case where the application's main window is invisible?
 			// in this case, the application will only have one visual item underneath it: the collapsed/hidden window.
 			// however, you are still able to ctrl-shift mouse over the visuals in the visible window.
