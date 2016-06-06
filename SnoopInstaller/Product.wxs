@@ -72,19 +72,7 @@
 							Id="SnoopCFG"
 							Name="Snoop.exe.config"
 							Source="..\Build\Release\Snoop.exe.config"
-						/>
-
-						<File
-							Id="ManagedInjectorLauncher3235"
-							Name="ManagedInjectorLauncher32-3.5.exe"
-							Source="..\Build\Release\ManagedInjectorLauncher32-3.5.exe"
-						/>
-						<File
-							Id="ManagedInjector3235"
-							Name="ManagedInjector32-3.5.dll"
-							Source="..\Build\Release\ManagedInjector32-3.5.dll"
-						/>
-
+						/>						
 						<File
 							Id="ManagedInjectorLauncher3240"
 							Name="ManagedInjectorLauncher32-4.0.exe"
@@ -94,19 +82,7 @@
 							Id="ManagedInjector3240"
 							Name="ManagedInjector32-4.0.dll"
 							Source="..\Build\Release\ManagedInjector32-4.0.dll"
-						/>
-
-						<File
-							Id="ManagedInjectorLauncher6435"
-							Name="ManagedInjectorLauncher64-3.5.exe"
-							Source="..\Build\Release\ManagedInjectorLauncher64-3.5.exe"
-						/>
-						<File
-							Id="ManagedInjector6435"
-							Name="ManagedInjector64-3.5.dll"
-							Source="..\Build\Release\ManagedInjector64-3.5.dll"
-						/>
-
+						/>						
 						<File
 							Id="ManagedInjectorLauncher6440"
 							Name="ManagedInjectorLauncher64-4.0.exe"
