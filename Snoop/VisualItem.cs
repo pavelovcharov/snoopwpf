@@ -14,6 +14,7 @@ using System.Windows.Documents;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Linq;
+using System.Windows.Diagnostics;
 
 namespace Snoop
 {
@@ -25,10 +26,22 @@ namespace Snoop
 		public VisualItem(object visual, VisualTreeItem parent): base(visual, parent)
 		{
 			this.visual = visual;
+		    if (visual is Visual) {
+		        var vVisual = (Visual) visual;
+                VisualDiagnostics.VisualTreeChanged += VisualDiagnostics_VisualTreeChanged;
+		    }
 		}
 
+	    protected override bool GetHasChildren() {
+	        return visual != null && CommonTreeHelper.GetChildrenCount(visual) > 0;
+	    }
 
-		public object Visual
+	    private void VisualDiagnostics_VisualTreeChanged(object sender, VisualTreeChangeEventArgs e) {
+            if(Equals(e.Parent, Visual))
+                Reload();
+        }
+
+        public object Visual
 		{
 			get { return this.visual; }
 		}
@@ -145,47 +158,28 @@ namespace Snoop
 					this.adorner = null;
 				}
 			}
-		}
-		protected override void Reload(List<VisualTreeItem> toBeRemoved)
-		{
-			// having the call to base.Reload here ... puts the application resources at the very top of the tree view.
-			// this used to be at the bottom. putting it here makes it consistent (and easier to use) with ApplicationTreeItem
-			base.Reload(toBeRemoved);
+		}		
 
-			// remove items that are no longer in tree, add new ones.
-            for (int i = 0; i < CommonTreeHelper.GetChildrenCount(this.Visual); i++)
-			{
-                object child = CommonTreeHelper.GetChild(this.Visual, i);
-				if (child != null)
-				{
-					bool foundItem = false;
-					foreach (VisualTreeItem item in toBeRemoved)
-					{
-						if (item.Target == child)
-						{
-							toBeRemoved.Remove(item);
-							item.Reload();
-							foundItem = true;
-							break;
-						}
-					}
-					if (!foundItem)
-						this.Children.Add(VisualTreeItem.Construct(child, this));
-				}
-			}
+	    protected override void FillChildrenImpl() {
+            base.FillChildrenImpl();
+	        for (int i = 0; i < CommonTreeHelper.GetChildrenCount(this.Visual); i++) {
+	            object child = CommonTreeHelper.GetChild(this.Visual, i);
+	            if (child != null) {
+	                this.Children.Add(VisualTreeItem.Construct(child, this));
+	            }
+	        }
 
-			Grid grid = this.Visual as Grid;
-			if (grid != null)
-			{
-				foreach (RowDefinition row in grid.RowDefinitions)
-					this.Children.Add(VisualTreeItem.Construct(row, this));
-				foreach (ColumnDefinition column in grid.ColumnDefinitions)
-					this.Children.Add(VisualTreeItem.Construct(column, this));
-			}
-		}
+	        Grid grid = this.Visual as Grid;
+	        if (grid != null) {
+	            foreach (RowDefinition row in grid.RowDefinitions)
+	                this.Children.Add(VisualTreeItem.Construct(row, this));
+	            foreach (ColumnDefinition column in grid.ColumnDefinitions)
+	                this.Children.Add(VisualTreeItem.Construct(column, this));
+	        }
+	    }
 
 
-		private AdornerContainer adorner;
+	    private AdornerContainer adorner;
 	}    
     public class FREDrawingVisual : DrawingVisual {
         object context = null;

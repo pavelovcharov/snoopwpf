@@ -21,12 +21,7 @@ using System.IO;
 using System.Reflection;
 
 namespace Snoop
-{
-	public enum WindowFinderType { Snoop, Magnify };
-
-	/// <summary>
-	/// Interaction logic for WindowFinder.xaml
-	/// </summary>
+{	
 	public partial class WindowFinder : UserControl
 	{
 		public WindowFinder()
@@ -39,9 +34,6 @@ namespace Snoop
 			MouseMove += WindowFinderMouseMove;
 			MouseLeftButtonUp += WindowFinderMouseLeftButtonUp;
 		}
-
-
-		public WindowFinderType WindowFinderType { get; set; }
 
 
 		private void WindowFinderMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -90,14 +82,7 @@ namespace Snoop
 			StopSnoopTargetsSearch();
 			if (_windowUnderCursor != null && _windowUnderCursor.IsValidProcess)
 			{
-				if (WindowFinderType == WindowFinderType.Snoop)
-				{
-					AttachSnoop();
-				}
-				else if (WindowFinderType == WindowFinderType.Magnify)
-				{
-					AttachMagnify();
-				}
+					AttachSnoop();				
 			}
 		}
 
@@ -171,14 +156,7 @@ namespace Snoop
 		{
 			new AttachFailedHandler(_windowUnderCursor);
 			_windowUnderCursor.Snoop();
-		}
-
-		private void AttachMagnify()
-		{
-			new AttachFailedHandler(_windowUnderCursor);
-			_windowUnderCursor.Magnify();
-		}
-
+		}		
 
 		private bool IsDragging { get; set; }
 

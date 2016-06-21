@@ -10,7 +10,8 @@
 	xmlns:conv="clr-namespace:Snoop.Converters"
 	xmlns:MethodsTabNS="clr-namespace:Snoop.MethodsTab"
     xmlns:DebugListenerNS="clr-namespace:Snoop.DebugListenerTab"
-	mc:Ignorable="d"
+    xmlns:treeList="clr-namespace:Snoop.TreeList"
+    mc:Ignorable="d"
 	Icon="Snoop.ico"
 	Title="Snoop"
 	Background="#FFE0DFE3"
@@ -149,7 +150,52 @@
 		</Button>
 
 		<!-- Visual Tree TreeView -->
-		<local:ProperTreeView
+        <treeList:TreeList x:Name="Tree"
+            Grid.Row="1"
+			Grid.RowSpan="2"
+			MinHeight="0"
+			MinWidth="0"
+			Margin="2,0,2,0">
+            <treeList:TreeList.Template>
+                <ControlTemplate TargetType="{x:Type treeList:TreeList}">
+                    <Border Background="White">
+                    <ScrollViewer HorizontalScrollBarVisibility="Visible" VerticalScrollBarVisibility="Visible">
+                        <ItemsPresenter/>
+                    </ScrollViewer>
+                    </Border>
+                </ControlTemplate>
+            </treeList:TreeList.Template>
+            <treeList:TreeList.ItemContainerStyle>
+                <Style TargetType="{x:Type treeList:TreeListItem}">
+                    <Setter Property="TextElement.Foreground" Value="{Binding Foreground}"/>
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="{x:Type treeList:TreeListItem}">
+                                <Grid>
+                                    <Border x:Name="PART_Background" Background="DodgerBlue" Visibility="Collapsed"/>
+                                    <DockPanel LastChildFill="True">
+                                        <Border DockPanel.Dock="Left" x:Name="PART_Offset" Width="{TemplateBinding Offset}"/>
+                                        <ToggleButton x:Name="PART_Expander" IsChecked="{Binding IsExpanded, Mode=TwoWay}" Style='{StaticResource TreeViewToggleStyle}' DockPanel.Dock="Left"/>
+                                        <Border x:Name="PART_ContentHost" Background="Transparent" DockPanel.Dock="Left">
+                                            <ContentPresenter x:Name="PART_ContentPresenter" HorizontalAlignment="Left"/>
+                                        </Border>
+                                    </DockPanel>
+                                </Grid>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsSelected" Value="True">
+                                        <Setter TargetName="PART_Background" Property="Visibility" Value="Visible"></Setter>
+                                    </Trigger>
+                                        <DataTrigger Binding="{Binding HasChildren}" Value="False">
+                                            <Setter Property="Visibility" TargetName="PART_Expander" Value="Hidden"/>
+                                        </DataTrigger>
+                                    </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </treeList:TreeList.ItemContainerStyle>
+        </treeList:TreeList >
+		<!--<local:ProperTreeView
 			x:Name="Tree"
 			Grid.Row="1"
 			Grid.RowSpan="2"
@@ -169,7 +215,7 @@
 					/>
 				</HierarchicalDataTemplate>
 
-				<!-- make the selected item be blue, even when not focused -->
+				--><!-- make the selected item be blue, even when not focused --><!--
 				<SolidColorBrush x:Key="{x:Static SystemColors.ControlBrushKey}" Color="LightBlue"/>
 			</TreeView.Resources>
 
@@ -204,7 +250,7 @@
 			<local:ProperTreeView.ToolTip>
 				<TextBlock Style="{x:Null}" Text="Hold down Ctrl-Shift and mouse over elements in the target app to select them."/>
 			</local:ProperTreeView.ToolTip>
-		</local:ProperTreeView>
+		</local:ProperTreeView>-->
 		
 		<!-- Vertical GridSplitter (between the visual tree tree view and the tab control (with the property grid/events view)) -->
 		<GridSplitter

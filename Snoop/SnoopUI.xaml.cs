@@ -8,7 +8,9 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Windows;
 using System.Windows.Documents;
@@ -19,8 +21,10 @@ using System.Windows.Forms.Integration;
 using System.Runtime.InteropServices;
 using System.Windows.Interop;
 using System.Threading;
+using System.Windows.Controls;
 using Snoop.Infrastructure;
 using Snoop.Shell;
+using Snoop.TreeList;
 
 namespace Snoop
 {
@@ -39,19 +43,28 @@ namespace Snoop
 		#endregion
 
 		#region Static Constructor
-		static SnoopUI()
-		{
+		static SnoopUI() {
+            AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;		    
+		    VisualDiagnosticsExtensions.Enabled = true;
 			SnoopUI.IntrospectCommand.InputGestures.Add(new KeyGesture(Key.I, ModifierKeys.Control));
 			SnoopUI.RefreshCommand.InputGestures.Add(new KeyGesture(Key.F5));
 			SnoopUI.HelpCommand.InputGestures.Add(new KeyGesture(Key.F1));
 			SnoopUI.ClearSearchFilterCommand.InputGestures.Add(new KeyGesture(Key.Escape));
 			SnoopUI.CopyPropertyChangesCommand.InputGestures.Add(new KeyGesture(Key.C, ModifierKeys.Control | ModifierKeys.Shift));
 		}
-		#endregion
 
-		#region Public Constructor
-		public SnoopUI()
-		{
+        private static Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args) {
+            if (args.RequestingAssembly == null)
+                return null;
+            var file = Path.Combine(Path.GetDirectoryName(args.RequestingAssembly.Location),
+                new AssemblyName(args.Name).Name + ".dll");
+            return File.Exists(file) ? Assembly.LoadFrom(file) : null;
+        }
+        #endregion
+
+        #region Public Constructor
+        public SnoopUI() {
+            //ThemeManagerHelper.SetThemeName(this, null);
 			this.filterCall = new DelayedCall(this.ProcessFilter, DispatcherPriority.Background);
 
 			this.InheritanceBehavior = InheritanceBehavior.SkipToThemeNext;
@@ -89,7 +102,8 @@ namespace Snoop
 			this.CommandBindings.Add(new CommandBinding(SnoopUI.CopyPropertyChangesCommand, this.CopyPropertyChangesHandler));
 
 			InputManager.Current.PreProcessInput += this.HandlePreProcessInput;
-			this.Tree.SelectedItemChanged += this.HandleTreeSelectedItemChanged;
+		    Tree.ItemsSource = new TreeListSource(this);
+		    this.Tree.SelectionChanged += HandleTreeSelectedItemChanged;
 
 			// we can't catch the mouse wheel at the ZoomerControl level,
 			// so we catch it here, and relay it to the ZoomerControl.
@@ -106,7 +120,14 @@ namespace Snoop
 		    InitShell();
 		}
 
-        private void InitShell()
+	    protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e) {
+	        if (e.Property.Name == "TreeWalker") {
+	            this.SetValue(e.Property, null);
+	        }
+	        base.OnPropertyChanged(e);
+	    }
+
+	    private void InitShell()
         {
             if (ShellConstants.IsPowerShellInstalled)
             {
@@ -123,13 +144,13 @@ namespace Snoop
                 }));
 
                 // sync the current location
-                this.Tree.SelectedItemChanged += onSelectedItemChanged;
+                //this.Tree.SelectedItemChanged += onSelectedItemChanged;
                 shell.ProviderLocationChanged += onProviderLocationChanged;
 
                 // clean up garbage!
                 this.Closed += delegate
                 {
-                    this.Tree.SelectedItemChanged -= onSelectedItemChanged;
+                    //this.Tree.SelectedItemChanged -= onSelectedItemChanged;
                     shell.ProviderLocationChanged -= onProviderLocationChanged;
                 };
             }
@@ -305,7 +326,7 @@ namespace Snoop
 					}
 
 					this.currentSelection = value;
-
+                    Tree.Select(value);
 					if (this.currentSelection != null)
 					{
 						this.currentSelection.IsSelected = true;
@@ -330,7 +351,7 @@ namespace Snoop
 							RefreshCommand.Execute(null, this);
 						}
 					}
-				}
+				}			    
 			}
 		}
 
@@ -780,7 +801,7 @@ namespace Snoop
 			return string.Empty;
 		}
 
-		private void HandleTreeSelectedItemChanged(object sender, EventArgs e)
+		private void HandleTreeSelectedItemChanged(object sender, SelectionChangedEventArgs e)
 		{
 			VisualTreeItem item = this.Tree.SelectedItem as VisualTreeItem;
 			if (item != null)
@@ -811,22 +832,10 @@ namespace Snoop
 			{
 				this.visualTreeItems.Add(this.rootVisualTreeItem);
 			}
-			else
-			{
-				this.FilterTree(this.rootVisualTreeItem, this.filter.ToLower());
+			else {
+			    Tree.Filter(filter);
 			}
-		}
-
-		private void FilterTree(VisualTreeItem node, string filter)
-		{
-			foreach (VisualTreeItem child in node.Children)
-			{
-				if (child.Filter(filter))
-					this.visualTreeItems.Add(child);
-				else
-					FilterTree(child, filter);
-			}
-		}
+		}		
 		private void FilterBindings(VisualTreeItem node)
 		{
 			foreach (VisualTreeItem child in node.Children)

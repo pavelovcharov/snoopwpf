@@ -26,37 +26,28 @@ namespace Snoop
 			}
 		}
 
-		protected override ResourceDictionary ResourceDictionary
+	    protected override bool GetHasChildren() {
+	        return true;
+	    }
+
+	    protected override ResourceDictionary ResourceDictionary
 		{
 			get { return this.application.Resources; }
 		}
 
-		protected override void Reload(List<VisualTreeItem> toBeRemoved)
+		protected override void ReloadImpl()
 		{
 			// having the call to base.Reload here ... puts the application resources at the very top of the tree view
-			base.Reload(toBeRemoved);            
+			base.ReloadImpl();            
 			// what happens in the case where the application's main window is invisible?
 			// in this case, the application will only have one visual item underneath it: the collapsed/hidden window.
 			// however, you are still able to ctrl-shift mouse over the visuals in the visible window.
 			// when you do this, snoop reloads the visual tree with the visible window as the root (versus the application).
+            
+		    if (this.application.MainWindow != null) {
 
-			if (this.application.MainWindow != null)
-			{
-				bool foundMainWindow = false;
-				foreach (VisualTreeItem item in toBeRemoved)
-				{
-					if (item.Target == this.application.MainWindow)
-					{
-						toBeRemoved.Remove(item);
-						item.Reload();
-						foundMainWindow = true;
-						break;
-					}
-				}
-
-				if (!foundMainWindow)
-					this.Children.Add(VisualTreeItem.Construct(this.application.MainWindow, this));
-			}
+		        this.Children.Add(VisualTreeItem.Construct(this.application.MainWindow, this));
+		    }
 		}
 
 

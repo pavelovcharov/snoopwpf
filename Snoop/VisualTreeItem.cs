@@ -16,7 +16,13 @@ using System.Text;
 
 namespace Snoop
 {
-	public class VisualTreeItem : INotifyPropertyChanged
+    public class DumbVisualTreeItem : VisualTreeItem {
+        public DumbVisualTreeItem(object target, VisualTreeItem parent) : base(target, parent) {}
+        protected override bool GetHasChildren() {
+            return false;
+        }
+    }
+	public abstract class VisualTreeItem : INotifyPropertyChanged
 	{
 		public static VisualTreeItem Construct(object target, VisualTreeItem parent)
 		{
@@ -30,7 +36,8 @@ namespace Snoop
 			else if (target is Application)
 				visualTreeItem = new ApplicationTreeItem((Application)target, parent);
 			else
-				visualTreeItem = new VisualTreeItem(target, parent);
+                return  new DumbVisualTreeItem(target, parent);
+				//visualTreeItem = new VisualTreeItem(target, parent);
 
 			visualTreeItem.Reload();
 
@@ -51,12 +58,7 @@ namespace Snoop
 			StringBuilder sb = new StringBuilder(50);
 
 			// [depth] name (type) numberOfChildren
-			sb.AppendFormat("[{0}] {1} ({2})", this.depth.ToString("D3"), this.name, this.Target.GetType().Name);
-			if (this.visualChildrenCount != 0)
-			{
-				sb.Append(' ');
-				sb.Append(this.visualChildrenCount.ToString());
-			}
+			sb.AppendFormat("[{0}] {1} ({2})", this.depth.ToString("D3"), this.name, this.Target.GetType().Name);			
 
 			return sb.ToString();
 		}
@@ -94,9 +96,16 @@ namespace Snoop
 		/// </summary>
 		public ObservableCollection<VisualTreeItem> Children
 		{
-			get { return this.children; }
+			get {
+			    if (children != null)
+			        return this.children;
+			    children = new ObservableCollection<VisualTreeItem>();
+			    FillChildren();
+			    return children;
+			}
 		}
-		private ObservableCollection<VisualTreeItem> children = new ObservableCollection<VisualTreeItem>();
+
+	    private ObservableCollection<VisualTreeItem> children;
 
 
 		public bool IsSelected
@@ -134,10 +143,35 @@ namespace Snoop
 				{
 					this.isExpanded = value;
 					this.OnPropertyChanged("IsExpanded");
+				    if (parent != null)
+				        parent.OnChildExpanded(this);
+				    else {
+				        OnChildExpanded(this);
+				    }
 				}
 			}
 		}
-		/// <summary>
+
+	    public event EventHandler ChildExpandedChanged;
+	    public event EventHandler BeginUpdate;
+        public event EventHandler EndUpdate;
+        private void OnChildExpanded(VisualTreeItem child) {
+	        if (parent != null) {
+                parent.OnChildExpanded(child);
+                return;	            
+	        }                
+	        if (child == null || ChildExpandedChanged == null)
+	            return;
+            ChildExpandedChanged(child, EventArgs.Empty);
+	    }
+
+	    public int GetIndex() {
+	        if (parent == null)
+	            return 0;
+	        return parent.GetIndex() + parent.Children.IndexOf(this) + 1;
+	    }
+
+	    /// <summary>
 		/// Expand this element and all elements leading to it.
 		/// Used to show this element in the tree view.
 		/// </summary>
@@ -179,8 +213,8 @@ namespace Snoop
 		/// <summary>
 		/// Update the view of this visual, rebuild children as necessary
 		/// </summary>
-		public void Reload()
-		{
+		public void Reload() {
+		    RaiseBeginUpdate(this);
             if (this.target is IFrameworkInputElement) {
                 this.name = ((IFrameworkInputElement)this.target).Name;
             } else if (DXMethods.IsFrameworkRenderElementContext(target)) {
@@ -189,28 +223,68 @@ namespace Snoop
 			this.nameLower = (this.name ?? "").ToLower();
 			this.typeNameLower = this.Target != null ? this.Target.GetType().Name.ToLower() : string.Empty;
 
-			List<VisualTreeItem> toBeRemoved = new List<VisualTreeItem>(this.Children);
-			this.Reload(toBeRemoved);
-			foreach (VisualTreeItem item in toBeRemoved)
-				this.RemoveChild(item);
-
-
-			// calculate the number of visual children
-			foreach (VisualTreeItem child in this.Children)
-			{
-				if (child is VisualItem)
-					this.visualChildrenCount++;
-
-				this.visualChildrenCount += child.visualChildrenCount;
-			}
-		}
-		protected virtual void Reload(List<VisualTreeItem> toBeRemoved)
-		{
+			this.ReloadImpl();
+		    HasChildren = GetHasChildren();
+		    if (IsExpanded) {
+		        FillChildren();
+		    }
+		    RaiseEndUpdate(this);
 		}
 
+        private void RaiseBeginUpdate(VisualTreeItem element) {
+            if (parent != null) {
+                parent.RaiseBeginUpdate(element);
+                return;
+            }
+            BeginUpdate?.Invoke(element, EventArgs.Empty);
+        }
+
+	    private void RaiseEndUpdate(VisualTreeItem element) {
+	        if (parent != null) {
+	            parent.RaiseEndUpdate(element);
+	            return;
+	        }
+	        EndUpdate?.Invoke(element, EventArgs.Empty);
+	    }
+
+	    public bool HasChildren {
+	        get { return hasChildren; }
+	        set {
+	            hasChildren = value;
+	            OnPropertyChanged("HasChildren");
+	        }
+	    }
+
+	    protected abstract bool GetHasChildren();
+
+	    protected virtual void ReloadImpl() {
+	        if (children == null)
+	            return;
+	        while (Children.Count > 0) {
+	            var child = Children[0];
+	            child.Detach();
+	            Children.RemoveAt(0);
+	        }
+	        children = null;
+	    }
+
+	    private bool fillingChildren = false;
+	    void FillChildren() {
+	        if(fillingChildren)
+                return;
+	        fillingChildren = true;
+            FillChildrenImpl();
+	        fillingChildren = false;
+	    }
+	    protected virtual void FillChildrenImpl() {
+	        
+	    }
+
+	    protected virtual void Detach() {
+	    }
 
 
-		public VisualTreeItem FindNode(object target)
+	    public VisualTreeItem FindNode(object target)
 		{
 			// it might be faster to have a map for the lookup
 			// check into this at some point            
@@ -252,28 +326,48 @@ namespace Snoop
 			if (int.TryParse(value, out n) && n == this.depth)
 				return true;
 			return false;
-		}
-
-
-		protected void RemoveChild(VisualTreeItem item)
-		{
-			item.IsSelected = false;
-			this.Children.Remove(item);
-		}
+		}		
 
 
 		private string name;
 		private string nameLower = string.Empty;
 		private string typeNameLower = string.Empty;
-		private int visualChildrenCount = 0;
+	    private bool hasChildren;
 
 
-		public event PropertyChangedEventHandler PropertyChanged;
+	    public event PropertyChangedEventHandler PropertyChanged;
 		protected void OnPropertyChanged(string propertyName)
 		{
 			Debug.Assert(this.GetType().GetProperty(propertyName) != null);
 			if (this.PropertyChanged != null)
 				this.PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
 		}
-	}
+
+	    public void Iterate(Func<VisualTreeItem, bool> enterChildrenPredicate, Action<VisualTreeItem> childAction) {
+	        childAction(this);
+	        if (enterChildrenPredicate(this))
+	            foreach (var child in Children) {
+	                child.Iterate(enterChildrenPredicate, childAction);
+	            }
+
+	    }
+
+	    public VisualTreeItem GetItemAt(int index) {
+	        return GetItemAtImpl(ref index);
+	    }
+        VisualTreeItem GetItemAtImpl(ref int index) {
+            if (index == 0)
+                return this;
+            index--;
+            VisualTreeItem result = null;
+            if (!isExpanded)
+                return null;
+            foreach (var child in Children) {
+                if (result != null)
+                    return result;
+                result = child.GetItemAtImpl(ref index);
+            }
+            return result;
+        }
+    }
 }

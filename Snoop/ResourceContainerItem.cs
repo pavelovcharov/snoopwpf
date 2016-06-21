@@ -10,34 +10,17 @@ namespace Snoop
 {
 	public abstract class ResourceContainerItem : VisualTreeItem
 	{
-		public ResourceContainerItem(object target, VisualTreeItem parent): base(target, parent)
-		{
-		}
+	    public ResourceContainerItem(object target, VisualTreeItem parent) : base(target, parent) {}
 
-		protected abstract ResourceDictionary ResourceDictionary { get; }
+	    protected abstract ResourceDictionary ResourceDictionary { get; }		
 
-		protected override void Reload(List<VisualTreeItem> toBeRemoved)
-		{
-			base.Reload(toBeRemoved);
+	    protected override void FillChildrenImpl() {
+	        base.FillChildrenImpl();
+            ResourceDictionary resources = this.ResourceDictionary;
 
-			ResourceDictionary resources = this.ResourceDictionary;
-
-			if (resources != null && resources.Count != 0)
-			{
-				bool foundItem = false;
-				foreach (VisualTreeItem item in toBeRemoved)
-				{
-					if (item.Target == resources)
-					{
-						toBeRemoved.Remove(item);
-						item.Reload();
-						foundItem = true;
-						break;
-					}
-				}
-				if (!foundItem)
-					this.Children.Add(VisualTreeItem.Construct(resources, this));
-			}
-		}
+            if (resources != null && resources.Count != 0) {
+                this.Children.Add(VisualTreeItem.Construct(resources, this));
+            }
+        }
 	}
 }

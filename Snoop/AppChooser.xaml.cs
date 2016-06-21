@@ -23,7 +23,6 @@ namespace Snoop
 	{
 		static AppChooser()
 		{
-			AppChooser.RefreshCommand.InputGestures.Add(new KeyGesture(Key.F5));
 		}
 
 		public AppChooser()
@@ -32,17 +31,13 @@ namespace Snoop
 
 			this.InitializeComponent();
 
-			this.CommandBindings.Add(new CommandBinding(AppChooser.RefreshCommand, this.HandleRefreshCommand));
 			this.CommandBindings.Add(new CommandBinding(AppChooser.InspectCommand, this.HandleInspectCommand, this.HandleCanInspectOrMagnifyCommand));
-			this.CommandBindings.Add(new CommandBinding(AppChooser.MagnifyCommand, this.HandleMagnifyCommand, this.HandleCanInspectOrMagnifyCommand));
 			this.CommandBindings.Add(new CommandBinding(AppChooser.MinimizeCommand, this.HandleMinimizeCommand));
 			this.CommandBindings.Add(new CommandBinding(ApplicationCommands.Close, this.HandleCloseCommand));
 		}
 
 
 		public static readonly RoutedCommand InspectCommand = new RoutedCommand();
-		public static readonly RoutedCommand RefreshCommand = new RoutedCommand();
-		public static readonly RoutedCommand MagnifyCommand = new RoutedCommand();
 		public static readonly RoutedCommand MinimizeCommand = new RoutedCommand();
 
 
@@ -52,42 +47,7 @@ namespace Snoop
 		}
 		private ICollectionView windowsView;
 		private ObservableCollection<WindowInfo> windows = new ObservableCollection<WindowInfo>();
-
-		public void Refresh()
-		{
-			this.windows.Clear();
-
-			Dispatcher.BeginInvoke
-			(
-				System.Windows.Threading.DispatcherPriority.Loaded,
-				(DispatcherOperationCallback)delegate
-				{
-					try
-					{
-						Mouse.OverrideCursor = Cursors.Wait;
-
-						foreach (IntPtr windowHandle in NativeMethods.ToplevelWindows)
-						{
-							WindowInfo window = new WindowInfo(windowHandle);
-							if (window.IsValidProcess && !this.HasProcess(window.OwningProcess))
-							{
-								new AttachFailedHandler(window, this);
-								this.windows.Add(window);
-							}
-						}
-
-						if (this.windows.Count > 0)
-							this.windowsView.MoveCurrentTo(this.windows[0]);
-					}
-					finally
-					{
-						Mouse.OverrideCursor = null;
-					}
-					return null;
-				},
-				null
-			);
-		}
+		
 
 		protected override void OnSourceInitialized(EventArgs e)
 		{
@@ -123,19 +83,7 @@ namespace Snoop
 			WindowInfo window = (WindowInfo)this.windowsView.CurrentItem;
 			if (window != null)
 				window.Snoop();
-		}
-		private void HandleMagnifyCommand(object sender, ExecutedRoutedEventArgs e)
-		{
-			WindowInfo window = (WindowInfo)this.windowsView.CurrentItem;
-			if (window != null)
-				window.Magnify();
-		}
-		private void HandleRefreshCommand(object sender, ExecutedRoutedEventArgs e)
-		{
-			// clear out cached process info to make the force refresh do the process check over again.
-			WindowInfo.ClearCachedProcessInfo();
-			this.Refresh();
-		}
+		}				
 		private void HandleMinimizeCommand(object sender, ExecutedRoutedEventArgs e)
 		{
 			this.WindowState = System.Windows.WindowState.Minimized;
@@ -156,12 +104,7 @@ namespace Snoop
 		public WindowInfo(IntPtr hwnd)
 		{
 			this.hwnd = hwnd;			
-		}
-
-		public static void ClearCachedProcessInfo()
-		{
-			WindowInfo.processIDToValidityMap.Clear();
-		}
+		}		
 
 		public event EventHandler<AttachFailedEventArgs> AttachFailed;
 
@@ -304,20 +247,7 @@ namespace Snoop
 				OnFailedToAttach(e);
 			}
 			Mouse.OverrideCursor = null;
-		}
-		public void Magnify()
-		{
-			Mouse.OverrideCursor = Cursors.Wait;
-			try
-			{
-				Injector.Launch(this.HWnd, typeof(Zoomer).Assembly, typeof(Zoomer).FullName, "GoBabyGo");
-			}
-			catch (Exception e)
-			{
-				OnFailedToAttach(e);
-			}
-			Mouse.OverrideCursor = null;
-		}
+		}		
 
 		private void OnFailedToAttach(Exception e)
 		{
@@ -327,9 +257,9 @@ namespace Snoop
 				handler(this, new AttachFailedEventArgs(e, this.Description));
 			}
 		}
-		
-		private static Dictionary<int, bool> processIDToValidityMap = new Dictionary<int, bool>();
-	}
+
+        private static Dictionary<int, bool> processIDToValidityMap = new Dictionary<int, bool>();
+    }
 
 	public class AttachFailedEventArgs : EventArgs
 	{
@@ -367,7 +297,6 @@ namespace Snoop
 			if (_appChooser != null)
 			{
 				// TODO This should be implmemented through the event broker, not like this.
-				_appChooser.Refresh();
 			}
 		}
 

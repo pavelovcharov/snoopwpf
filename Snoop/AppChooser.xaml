@@ -23,6 +23,7 @@ All other rights reserved.
 	AllowsTransparency="True"
 	WindowStyle="None"
 	Topmost="True"
+    MinWidth="200"
 	Background="{x:Null}"
 	Foreground="{x:Null}"
 	Style="{DynamicResource windowStyle}"
@@ -165,19 +166,7 @@ All other rights reserved.
 				</Trigger>
 			</Style.Triggers>
 		</Style>
-
-		<!-- simpleComboBoxFocusStyle -->
-		<Style x:Key="simpleComboBoxFocusStyle" TargetType="{x:Type Control}">
-			<Setter Property="Template">
-				<Setter.Value>
-					<ControlTemplate TargetType="{x:Type Control}">
-						<Border>
-							<Rectangle Margin="2" Stroke="#AFFFFFFF" StrokeThickness="1" StrokeDashArray="1 2"/>
-						</Border>
-					</ControlTemplate>
-				</Setter.Value>
-			</Setter>
-		</Style>
+		
 	</Window.Resources>
 
 	<Grid x:Name="grid">
@@ -209,8 +198,8 @@ All other rights reserved.
 		/>
 
 		<!-- application label -->
-		<StackPanel Orientation="Horizontal">
-			<TextBlock
+        <StackPanel Orientation="Horizontal">
+            <TextBlock
 				Text="SNOOP"
 				Margin="4,0,0,4"
 				VerticalAlignment="Center"
@@ -223,339 +212,18 @@ All other rights reserved.
 				IsEnabled="True"
 				Opacity="0.745"
 			/>
-		</StackPanel>
+        </StackPanel>
 
-		<!-- windows combo box -->
-		<ComboBox
-			x:Name="windowsComboBox"
-			Grid.Column="1"
-			VerticalAlignment="Center"
-			Margin="0,0,0,0"
-			Width="300"
-			Height="20"
-			Style="{DynamicResource SimpleComboBox}"
-			Foreground="#FFFFFFFF"
-			BorderThickness="0,0,0,0"
-			ItemsSource="{Binding Windows}"
-			IsSynchronizedWithCurrentItem="True"
-			FontSize="10.667"
-			FocusVisualStyle="{DynamicResource simpleComboBoxFocusStyle}"
-			ToolTip="This combo box shows the list of applications that can be Snoop(ed)."
-		/>
-
-		<!-- refresh button -->
-		<Button
-			Grid.Column="2"
-			Width="20"
-			Height="20"
-			HorizontalAlignment="Center"
-			VerticalAlignment="Center"
-			Margin="2,0,0,0"
-			Style="{StaticResource appChooserButtonStyle}"
-			Command="{x:Static my:AppChooser.RefreshCommand}"
-			ToolTip="Refresh (F5) the combo box list of applications that can be Snoop(ed)."
-		>
-			<Grid>
-				<Path Fill="{DynamicResource DeepBlueColorBrush}" Stretch="Fill" Stroke="{x:Null}" Margin="-0.104,3.939,9.354,1.686" Data="M4.333,4 L0.37273436,10.3125 3.0196258,10.3125 C3.0377636,15.483316 5.2010074,17.342296 10.143806,17.401491 L10.143806,14.916038 C6.453455,14.89251 5.5418587,13.089075 5.7292816,10.250495 L8.353837,10.250495 z"/>
-				<Path Fill="{DynamicResource DeepBlueColorBrush}" Stretch="Fill" Stroke="{x:Null}" Data="M4.333,4 L0.37273436,10.3125 3.0196258,10.3125 C3.0377636,15.483316 5.2010074,17.342296 10.143806,17.401491 L10.143806,14.916038 C6.453455,14.89251 5.5418587,13.089075 5.7292816,10.250495 L8.353837,10.250495 z" RenderTransformOrigin="0.5,0.5" Margin="9.266,1.564,-0.021,4.061">
-					<Path.RenderTransform>
-						<TransformGroup>
-							<ScaleTransform ScaleX="1" ScaleY="1"/>
-							<SkewTransform AngleX="0" AngleY="0"/>
-							<RotateTransform Angle="180"/>
-							<TranslateTransform X="0" Y="0"/>
-						</TransformGroup>
-					</Path.RenderTransform>
-				</Path>
-			</Grid>
-		</Button>
-
-		<!-- magnify button, snoop button, and the crosshairs window finder -->
-		<StackPanel
+        <!-- magnify button, snoop button, and the crosshairs window finder -->
+        <StackPanel
 			Grid.Column="3"
 			Height="20"
 			Margin="8,0,8,0"
 			Orientation="Horizontal"
 		>
-			<!-- magnify button -->
-			<Button
-				Width="40"
-				HorizontalAlignment="Stretch"
-				VerticalAlignment="Stretch"
-				Style="{DynamicResource appChooserButtonStyle}"
-				Command="{x:Static my:AppChooser.MagnifyCommand}"
-				ToolTip="Magnify the application selected in the combo box."
-				ToolTipService.ShowOnDisabled="True"
-			>
-				<Viewbox Height="16">
-					<Canvas Width="53.613" Height="26.017" Margin="0,3,0,0">
-						<Ellipse Stroke="#FF000000" Width="22" Grid.Column="3" Height="22" Canvas.Left="4.046" Canvas.Top="-2.627">
-							<Ellipse.Fill>
-								<LinearGradientBrush EndPoint="0.854,0.854" StartPoint="0.146,0.146">
-									<GradientStop Color="#FF7AA2B1" Offset="0"/>
-									<GradientStop Color="#FFFFFFFF" Offset="1"/>
-								</LinearGradientBrush>
-							</Ellipse.Fill>
-						</Ellipse>
-						<Ellipse Stroke="#FF626262" Width="16" Grid.Column="3" Height="16" Canvas.Left="7.048" Canvas.Top="0.375" Fill="{DynamicResource glassyGradientBrush}"/>
-						<Ellipse Stroke="{x:Null}" Width="9.5" Grid.Column="3" Height="9.5" Canvas.Left="9.423" Canvas.Top="2.5">
-							<Ellipse.Fill>
-								<LinearGradientBrush EndPoint="0.225,0.081" StartPoint="0.864,1.127">
-									<GradientStop Color="#BF45B5C1" Offset="0"/>
-									<GradientStop Color="#FFFFFFFF" Offset="1"/>
-								</LinearGradientBrush>
-							</Ellipse.Fill>
-						</Ellipse>
-						<Ellipse Stroke="{x:Null}" Width="6" Grid.Column="3" Height="6" Canvas.Left="14.59" Canvas.Top="7.334">
-							<Ellipse.Fill>
-								<LinearGradientBrush EndPoint="0.225,0.081" StartPoint="0.864,1.127">
-									<GradientStop Color="#596EBDC5" Offset="0"/>
-									<GradientStop Color="#2AFFFFFF" Offset="1"/>
-								</LinearGradientBrush>
-							</Ellipse.Fill>
-						</Ellipse>
-						<Rectangle RenderTransformOrigin="0.5,0.5" Stroke="#FF000000" Grid.Column="3" Width="18" Height="6" Canvas.Left="22.604" Canvas.Top="14.466">
-							<Rectangle.RenderTransform>
-								<TransformGroup>
-									<ScaleTransform ScaleX="0.99999999999999978" ScaleY="0.99999999999999978"/>
-									<SkewTransform AngleX="0" AngleY="0"/>
-									<RotateTransform Angle="28.977999999999984"/>
-									<TranslateTransform X="0" Y="0"/>
-								</TransformGroup>
-							</Rectangle.RenderTransform>
-							<Rectangle.Fill>
-								<LinearGradientBrush EndPoint="0.488,-0.138" StartPoint="0.498,0.917">
-									<GradientStop Color="#FF7AA2B1" Offset="0"/>
-									<GradientStop Color="#FFFFFFFF" Offset="1"/>
-								</LinearGradientBrush>
-							</Rectangle.Fill>
-						</Rectangle>
-						<Rectangle Stroke="#FF000000" RenderTransformOrigin="0.5,0.5" Grid.Column="3" Width="6.375" Height="6" Canvas.Left="33.667" Canvas.Top="17.537">
-							<Rectangle.RenderTransform>
-								<TransformGroup>
-									<ScaleTransform ScaleX="0.99999999999999989" ScaleY="0.99999999999999978"/>
-									<SkewTransform AngleX="0" AngleY="0"/>
-									<RotateTransform Angle="28.82"/>
-									<TranslateTransform X="0" Y="0"/>
-								</TransformGroup>
-							</Rectangle.RenderTransform>
-							<Rectangle.Fill>
-								<LinearGradientBrush EndPoint="0.497,-0.222" StartPoint="0.497,0.778">
-									<GradientStop Color="#FF7AA2B1" Offset="0"/>
-									<GradientStop Color="#FFFFFFFF" Offset="1"/>
-								</LinearGradientBrush>
-							</Rectangle.Fill>
-						</Rectangle>
-					</Canvas>
-				</Viewbox>
-			</Button>
-			<!-- crosshairs magnify window finder -->
-			<my:WindowFinder Margin="2,0,0,0" WindowFinderType="Magnify" ToolTip="Drag and drop this crosshairs over a WPF window in order to Magnify it."/>
-
-			<!-- snoop button -->
-			<Button
-				Width="40"
-				HorizontalAlignment="Right"
-				VerticalAlignment="Stretch"
-				Margin="8,0,0,0"
-				Style="{DynamicResource appChooserButtonStyle}"
-				IsDefault="True"
-				Command="{x:Static my:AppChooser.InspectCommand}"
-				ToolTip="Snoop the application selected in the combo box."
-				ToolTipService.ShowOnDisabled="True"
-			>
-				<Viewbox Height="13">
-					<Canvas Width="52" Height="20">
-						<Ellipse RenderTransformOrigin="0.5,0.5" Stroke="#FF000000" Width="8.684" Height="10.124" Canvas.Left="21.511" Canvas.Top="-1.968">
-							<Ellipse.RenderTransform>
-								<TransformGroup>
-									<ScaleTransform ScaleX="0.99999999999999989" ScaleY="0.99999999999999989"/>
-									<SkewTransform AngleX="0" AngleY="0"/>
-									<RotateTransform Angle="-10.779000000000012"/>
-									<TranslateTransform X="0" Y="0"/>
-								</TransformGroup>
-							</Ellipse.RenderTransform>
-							<Ellipse.Fill>
-								<LinearGradientBrush EndPoint="0.445,0.02" StartPoint="0.514,0.773">
-									<GradientStop Color="#FF0E1C2A" Offset="0.47"/>
-									<GradientStop Color="#FF435E7A" Offset="1"/>
-									<GradientStop Color="#FF112639" Offset="0"/>
-								</LinearGradientBrush>
-							</Ellipse.Fill>
-						</Ellipse>
-						<Path RenderTransformOrigin="0.736565284833927,0.379629566207341" Stretch="Fill" Stroke="#FF000000" Width="20.876" Height="17.246" Data="F1 M5.5415001,0.50000012 C8.3258438,0.5 10.583,3.256135 10.583,6.6560001 10.583,9.9834824 8.4092423,12.755749 5.705248,12.830148 L-9.2921996,16.745123 -9.0134602,0.57461065 5.4356275,0.52610004 C5.4704123,0.50045025 5.5059133,0.5 5.5415001,0.50000012 z" Canvas.Left="5.746" Canvas.Top="-2.159">
-							<Path.RenderTransform>
-								<TransformGroup>
-									<ScaleTransform ScaleX="0.99999999999999989" ScaleY="0.99999999999999989"/>
-									<SkewTransform AngleX="0" AngleY="0"/>
-									<RotateTransform Angle="-10.779000000000012"/>
-									<TranslateTransform X="0" Y="0"/>
-								</TransformGroup>
-							</Path.RenderTransform>
-							<Path.Fill>
-								<LinearGradientBrush EndPoint="0.445,0.02" StartPoint="0.514,0.773">
-									<GradientStop Color="#FF1B3651" Offset="0.47"/>
-									<GradientStop Color="#FF435E7A" Offset="1"/>
-									<GradientStop Color="#FF2C5070" Offset="0"/>
-								</LinearGradientBrush>
-							</Path.Fill>
-						</Path>
-						<Ellipse RenderTransformOrigin="0.5,0.5" Stroke="#FF000000" Width="14.262" Height="17.125" Canvas.Left="-0.721" Canvas.Top="0.769">
-							<Ellipse.RenderTransform>
-								<TransformGroup>
-									<ScaleTransform ScaleX="0.99999999999999989" ScaleY="0.99999999999999989"/>
-									<SkewTransform AngleX="0" AngleY="0"/>
-									<RotateTransform Angle="-10.779000000000012"/>
-									<TranslateTransform X="0" Y="0"/>
-								</TransformGroup>
-							</Ellipse.RenderTransform>
-							<Ellipse.Fill>
-								<LinearGradientBrush EndPoint="0.608,0.759" StartPoint="0.351,0.034">
-									<GradientStop Color="#FF0E1C2A" Offset="0.47"/>
-									<GradientStop Color="#FF435E7A" Offset="1"/>
-									<GradientStop Color="#FF112639" Offset="0"/>
-								</LinearGradientBrush>
-							</Ellipse.Fill>
-						</Ellipse>
-						<Ellipse RenderTransformOrigin="0.5,0.5" Fill="{DynamicResource glassyGradientBrush}" Stroke="#FF000000" Width="10" Height="11.658" Canvas.Left="1.561" Canvas.Top="3.625">
-							<Ellipse.RenderTransform>
-								<TransformGroup>
-									<ScaleTransform ScaleX="0.99999999999999989" ScaleY="0.99999999999999989"/>
-									<SkewTransform AngleX="0" AngleY="0"/>
-									<RotateTransform Angle="-10.779000000000012"/>
-									<TranslateTransform X="0" Y="0"/>
-								</TransformGroup>
-							</Ellipse.RenderTransform>
-						</Ellipse>
-						<Path Opacity="0.605" Stretch="Fill" Stroke="{x:Null}" Width="13.125" Height="5.25" Data="M11.648481,4.5434783 L13.963296,6.7119565 23.801259,3.9184783 21.542,2.375 z" Canvas.Left="11.042" Canvas.Top="-0.625">
-							<Path.Fill>
-								<LinearGradientBrush EndPoint="0.411,-0.047" StartPoint="0.548,0.84">
-									<GradientStop Color="#A098B6D4" Offset="1"/>
-									<GradientStop Color="#604B78A1" Offset="0"/>
-								</LinearGradientBrush>
-							</Path.Fill>
-						</Path>
-						<Ellipse RenderTransformOrigin="0.5,0.5" Stroke="#FF000000" Width="8.684" Height="10.124" Canvas.Left="40.011" Canvas.Top="2.657">
-							<Ellipse.RenderTransform>
-								<TransformGroup>
-									<ScaleTransform ScaleX="0.99999999999999989" ScaleY="0.99999999999999989"/>
-									<SkewTransform AngleX="0" AngleY="0"/>
-									<RotateTransform Angle="-10.779000000000012"/>
-									<TranslateTransform X="0" Y="0"/>
-								</TransformGroup>
-							</Ellipse.RenderTransform>
-							<Ellipse.Fill>
-								<LinearGradientBrush EndPoint="0.445,0.02" StartPoint="0.514,0.773">
-									<GradientStop Color="#FF0E1C2A" Offset="0.47"/>
-									<GradientStop Color="#FF435E7A" Offset="1"/>
-									<GradientStop Color="#FF112639" Offset="0"/>
-								</LinearGradientBrush>
-							</Ellipse.Fill>
-						</Ellipse>
-						<Path Stretch="Fill" Stroke="#FF000000" Width="14.75" Height="8.625" Data="M18.167,14.5 L15.667,13.5 16.042,9.875 26.292,6.875 29.417,7.75 z" Canvas.Left="15.042" Canvas.Top="3.875">
-							<Path.Fill>
-								<LinearGradientBrush EndPoint="0.251,0.403" StartPoint="0.061,0.794">
-									<GradientStop Color="#FF0E1C2A" Offset="0.47"/>
-									<GradientStop Color="#FF435E7A" Offset="1"/>
-									<GradientStop Color="#FF06111A" Offset="0"/>
-								</LinearGradientBrush>
-							</Path.Fill>
-						</Path>
-						<Path RenderTransformOrigin="0.736565284833927,0.379629566207341" Stretch="Fill" Stroke="#FF000000" Width="20.876" Height="17.246" Data="F1 M5.5415001,0.50000012 C8.3258438,0.5 10.583,3.256135 10.583,6.6560001 10.583,9.9834824 8.4092423,12.755749 5.705248,12.830148 L-9.2921996,16.745123 -9.0134602,0.57461065 5.4356275,0.52610004 C5.4704123,0.50045025 5.5059133,0.5 5.5415001,0.50000012 z" Canvas.Left="24.246" Canvas.Top="2.466">
-							<Path.RenderTransform>
-								<TransformGroup>
-									<ScaleTransform ScaleX="0.99999999999999989" ScaleY="0.99999999999999989"/>
-									<SkewTransform AngleX="0" AngleY="0"/>
-									<RotateTransform Angle="-10.779000000000012"/>
-									<TranslateTransform X="0" Y="0"/>
-								</TransformGroup>
-							</Path.RenderTransform>
-							<Path.Fill>
-								<LinearGradientBrush EndPoint="0.445,0.02" StartPoint="0.514,0.773">
-									<GradientStop Color="#FF1B3651" Offset="0.47"/>
-									<GradientStop Color="#FF435E7A" Offset="1"/>
-									<GradientStop Color="#FF2C5070" Offset="0"/>
-								</LinearGradientBrush>
-							</Path.Fill>
-						</Path>
-						<Ellipse RenderTransformOrigin="0.5,0.5" Stroke="#FF000000" Width="14.262" Height="17.125" Canvas.Left="17.779" Canvas.Top="5.394">
-							<Ellipse.RenderTransform>
-								<TransformGroup>
-									<ScaleTransform ScaleX="0.99999999999999989" ScaleY="0.99999999999999989"/>
-									<SkewTransform AngleX="0" AngleY="0"/>
-									<RotateTransform Angle="-10.779000000000012"/>
-									<TranslateTransform X="0" Y="0"/>
-								</TransformGroup>
-							</Ellipse.RenderTransform>
-							<Ellipse.Fill>
-								<LinearGradientBrush EndPoint="0.608,0.759" StartPoint="0.351,0.034">
-									<GradientStop Color="#FF0E1C2A" Offset="0.47"/>
-									<GradientStop Color="#FF435E7A" Offset="1"/>
-									<GradientStop Color="#FF112639" Offset="0"/>
-								</LinearGradientBrush>
-							</Ellipse.Fill>
-						</Ellipse>
-						<Ellipse RenderTransformOrigin="0.5,0.5" Stroke="#FF000000" Width="10" Height="11.658" Canvas.Left="20.061" Canvas.Top="8.25">
-							<Ellipse.RenderTransform>
-								<TransformGroup>
-									<ScaleTransform ScaleX="0.99999999999999989" ScaleY="0.99999999999999989"/>
-									<SkewTransform AngleX="0" AngleY="0"/>
-									<RotateTransform Angle="-10.779000000000012"/>
-									<TranslateTransform X="0" Y="0"/>
-								</TransformGroup>
-							</Ellipse.RenderTransform>
-							<Ellipse.Fill>
-								<LinearGradientBrush EndPoint="0.296,0.05" StartPoint="0.704,0.95">
-									<GradientStop Color="#FF329CA5" Offset="0"/>
-									<GradientStop Color="#FFAEF2FA" Offset="1"/>
-								</LinearGradientBrush>
-							</Ellipse.Fill>
-						</Ellipse>
-						<Path Opacity="0.605" Stretch="Fill" Stroke="{x:Null}" Width="13.125" Height="5.25" Data="M11.648481,4.5434783 L13.963296,6.7119565 23.801259,3.9184783 21.542,2.375 z" Canvas.Left="29.542" Canvas.Top="4">
-							<Path.Fill>
-								<LinearGradientBrush EndPoint="0.411,-0.047" StartPoint="0.548,0.84">
-									<GradientStop Color="#A098B6D4" Offset="1"/>
-									<GradientStop Color="#604B78A1" Offset="0"/>
-								</LinearGradientBrush>
-							</Path.Fill>
-						</Path>
-						<Ellipse RenderTransformOrigin="0.5,0.5" Stroke="{x:Null}" Width="4.75" Height="5.875" Canvas.Left="3.667" Canvas.Top="5.375">
-							<Ellipse.RenderTransform>
-								<TransformGroup>
-									<ScaleTransform ScaleX="1.0000000000000002" ScaleY="1.0000000000000002"/>
-									<SkewTransform AngleX="0" AngleY="0"/>
-									<RotateTransform Angle="-119.87900000000002"/>
-									<TranslateTransform X="0" Y="0"/>
-								</TransformGroup>
-							</Ellipse.RenderTransform>
-							<Ellipse.Fill>
-								<LinearGradientBrush EndPoint="0.864,0.522" StartPoint="-0.103,0.611">
-									<GradientStop Color="#9DFFFFFF" Offset="1"/>
-									<GradientStop Color="#903EDCEA" Offset="0"/>
-								</LinearGradientBrush>
-							</Ellipse.Fill>
-						</Ellipse>
-						<Ellipse RenderTransformOrigin="0.5,0.5" Stroke="{x:Null}" Width="4.75" Height="5.875" Canvas.Left="22.015" Canvas.Top="9.658">
-							<Ellipse.RenderTransform>
-								<TransformGroup>
-									<ScaleTransform ScaleX="1.0000000000000002" ScaleY="1.0000000000000002"/>
-									<SkewTransform AngleX="0" AngleY="0"/>
-									<RotateTransform Angle="-119.87900000000002"/>
-									<TranslateTransform X="0" Y="0"/>
-								</TransformGroup>
-							</Ellipse.RenderTransform>
-							<Ellipse.Fill>
-								<LinearGradientBrush EndPoint="0.864,0.522" StartPoint="-0.103,0.611">
-									<GradientStop Color="#9DFFFFFF" Offset="1"/>
-									<GradientStop Color="#903EDCEA" Offset="0"/>
-								</LinearGradientBrush>
-							</Ellipse.Fill>
-						</Ellipse>
-					</Canvas>
-				</Viewbox>
-			</Button>
+            <!-- snoop button -->			
 			<!-- crosshairs snoop window finder -->
-			<my:WindowFinder Margin="2,0,0,0" WindowFinderType="Snoop" ToolTip="Drag and drop this crosshairs over a WPF window in order to Snoop it."/>
+			<my:WindowFinder Margin="2,0,0,0" ToolTip="Drag and drop this crosshairs over a WPF window in order to Snoop it."/>
 		</StackPanel>
 
 		<!-- minimizeButton -->

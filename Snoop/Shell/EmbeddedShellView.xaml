@@ -48,7 +48,7 @@
 		>
 			<TextBox.ToolTip>
 				<StackPanel MaxWidth="300">
-					<TextBlock Text="F5 - Reload Profile"/>
+					<TextBlock Text="F5 - ReloadImpl Profile"/>
 					<TextBlock Text="F12 - Clear Output"/>
 				</StackPanel>
 			</TextBox.ToolTip>
