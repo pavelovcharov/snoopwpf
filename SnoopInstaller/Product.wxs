@@ -4,7 +4,7 @@
 	<!-- Product code changes AND version number changes (first 3 digits), then a major upgrade will be triggered. -->
 	
 	<!-- One spot to update version :) -->
-	<?define ProductVersion="2.8.0" ?>
+	<?define ProductVersion="2.10.0" ?>
 	<Product
 		Id="*"
 		Name="Snoop"
@@ -73,6 +73,16 @@
 							Name="Snoop.exe.config"
 							Source="..\Build\Release\Snoop.exe.config"
 						/>						
+            <File
+							Id="ReflectionHelper"
+							Name="ReflectionHelper.dll"
+							Source="..\Build\Release\ReflectionHelper.dll"
+						/>
+            <File
+							Id="CommandLine"
+							Name="CommandLine.dll"
+							Source="..\Build\Release\CommandLine.dll"
+						/>
 						<File
 							Id="ManagedInjectorLauncher3240"
 							Name="ManagedInjectorLauncher32-4.0.exe"

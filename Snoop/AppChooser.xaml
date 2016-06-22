@@ -23,7 +23,6 @@ All other rights reserved.
     AllowsTransparency="True"
     WindowStyle="None"
     Topmost="True"
-    MinWidth="200"
     Background="{x:Null}"
     Foreground="{x:Null}"
     Style="{DynamicResource windowStyle}"

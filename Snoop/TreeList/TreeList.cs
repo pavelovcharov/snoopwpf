@@ -31,6 +31,46 @@ namespace Snoop.TreeList {
             ItemsPanel = GetItemsPanelTemplate();
             set_CanSelectMultiple(this, false);
             SizeChanged += OnSizeChanged;
+            KeyDown += OnKeyDown;
+            MouseLeftButtonDown += TreeList_MouseLeftButtonDown;
+        }
+
+        private void TreeList_MouseLeftButtonDown(object sender, MouseButtonEventArgs e) {
+            Focus();
+        }
+
+        void OnKeyDown(object sender, KeyEventArgs e) {
+            var selected = SelectedItem as VisualTreeItem;
+            switch (e.Key) {
+                case Key.Left:
+                    e.Handled = true;
+                    if (selected==null)
+                        break;
+                    if (selected.IsExpanded) {
+                        selected.IsExpanded = false;                        
+                        break;
+                    }
+                    Items.MoveCurrentToPrevious();
+                    break;
+                case Key.Right:
+                    e.Handled = true;
+                    if (selected == null)
+                        break;
+                    if (!selected.IsExpanded) {
+                        selected.IsExpanded = true;                        
+                        break;
+                    }
+                    Items.MoveCurrentToNext();
+                    break;
+                case Key.Down:
+                    Items.MoveCurrentToNext();
+                    e.Handled = true;
+                    break;
+                case Key.Up:
+                    Items.MoveCurrentToPrevious();
+                    e.Handled = true;
+                    break;
+            }
         }
 
         protected Panel MyItemsHost {
@@ -39,7 +79,7 @@ namespace Snoop.TreeList {
 
         void OnSizeChanged(object sender, SizeChangedEventArgs e) {
             UpdateIndicator();
-        }
+        }                
 
         ItemsPanelTemplate GetItemsPanelTemplate() {
             var result = new ItemsPanelTemplate();

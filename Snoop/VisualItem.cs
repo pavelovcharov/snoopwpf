@@ -95,7 +95,7 @@ namespace Snoop {
         }
 
         protected override bool GetHasChildren() {
-            return Visual != null && CommonTreeHelper.GetChildrenCount(Visual) > 0;
+            return Visual != null && CommonTreeHelper.GetChildrenCount(Visual) > 0 || Visual is Window;
         }
 
         void VisualDiagnostics_VisualTreeChanged(object sender, VisualTreeChangeEventArgs e) {

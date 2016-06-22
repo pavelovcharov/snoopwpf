@@ -124,40 +124,6 @@ namespace Snoop.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("\r\n        <?xml version=\"1.0\" encoding=\"utf-16\"?>\r\n        <ArrayOfPropertyFilter" +
-            "Set xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\r\n        xmlns:xsd=\"ht" +
-            "tp://www.w3.org/2001/XMLSchema\">\r\n        <PropertyFilterSet>\r\n        <DisplayN" +
-            "ame>Layout</DisplayName>\r\n        <IsDefault>false</IsDefault>\r\n        <IsEditC" +
-            "ommand>false</IsEditCommand>\r\n        <Properties>\r\n        <string>width</strin" +
-            "g>\r\n        <string>height</string>\r\n        <string>actualwidth</string>\r\n     " +
-            "   <string>actualheight</string>\r\n        <string>margin</string>\r\n        <stri" +
-            "ng>padding</string>\r\n        <string>canvas.left</string>\r\n        <string>canva" +
-            "s.top</string>\r\n        </Properties>\r\n        </PropertyFilterSet>\r\n        <Pr" +
-            "opertyFilterSet>\r\n        <DisplayName>Grid/Dock</DisplayName>\r\n        <IsDefau" +
-            "lt>false</IsDefault>\r\n        <IsEditCommand>false</IsEditCommand>\r\n        <Pro" +
-            "perties>\r\n        <string>grid.</string>\r\n        <string>dockpanel.dock</string" +
-            ">\r\n        </Properties>\r\n        </PropertyFilterSet>\r\n        <PropertyFilterS" +
-            "et>\r\n        <DisplayName>Color</DisplayName>\r\n        <IsDefault>false</IsDefau" +
-            "lt>\r\n        <IsEditCommand>false</IsEditCommand>\r\n        <Properties>\r\n       " +
-            " <string>color</string>\r\n        <string>background</string>\r\n        <string>fo" +
-            "reground</string>\r\n        <string>borderbrush</string>\r\n        <string>fill</s" +
-            "tring>\r\n        <string>stroke</string>\r\n        </Properties>\r\n        </Proper" +
-            "tyFilterSet>\r\n        <PropertyFilterSet>\r\n        <DisplayName>ItemsControl</Di" +
-            "splayName>\r\n        <IsDefault>false</IsDefault>\r\n        <IsEditCommand>false</" +
-            "IsEditCommand>\r\n        <Properties>\r\n        <string>items</string>\r\n        <s" +
-            "tring>selected</string>\r\n        </Properties>\r\n        </PropertyFilterSet>\r\n  " +
-            "      </ArrayOfPropertyFilterSet>\r\n      ")]
-        public string PropertyFilterSets {
-            get {
-                return ((string)(this["PropertyFilterSets"]));
-            }
-            set {
-                this["PropertyFilterSets"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("True")]
         public bool ShowDefaults {
             get {
@@ -189,6 +155,41 @@ namespace Snoop.Properties {
             }
             set {
                 this["SnoopDebugFilters"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("\r\n          <?xml version=\"1.0\" encoding=\"utf-16\"?>\r\n          <ArrayOfPropertyFi" +
+            "lterSet xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\r\n          xmlns:x" +
+            "sd=\"http://www.w3.org/2001/XMLSchema\">\r\n          <PropertyFilterSet>\r\n         " +
+            " <DisplayName>Layout</DisplayName>\r\n          <IsDefault>false</IsDefault>\r\n    " +
+            "      <IsEditCommand>false</IsEditCommand>\r\n          <Properties>\r\n          <s" +
+            "tring>width</string>\r\n          <string>height</string>\r\n          <string>actua" +
+            "lwidth</string>\r\n          <string>actualheight</string>\r\n          <string>marg" +
+            "in</string>\r\n          <string>padding</string>\r\n          <string>canvas.left</" +
+            "string>\r\n          <string>canvas.top</string>\r\n          </Properties>\r\n       " +
+            "   </PropertyFilterSet>\r\n          <PropertyFilterSet>\r\n          <DisplayName>G" +
+            "rid/Dock</DisplayName>\r\n          <IsDefault>false</IsDefault>\r\n          <IsEdi" +
+            "tCommand>false</IsEditCommand>\r\n          <Properties>\r\n          <string>grid.<" +
+            "/string>\r\n          <string>dockpanel.dock</string>\r\n          </Properties>\r\n  " +
+            "        </PropertyFilterSet>\r\n          <PropertyFilterSet>\r\n          <DisplayN" +
+            "ame>Color</DisplayName>\r\n          <IsDefault>false</IsDefault>\r\n          <IsEd" +
+            "itCommand>false</IsEditCommand>\r\n          <Properties>\r\n          <string>color" +
+            "</string>\r\n          <string>background</string>\r\n          <string>foreground</" +
+            "string>\r\n          <string>borderbrush</string>\r\n          <string>fill</string>" +
+            "\r\n          <string>stroke</string>\r\n          </Properties>\r\n          </Proper" +
+            "tyFilterSet>\r\n          <PropertyFilterSet>\r\n          <DisplayName>ItemsControl" +
+            "</DisplayName>\r\n          <IsDefault>false</IsDefault>\r\n          <IsEditCommand" +
+            ">false</IsEditCommand>\r\n          <Properties>\r\n          <string>items</string>" +
+            "\r\n          <string>selected</string>\r\n          </Properties>\r\n          </Prop" +
+            "ertyFilterSet>\r\n          </ArrayOfPropertyFilterSet>\r\n        ")]
+        public string PropertyFilterSets {
+            get {
+                return ((string)(this["PropertyFilterSets"]));
+            }
+            set {
+                this["PropertyFilterSets"] = value;
             }
         }
     }
