@@ -42,10 +42,18 @@ namespace Snoop
 		public static readonly RoutedCommand CopyPropertyChangesCommand = new RoutedCommand("CopyPropertyChanges", typeof(SnoopUI));
 		#endregion
 
+	    public static readonly DependencyProperty EnableLiveTreeProperty = DependencyProperty.Register(
+	        "EnableLiveTree", typeof(bool), typeof(SnoopUI),
+	        new PropertyMetadata(default(bool), (o, e) => VisualDiagnosticsExtensions.Enabled = (bool) e.NewValue));
+
+	    public bool EnableLiveTree {
+	        get { return (bool) GetValue(EnableLiveTreeProperty); }
+	        set { SetValue(EnableLiveTreeProperty, value); }
+	    }
+
 		#region Static Constructor
 		static SnoopUI() {
-            AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;		    
-		    VisualDiagnosticsExtensions.Enabled = true;
+            AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;		    		    
 			SnoopUI.IntrospectCommand.InputGestures.Add(new KeyGesture(Key.I, ModifierKeys.Control));
 			SnoopUI.RefreshCommand.InputGestures.Add(new KeyGesture(Key.F5));
 			SnoopUI.HelpCommand.InputGestures.Add(new KeyGesture(Key.F1));
@@ -325,15 +333,15 @@ namespace Snoop
 						this.currentSelection.IsSelected = false;
 					}
 
-					this.currentSelection = value;
-                    Tree.Select(value);
+					this.currentSelection = value;                    
 					if (this.currentSelection != null)
 					{
 						this.currentSelection.IsSelected = true;
 						_lastNonNullSelection = currentSelection;
 					}
+                    Tree.Select(value);
 
-					this.OnPropertyChanged("CurrentSelection");
+                    this.OnPropertyChanged("CurrentSelection");
 					this.OnPropertyChanged("CurrentFocusScope");
 
 					if (this.visualTreeItems.Count > 1 || this.visualTreeItems.Count == 1 && this.visualTreeItems[0] != this.rootVisualTreeItem)

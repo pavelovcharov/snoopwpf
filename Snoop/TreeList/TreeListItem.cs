@@ -48,6 +48,9 @@ namespace Snoop.TreeList {
             }
         }
 
+        public TreeListItem() {
+            Height = 16d;
+        }
         protected ContentPresenter Header { get; private set; }
         protected FrameworkElement HeaderHost { get; private set; }
 

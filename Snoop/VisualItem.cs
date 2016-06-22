@@ -37,6 +37,8 @@ namespace Snoop
 	    }
 
 	    private void VisualDiagnostics_VisualTreeChanged(object sender, VisualTreeChangeEventArgs e) {
+	        if (!VisualDiagnosticsExtensions.Enabled)
+	            return;
             if(Equals(e.Parent, Visual))
                 Reload();
         }

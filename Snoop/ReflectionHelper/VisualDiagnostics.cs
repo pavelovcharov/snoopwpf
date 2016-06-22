@@ -25,8 +25,8 @@ namespace Snoop {
         private static bool enabled;
         private static IVisualDiagnostics instanceVisualDiagnostics;
         public static bool Enabled {
-            get { return instanceVisualDiagnostics.Enabled; }
-            set { instanceVisualDiagnostics.Enabled = value; }
+            get { return enabled; }
+            set { enabled = instanceVisualDiagnostics.Enabled = value; }
         }
     }
 }
