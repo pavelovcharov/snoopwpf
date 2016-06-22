@@ -11,87 +11,63 @@ using System.Management.Automation.Host;
 using System.Reflection;
 using System.Threading;
 
-namespace Snoop.Shell
-{
-    internal class SnoopPSHost : PSHost
-    {
-        private readonly Guid id = Guid.NewGuid();
-        private readonly SnoopPSHostUserInterface ui;
-        private readonly PSObject privateData;
-        private readonly Hashtable privateHashtable;
+namespace Snoop.Shell {
+    internal class SnoopPSHost : PSHost {
+        readonly Guid id = Guid.NewGuid();
+        readonly Hashtable privateHashtable;
+        readonly SnoopPSHostUserInterface ui;
 
-        public SnoopPSHost(Action<string> onOutput)
-        {
-            this.ui = new SnoopPSHostUserInterface();
-            this.ui.OnDebug += onOutput;
-            this.ui.OnError += onOutput;
-            this.ui.OnVerbose += onOutput;
-            this.ui.OnWarning += onOutput;
-            this.ui.OnWrite += onOutput;
+        public SnoopPSHost(Action<string> onOutput) {
+            ui = new SnoopPSHostUserInterface();
+            ui.OnDebug += onOutput;
+            ui.OnError += onOutput;
+            ui.OnVerbose += onOutput;
+            ui.OnWarning += onOutput;
+            ui.OnWrite += onOutput;
 
-            this.privateHashtable = new Hashtable();
-            this.privateData = new PSObject(this.privateHashtable);
+            privateHashtable = new Hashtable();
+            PrivateData = new PSObject(privateHashtable);
         }
 
-        public override void SetShouldExit(int exitCode)
-        {
-        }
-
-        public override void EnterNestedPrompt()
-        {
-        }
-
-        public override void ExitNestedPrompt()
-        {
-        }
-
-        public override void NotifyBeginApplication()
-        {
-        }
-
-        public override void NotifyEndApplication()
-        {
-        }
-
-        public override CultureInfo CurrentCulture
-        {
+        public override CultureInfo CurrentCulture {
             get { return Thread.CurrentThread.CurrentCulture; }
         }
 
-        public override CultureInfo CurrentUICulture
-        {
+        public override CultureInfo CurrentUICulture {
             get { return Thread.CurrentThread.CurrentUICulture; }
         }
 
-        public override Guid InstanceId
-        {
-            get { return this.id; }
+        public override Guid InstanceId {
+            get { return id; }
         }
 
-        public override string Name
-        {
-            get { return this.id.ToString(); }
+        public override string Name {
+            get { return id.ToString(); }
         }
 
-        public override PSHostUserInterface UI
-        {
-            get { return this.ui; }
+        public override PSHostUserInterface UI {
+            get { return ui; }
         }
 
-        public override Version Version
-        {
+        public override Version Version {
             get { return Assembly.GetExecutingAssembly().GetName().Version; }
         }
 
-        public override PSObject PrivateData
-        {
-            get { return this.privateData; }
+        public override PSObject PrivateData { get; }
+
+        public object this[string name] {
+            get { return privateHashtable[name]; }
+            set { privateHashtable[name] = value; }
         }
 
-        public object this[string name]
-        {
-            get { return this.privateHashtable[name]; }
-            set { this.privateHashtable[name] = value; }
-        }
+        public override void SetShouldExit(int exitCode) {}
+
+        public override void EnterNestedPrompt() {}
+
+        public override void ExitNestedPrompt() {}
+
+        public override void NotifyBeginApplication() {}
+
+        public override void NotifyEndApplication() {}
     }
 }

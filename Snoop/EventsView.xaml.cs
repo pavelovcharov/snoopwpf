@@ -9,181 +9,152 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Globalization;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Controls;
 using Snoop.Infrastructure;
 
-namespace Snoop
-{
-	public partial class EventsView : INotifyPropertyChanged
-	{
-		public static readonly RoutedCommand ClearCommand = new RoutedCommand();
+namespace Snoop {
+    public partial class EventsView : INotifyPropertyChanged {
+        public static readonly RoutedCommand ClearCommand = new RoutedCommand();
 
 
-		public EventsView()
-		{
-			this.InitializeComponent();
+        static readonly List<RoutedEvent> defaultEvents =
+            new List<RoutedEvent>
+                (
+                new[] {
+                    Keyboard.KeyDownEvent,
+                    Keyboard.KeyUpEvent,
+                    TextCompositionManager.TextInputEvent,
+                    Mouse.MouseDownEvent,
+                    Mouse.PreviewMouseDownEvent,
+                    Mouse.MouseUpEvent,
+                    CommandManager.ExecutedEvent
+                }
+                );
 
-			List<EventTracker> sorter = new List<EventTracker>();
-
-			foreach (RoutedEvent routedEvent in EventManager.GetRoutedEvents())
-			{
-				EventTracker tracker = new EventTracker(typeof(UIElement), routedEvent);
-				tracker.EventHandled += this.HandleEventHandled;
-				sorter.Add(tracker);
-
-				if (EventsView.defaultEvents.Contains(routedEvent))
-					tracker.IsEnabled = true;
-			}
-
-			sorter.Sort();
-			foreach (EventTracker tracker in sorter)
-				this.trackers.Add(tracker);
-
-			this.CommandBindings.Add(new CommandBinding(EventsView.ClearCommand, this.HandleClear));
-		}
+        readonly ObservableCollection<TrackedEvent> interestingEvents = new ObservableCollection<TrackedEvent>();
 
 
-		public IEnumerable InterestingEvents
-		{
-			get { return this.interestingEvents; }
-		}
-		private ObservableCollection<TrackedEvent> interestingEvents = new ObservableCollection<TrackedEvent>();
-
-		public object AvailableEvents
-		{
-			get
-			{
-				PropertyGroupDescription pgd = new PropertyGroupDescription();
-				pgd.PropertyName = "Category";
-				pgd.StringComparison = StringComparison.OrdinalIgnoreCase;
-
-				CollectionViewSource cvs = new CollectionViewSource();
-				cvs.SortDescriptions.Add(new SortDescription("Category", ListSortDirection.Ascending));
-				cvs.SortDescriptions.Add(new SortDescription("Name", ListSortDirection.Ascending));
-				cvs.GroupDescriptions.Add(pgd);
-
-				cvs.Source = this.trackers;
-
-				cvs.View.Refresh();
-				return cvs.View;
-			}
-		}
+        readonly ObservableCollection<EventTracker> trackers = new ObservableCollection<EventTracker>();
 
 
-		private void HandleEventHandled(TrackedEvent trackedEvent)
-		{
-			Visual visual = trackedEvent.Originator.Handler as Visual;
-			if (visual != null && !visual.IsPartOfSnoopVisualTree())
-			{
-				Action action =
-					() =>
-					{
-						this.interestingEvents.Add(trackedEvent);
+        public EventsView() {
+            InitializeComponent();
 
-						while (this.interestingEvents.Count > 100)
-							this.interestingEvents.RemoveAt(0);
+            var sorter = new List<EventTracker>();
 
-						TreeViewItem tvi = (TreeViewItem)this.EventTree.ItemContainerGenerator.ContainerFromItem(trackedEvent);
-						if (tvi != null)
-							tvi.BringIntoView();
-					};
+            foreach (var routedEvent in EventManager.GetRoutedEvents()) {
+                var tracker = new EventTracker(typeof(UIElement), routedEvent);
+                tracker.EventHandled += HandleEventHandled;
+                sorter.Add(tracker);
 
-				if (!this.Dispatcher.CheckAccess())
-				{
-					this.Dispatcher.BeginInvoke(action);
-				}
-				else
-				{
-					action.Invoke();
-				}
-			}
-		}
-		private void HandleClear(object sender, ExecutedRoutedEventArgs e)
-		{
-			this.interestingEvents.Clear();
-		}
+                if (defaultEvents.Contains(routedEvent))
+                    tracker.IsEnabled = true;
+            }
 
-		private void EventTree_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
-		{
-			if (e.NewValue != null)
-			{
-				if (e.NewValue is EventEntry)
-					SnoopUI.InspectCommand.Execute(((EventEntry)e.NewValue).Handler, this);
-				else if (e.NewValue is TrackedEvent)
-					SnoopUI.InspectCommand.Execute(((TrackedEvent)e.NewValue).EventArgs, this);
-			}
-		}
+            sorter.Sort();
+            foreach (var tracker in sorter)
+                trackers.Add(tracker);
+
+            CommandBindings.Add(new CommandBinding(ClearCommand, HandleClear));
+        }
 
 
-		private ObservableCollection<EventTracker> trackers = new ObservableCollection<EventTracker>();
+        public IEnumerable InterestingEvents {
+            get { return interestingEvents; }
+        }
+
+        public object AvailableEvents {
+            get {
+                var pgd = new PropertyGroupDescription();
+                pgd.PropertyName = "Category";
+                pgd.StringComparison = StringComparison.OrdinalIgnoreCase;
+
+                var cvs = new CollectionViewSource();
+                cvs.SortDescriptions.Add(new SortDescription("Category", ListSortDirection.Ascending));
+                cvs.SortDescriptions.Add(new SortDescription("Name", ListSortDirection.Ascending));
+                cvs.GroupDescriptions.Add(pgd);
+
+                cvs.Source = trackers;
+
+                cvs.View.Refresh();
+                return cvs.View;
+            }
+        }
 
 
-		private static List<RoutedEvent> defaultEvents =
-			new List<RoutedEvent>
-			(
-				new RoutedEvent[]
-				{
-					Keyboard.KeyDownEvent,
-					Keyboard.KeyUpEvent,
-					TextCompositionManager.TextInputEvent,
-					Mouse.MouseDownEvent,
-					Mouse.PreviewMouseDownEvent,
-					Mouse.MouseUpEvent,
-					CommandManager.ExecutedEvent,
-				}
-			);
+        void HandleEventHandled(TrackedEvent trackedEvent) {
+            var visual = trackedEvent.Originator.Handler as Visual;
+            if (visual != null && !visual.IsPartOfSnoopVisualTree()) {
+                Action action =
+                    () => {
+                        interestingEvents.Add(trackedEvent);
+
+                        while (interestingEvents.Count > 100)
+                            interestingEvents.RemoveAt(0);
+
+                        var tvi = (TreeViewItem) EventTree.ItemContainerGenerator.ContainerFromItem(trackedEvent);
+                        if (tvi != null)
+                            tvi.BringIntoView();
+                    };
+
+                if (!Dispatcher.CheckAccess()) {
+                    Dispatcher.BeginInvoke(action);
+                }
+                else {
+                    action.Invoke();
+                }
+            }
+        }
+
+        void HandleClear(object sender, ExecutedRoutedEventArgs e) {
+            interestingEvents.Clear();
+        }
+
+        void EventTree_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e) {
+            if (e.NewValue != null) {
+                if (e.NewValue is EventEntry)
+                    SnoopUI.InspectCommand.Execute(((EventEntry) e.NewValue).Handler, this);
+                else if (e.NewValue is TrackedEvent)
+                    SnoopUI.InspectCommand.Execute(((TrackedEvent) e.NewValue).EventArgs, this);
+            }
+        }
+
+        #region INotifyPropertyChanged Members
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected void OnPropertyChanged(string propertyName) {
+            Debug.Assert(GetType().GetProperty(propertyName) != null);
+            if (PropertyChanged != null)
+                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        #endregion
+    }
+
+    public class InterestingEvent {
+        public InterestingEvent(object handledBy, RoutedEventArgs eventArgs) {
+            HandledBy = handledBy;
+            TriggeredOn = null;
+            EventArgs = eventArgs;
+        }
 
 
-		#region INotifyPropertyChanged Members
-		public event PropertyChangedEventHandler PropertyChanged;
-		protected void OnPropertyChanged(string propertyName)
-		{
-			Debug.Assert(this.GetType().GetProperty(propertyName) != null);
-			if (this.PropertyChanged != null)
-				this.PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
-		}
-		#endregion
-	}
-
-	public class InterestingEvent
-	{
-		public InterestingEvent(object handledBy, RoutedEventArgs eventArgs)
-		{
-			this.handledBy = handledBy;
-			this.triggeredOn = null;
-			this.eventArgs = eventArgs;
-		}
+        public RoutedEventArgs EventArgs { get; }
 
 
-		public RoutedEventArgs EventArgs
-		{
-			get { return this.eventArgs; }
-		}
-		private RoutedEventArgs eventArgs;
+        public object HandledBy { get; }
 
 
-		public object HandledBy
-		{
-			get { return this.handledBy; }
-		}
-		private object handledBy;
+        public object TriggeredOn { get; }
 
 
-		public object TriggeredOn
-		{
-			get { return this.triggeredOn; }
-		}
-		private object triggeredOn;
-
-
-		public bool Handled
-		{
-			get { return this.handledBy != null; }
-		}
-	}
+        public bool Handled {
+            get { return HandledBy != null; }
+        }
+    }
 }

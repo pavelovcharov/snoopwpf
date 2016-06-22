@@ -4,23 +4,20 @@
 // All other rights reserved.
 
 using System.Windows;
-using System.Collections.Generic;
 
-namespace Snoop
-{
-	public abstract class ResourceContainerItem : VisualTreeItem
-	{
-	    public ResourceContainerItem(object target, VisualTreeItem parent) : base(target, parent) {}
+namespace Snoop {
+    public abstract class ResourceContainerItem : VisualTreeItem {
+        public ResourceContainerItem(object target, VisualTreeItem parent) : base(target, parent) {}
 
-	    protected abstract ResourceDictionary ResourceDictionary { get; }		
+        protected abstract ResourceDictionary ResourceDictionary { get; }
 
-	    protected override void FillChildrenImpl() {
-	        base.FillChildrenImpl();
-            ResourceDictionary resources = this.ResourceDictionary;
+        protected override void FillChildrenImpl() {
+            base.FillChildrenImpl();
+            var resources = ResourceDictionary;
 
             if (resources != null && resources.Count != 0) {
-                this.Children.Add(VisualTreeItem.Construct(resources, this));
+                Children.Add(Construct(resources, this));
             }
         }
-	}
+    }
 }

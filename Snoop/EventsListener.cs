@@ -10,100 +10,82 @@ using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Media;
 
-namespace Snoop
-{
-	/// <summary>
-	/// Class that shows all the routed events occurring on a visual.
-	/// VERY dangerous (cannot unregister for the events) and doesn't work all that great.
-	/// Stay far away from this code :)
-	/// </summary>
-	public class EventsListener
-	{
-		public EventsListener(Visual visual)
-		{
-			EventsListener.current = this;
-			this.visual = visual;
+namespace Snoop {
+    /// <summary>
+    ///     Class that shows all the routed events occurring on a visual.
+    ///     VERY dangerous (cannot unregister for the events) and doesn't work all that great.
+    ///     Stay far away from this code :)
+    /// </summary>
+    public class EventsListener {
+        static EventsListener current;
 
-			Type type = visual.GetType();
+        static readonly Dictionary<Type, Type> registeredTypes = new Dictionary<Type, Type>();
+        public static string filter;
+        readonly Visual visual;
 
-			// Cannot unregister for events once we've registered, so keep the registration simple and only do it once.
-			for (Type baseType = type; baseType != null; baseType = baseType.BaseType)
-			{
-				if (!registeredTypes.ContainsKey(baseType))
-				{
-					registeredTypes[baseType] = baseType;
+        public EventsListener(Visual visual) {
+            current = this;
+            this.visual = visual;
 
-					RoutedEvent[] routedEvents = EventManager.GetRoutedEventsForOwner(baseType);
-					if (routedEvents != null)
-					{
-						foreach (RoutedEvent routedEvent in routedEvents)
-							EventManager.RegisterClassHandler(baseType, routedEvent, new RoutedEventHandler(EventsListener.HandleEvent), true);
-					}
-				}
-			}
-		}
+            var type = visual.GetType();
 
-		public ObservableCollection<EventInformation> Events
-		{
-			get { return this.events; }
-		}
-		private ObservableCollection<EventInformation> events = new ObservableCollection<EventInformation>();
+            // Cannot unregister for events once we've registered, so keep the registration simple and only do it once.
+            for (var baseType = type; baseType != null; baseType = baseType.BaseType) {
+                if (!registeredTypes.ContainsKey(baseType)) {
+                    registeredTypes[baseType] = baseType;
 
-		public static string Filter
-		{
-			get { return EventsListener.filter; }
-			set
-			{
-				EventsListener.filter = value;
-				if (EventsListener.filter != null)
-					EventsListener.filter = EventsListener.filter.ToLower();
-			}
-		}
+                    var routedEvents = EventManager.GetRoutedEventsForOwner(baseType);
+                    if (routedEvents != null) {
+                        foreach (var routedEvent in routedEvents)
+                            EventManager.RegisterClassHandler(baseType, routedEvent, new RoutedEventHandler(HandleEvent),
+                                true);
+                    }
+                }
+            }
+        }
 
-		public static void Stop()
-		{
-			EventsListener.current = null;
-		}
+        public ObservableCollection<EventInformation> Events { get; } = new ObservableCollection<EventInformation>();
+
+        public static string Filter {
+            get { return filter; }
+            set {
+                filter = value;
+                if (filter != null)
+                    filter = filter.ToLower();
+            }
+        }
+
+        public static void Stop() {
+            current = null;
+        }
 
 
-		private static void HandleEvent(object sender, RoutedEventArgs e)
-		{
-			if (EventsListener.current != null && sender == EventsListener.current.visual)
-			{
-				if (string.IsNullOrEmpty(EventsListener.Filter) || e.RoutedEvent.Name.ToLower().Contains(EventsListener.Filter))
-				{
-					EventsListener.current.events.Add(new EventInformation(e));
+        static void HandleEvent(object sender, RoutedEventArgs e) {
+            if (current != null && sender == current.visual) {
+                if (string.IsNullOrEmpty(Filter) || e.RoutedEvent.Name.ToLower().Contains(Filter)) {
+                    current.Events.Add(new EventInformation(e));
 
-					while (EventsListener.current.events.Count > 100)
-						EventsListener.current.events.RemoveAt(0);
-				}
-			}
-		}
+                    while (current.Events.Count > 100)
+                        current.Events.RemoveAt(0);
+                }
+            }
+        }
+    }
 
-		private static EventsListener current = null;
-		private Visual visual;
+    public class EventInformation {
+        readonly RoutedEventArgs evt;
 
-		private static Dictionary<Type, Type> registeredTypes = new Dictionary<Type, Type>();
-		public static string filter = null;
-	}
+        public EventInformation(RoutedEventArgs evt) {
+            this.evt = evt;
+        }
 
-	public class EventInformation
-	{
-		public EventInformation(RoutedEventArgs evt)
-		{
-			this.evt = evt;
-		}
+        public IEnumerable Properties {
+            get { return PropertyInformation.GetProperties(evt); }
+        }
 
-		public IEnumerable Properties
-		{
-			get { return PropertyInformation.GetProperties(this.evt); }
-		}
-
-		public override string ToString()
-		{
-			return string.Format("{0} Handled: {1} OriginalSource: {2}", evt.RoutedEvent.Name, evt.Handled, evt.OriginalSource);
-		}
-
-		private RoutedEventArgs evt;
-	}
+        public override string ToString() {
+            return string.Format("{0} Handled: {1} OriginalSource: {2}", evt.RoutedEvent.Name, evt.Handled,
+                evt.OriginalSource);
+        }
+    }
 }

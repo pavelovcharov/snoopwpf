@@ -3,28 +3,18 @@
 // Please see http://go.microsoft.com/fwlink/?LinkID=131993 for details.
 // All other rights reserved.
 
-using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Windows.Data;
-using System.Windows;
+using Snoop.Properties;
 
-namespace Snoop
-{
-	public class SettingBindingExtension : Binding
-	{
-		public SettingBindingExtension()
-		{
-		}
+namespace Snoop {
+    public class SettingBindingExtension : Binding {
+        public SettingBindingExtension() {}
 
-		public SettingBindingExtension(string path) : base(path)
-		{
-		}
+        public SettingBindingExtension(string path) : base(path) {}
 
-		private void Initialize()
-		{
-			this.Source = Snoop.Properties.Settings.Default;
-			this.Mode = BindingMode.TwoWay;
-		}
-	}
+        void Initialize() {
+            Source = Settings.Default;
+            Mode = BindingMode.TwoWay;
+        }
+    }
 }

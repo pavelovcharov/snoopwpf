@@ -3,87 +3,75 @@
 // Please see http://go.microsoft.com/fwlink/?LinkID=131993 for details.
 // All other rights reserved.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Shapes;
-using System.Windows.Controls;
 
-namespace Snoop.Infrastructure
-{
-    public static class ZoomerUtilities
-    {
-        public static UIElement CreateIfPossible(object item)
-        {
+namespace Snoop.Infrastructure {
+    public static class ZoomerUtilities {
+        public static UIElement CreateIfPossible(object item) {
             if (item is Window && CommonTreeHelper.GetChildrenCount(item) == 1)
                 item = CommonTreeHelper.GetChild(item, 0);
-            if (DXMethods.IsFrameworkRenderElementContext(item)) {                
+            if (DXMethods.IsFrameworkRenderElementContext(item)) {
                 return CreateRectangleForFrameworkRenderElement(item);
             }
-            if (item is FrameworkElement)
-            {
-                FrameworkElement uiElement = (FrameworkElement)item;
+            if (item is FrameworkElement) {
+                var uiElement = (FrameworkElement) item;
                 return CreateRectangleForFrameworkElement(uiElement);
             }
-            else if (item is Visual)
-            {
-                Visual visual = (Visual)item;
+            if (item is Visual) {
+                var visual = (Visual) item;
                 return CreateRectangleForVisual(visual);
             }
-            else if (item is ResourceDictionary)
-            {
-                StackPanel stackPanel = new StackPanel();
+            if (item is ResourceDictionary) {
+                var stackPanel = new StackPanel();
 
-                foreach (object value in ((ResourceDictionary)item).Values)
-                {
-                    UIElement element = CreateIfPossible(value);
+                foreach (var value in ((ResourceDictionary) item).Values) {
+                    var element = CreateIfPossible(value);
                     if (element != null)
                         stackPanel.Children.Add(element);
                 }
                 return stackPanel;
             }
-            else if (item is Brush)
-            {
-                Rectangle rect = new Rectangle();
+            if (item is Brush) {
+                var rect = new Rectangle();
                 rect.Width = 10;
                 rect.Height = 10;
-                rect.Fill = (Brush)item;
+                rect.Fill = (Brush) item;
                 return rect;
             }
-            else if (item is ImageSource)
-            {
-                Image image = new Image();
-                image.Source = (ImageSource)item;
+            if (item is ImageSource) {
+                var image = new Image();
+                image.Source = (ImageSource) item;
                 return image;
             }
             return null;
         }
 
-        private static UIElement CreateRectangleForFrameworkRenderElement(object frec) {
-            VisualBrush brush = new VisualBrush(new FREDrawingVisual(frec));
+        static UIElement CreateRectangleForFrameworkRenderElement(object frec) {
+            var brush = new VisualBrush(new FREDrawingVisual(frec));
             brush.Stretch = Stretch.Uniform;
-            Rectangle rect = new Rectangle();
+            var rect = new Rectangle();
             rect.Fill = brush;
-            var df = ((dynamic)frec);
-            if (df.RenderSize.Height == 0 && df.RenderSize.Width == 0)//sometimes the actual size might be 0 despite there being a rendered visual with a size greater than 0. This happens often on a custom panel (http://snoopwpf.codeplex.com/workitem/7217). Having a fixed size visual brush remedies the problem.
+            var df = (dynamic) frec;
+            if (df.RenderSize.Height == 0 && df.RenderSize.Width == 0)
+                //sometimes the actual size might be 0 despite there being a rendered visual with a size greater than 0. This happens often on a custom panel (http://snoopwpf.codeplex.com/workitem/7217). Having a fixed size visual brush remedies the problem.
             {
                 rect.Width = 50;
                 rect.Height = 50;
-            } else {
+            }
+            else {
                 rect.Width = df.RenderSize.Width;
                 rect.Height = df.RenderSize.Height;
             }
             return rect;
         }
 
-        private static UIElement CreateRectangleForVisual(Visual uiElement)
-        {
-            VisualBrush brush = new VisualBrush(uiElement);
+        static UIElement CreateRectangleForVisual(Visual uiElement) {
+            var brush = new VisualBrush(uiElement);
             brush.Stretch = Stretch.Uniform;
-            Rectangle rect = new Rectangle();
+            var rect = new Rectangle();
             rect.Fill = brush;
             rect.Width = 50;
             rect.Height = 50;
@@ -91,19 +79,18 @@ namespace Snoop.Infrastructure
             return rect;
         }
 
-        private static UIElement CreateRectangleForFrameworkElement(FrameworkElement uiElement)
-        {
-            VisualBrush brush = new VisualBrush(uiElement);
+        static UIElement CreateRectangleForFrameworkElement(FrameworkElement uiElement) {
+            var brush = new VisualBrush(uiElement);
             brush.Stretch = Stretch.Uniform;
-            Rectangle rect = new Rectangle();
+            var rect = new Rectangle();
             rect.Fill = brush;
-            if (uiElement.ActualHeight == 0 && uiElement.ActualWidth == 0)//sometimes the actual size might be 0 despite there being a rendered visual with a size greater than 0. This happens often on a custom panel (http://snoopwpf.codeplex.com/workitem/7217). Having a fixed size visual brush remedies the problem.
+            if (uiElement.ActualHeight == 0 && uiElement.ActualWidth == 0)
+                //sometimes the actual size might be 0 despite there being a rendered visual with a size greater than 0. This happens often on a custom panel (http://snoopwpf.codeplex.com/workitem/7217). Having a fixed size visual brush remedies the problem.
             {
                 rect.Width = 50;
                 rect.Height = 50;
             }
-            else
-            {
+            else {
                 rect.Width = uiElement.ActualWidth;
                 rect.Height = uiElement.ActualHeight;
             }

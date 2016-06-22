@@ -8,11 +8,10 @@
         Title="MainWindow" Height="350" Width="525">
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <Button Content="Add" Click="OnAddButtonClick"></Button>
+        <Button Content="Add" Click="OnAddButtonClick" />
         <StackPanel Grid.Row="1" x:Name="sPanel" />
     </Grid>
 </Window>
-

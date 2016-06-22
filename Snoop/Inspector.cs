@@ -5,22 +5,19 @@
 
 using System.Windows.Controls;
 
-namespace Snoop
-{
-	public class Inspector : Grid
-	{
-		public PropertyFilter Filter
-		{
-			get { return this.filter; }
-			set
-			{
-				this.filter = value;
-				this.OnFilterChanged();
-			}
-		}
-		private PropertyFilter filter;
+namespace Snoop {
+    public class Inspector : Grid {
+        PropertyFilter filter;
+
+        public PropertyFilter Filter {
+            get { return filter; }
+            set {
+                filter = value;
+                OnFilterChanged();
+            }
+        }
 
 
-		protected virtual void OnFilterChanged() {}
-	}
+        protected virtual void OnFilterChanged() {}
+    }
 }

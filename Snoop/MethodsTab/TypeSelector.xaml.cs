@@ -5,39 +5,33 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Windows.Controls;
+using System.Windows;
 
-namespace Snoop.MethodsTab
-{
-    public partial class TypeSelector : ITypeSelector
-    {
-        public TypeSelector()
-        {
+namespace Snoop.MethodsTab {
+    public partial class TypeSelector : ITypeSelector {
+        public TypeSelector() {
             InitializeComponent();
 
-            this.Loaded += new System.Windows.RoutedEventHandler(TypeSelector_Loaded);            
+            Loaded += TypeSelector_Loaded;
         }
 
-        //TODO: MOVE SOMEWHERE ELSE. MACIEK
-        public static List<Type> GetDerivedTypes(Type baseType)
-        {
-            List<Type> typesAssignable = new List<Type>();
+        public List<Type> DerivedTypes { get; set; }
 
-            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
-            {
-                foreach (var type in assembly.GetTypes())
-                {
-                    if (baseType.IsAssignableFrom(type))
-                    {
+        public Type BaseType { get; set; }
+
+        //TODO: MOVE SOMEWHERE ELSE. MACIEK
+        public static List<Type> GetDerivedTypes(Type baseType) {
+            var typesAssignable = new List<Type>();
+
+            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies()) {
+                foreach (var type in assembly.GetTypes()) {
+                    if (baseType.IsAssignableFrom(type)) {
                         typesAssignable.Add(type);
                     }
                 }
             }
 
-            if (!baseType.IsAbstract)
-            {
+            if (!baseType.IsAbstract) {
                 typesAssignable.Add(baseType);
             }
 
@@ -46,42 +40,24 @@ namespace Snoop.MethodsTab
             return typesAssignable;
         }
 
-        public List<Type> DerivedTypes
-        {
-            get;
-            set;
-        }
-
-        private void TypeSelector_Loaded(object sender, System.Windows.RoutedEventArgs e)
-        {
-
+        void TypeSelector_Loaded(object sender, RoutedEventArgs e) {
             if (DerivedTypes == null)
                 DerivedTypes = GetDerivedTypes(BaseType);
 
-            this.comboBoxTypes.ItemsSource = DerivedTypes;
+            comboBoxTypes.ItemsSource = DerivedTypes;
         }
 
-        public Type BaseType { get; set; }
-
-        public object Instance
-        {
-            get;
-            private set;
+        void buttonCreateInstance_Click(object sender, RoutedEventArgs e) {
+            DialogResult = true;
+            Instance = Activator.CreateInstance((Type) comboBoxTypes.SelectedItem);
+            Close();
         }
 
-        private void buttonCreateInstance_Click(object sender, System.Windows.RoutedEventArgs e)
-        {
-            this.DialogResult = true;
-            this.Instance = Activator.CreateInstance((Type)this.comboBoxTypes.SelectedItem);
-            this.Close();
+        void buttonCancel_Click(object sender, RoutedEventArgs e) {
+            DialogResult = false;
+            Close();
         }
 
-        private void buttonCancel_Click(object sender, System.Windows.RoutedEventArgs e)
-        {
-            this.DialogResult = false;
-            this.Close();
-        }
+        public object Instance { get; private set; }
     }
-
-
 }

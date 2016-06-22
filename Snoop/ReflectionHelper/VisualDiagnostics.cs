@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Reflection;
 using System.Windows.Diagnostics;
 using DevExpress.Xpf.Core.Internal;
 
@@ -13,6 +8,9 @@ namespace Snoop {
     }
 
     public static class VisualDiagnosticsExtensions {
+        static bool enabled;
+        static readonly IVisualDiagnostics instanceVisualDiagnostics;
+
         static VisualDiagnosticsExtensions() {
             instanceVisualDiagnostics = typeof(VisualDiagnostics).DefineWrapper<IVisualDiagnostics>()
                 .DefineProperty(x => x.Enabled)
@@ -22,8 +20,7 @@ namespace Snoop {
                 .EndMember()
                 .Create();
         }
-        private static bool enabled;
-        private static IVisualDiagnostics instanceVisualDiagnostics;
+
         public static bool Enabled {
             get { return enabled; }
             set { enabled = instanceVisualDiagnostics.Enabled = value; }

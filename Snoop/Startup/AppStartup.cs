@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using CommandLine;
 
 namespace Snoop.Startup {
@@ -15,10 +11,10 @@ namespace Snoop.Startup {
             new Parser().ParseArguments(param, sOptions);
             if (!string.IsNullOrEmpty(sOptions.StartupApp)) {
                 var process = new Process();
-                ProcessStartInfo sInfo = new ProcessStartInfo(sOptions.StartupApp);
+                var sInfo = new ProcessStartInfo(sOptions.StartupApp);
                 process.StartInfo = sInfo;
                 if (process.Start()) {
-                    int sleepCount = 0;
+                    var sleepCount = 0;
                     while (IntPtr.Zero == process.MainWindowHandle && sleepCount++ < 100)
                         Thread.Sleep(100);
                     var mWindow = process.MainWindowHandle;
@@ -32,10 +28,9 @@ namespace Snoop.Startup {
             }
         }
     }
-    
+
     public class StartupOptions {
         [Option('s', "startup", DefaultValue = null)]
         public string StartupApp { get; set; }
-
     }
 }

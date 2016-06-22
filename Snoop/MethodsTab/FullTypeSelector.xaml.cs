@@ -5,36 +5,22 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using System.Reflection;
-using System.ComponentModel;
 
-namespace Snoop.MethodsTab
-{
+namespace Snoop.MethodsTab {
     /// <summary>
-    /// Interaction logic for FullTypeSelector.xaml
+    ///     Interaction logic for FullTypeSelector.xaml
     /// </summary>
-    public partial class FullTypeSelector : ITypeSelector
-    {
-        public FullTypeSelector()
-        {
+    public partial class FullTypeSelector : ITypeSelector {
+        public FullTypeSelector() {
             InitializeComponent();
 
             var assemblies = AppDomain.CurrentDomain.GetAssemblies();
 
-            List<AssemblyNamePair> listAssemblies = new List<AssemblyNamePair>();
-            foreach (var assembly in assemblies)
-            {
+            var listAssemblies = new List<AssemblyNamePair>();
+            foreach (var assembly in assemblies) {
                 var namePair = new AssemblyNamePair();
                 namePair.Name = assembly.FullName;
                 namePair.Assembly = assembly;
@@ -44,21 +30,17 @@ namespace Snoop.MethodsTab
 
             listAssemblies.Sort();
 
-            this.comboBoxAssemblies.ItemsSource = listAssemblies;
-
-
+            comboBoxAssemblies.ItemsSource = listAssemblies;
         }
 
-        private void comboBoxAssemblies_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            var assembly = ((AssemblyNamePair)this.comboBoxAssemblies.SelectedItem).Assembly;
+        void comboBoxAssemblies_SelectionChanged(object sender, SelectionChangedEventArgs e) {
+            var assembly = ((AssemblyNamePair) comboBoxAssemblies.SelectedItem).Assembly;
 
             var types = assembly.GetTypes();
 
-            List<TypeNamePair> typePairs = new List<TypeNamePair>();
+            var typePairs = new List<TypeNamePair>();
 
-            foreach (var type in types)
-            {
+            foreach (var type in types) {
                 if (!type.IsPublic || type.IsAbstract)
                     continue;
 
@@ -71,42 +53,32 @@ namespace Snoop.MethodsTab
 
             typePairs.Sort();
 
-            this.comboBoxTypes.ItemsSource = typePairs;
+            comboBoxTypes.ItemsSource = typePairs;
         }
 
-        private void buttonCreateInstance_Click(object sender, RoutedEventArgs e)
-        {
-            var selectedType = ((TypeNamePair)this.comboBoxTypes.SelectedItem).Type;
+        void buttonCreateInstance_Click(object sender, RoutedEventArgs e) {
+            var selectedType = ((TypeNamePair) comboBoxTypes.SelectedItem).Type;
 
-            if (string.IsNullOrEmpty(this.textBoxConvertFrom.Text))
-            {
-                this.Instance = Activator.CreateInstance(selectedType);
+            if (string.IsNullOrEmpty(textBoxConvertFrom.Text)) {
+                Instance = Activator.CreateInstance(selectedType);
             }
-            else
-            {
+            else {
                 var converter = TypeDescriptor.GetConverter(selectedType);
-                this.Instance = converter.ConvertFrom(this.textBoxConvertFrom.Text);
+                Instance = converter.ConvertFrom(textBoxConvertFrom.Text);
             }
 
-            this.DialogResult = true;
+            DialogResult = true;
 
-            this.Close();
+            Close();
         }
 
-        public object Instance
-        {
-            get;
-            private set;
+        void buttonCancel_Click(object sender, RoutedEventArgs e) {
+            DialogResult = false;
+
+            Close();
         }
 
-        private void buttonCancel_Click(object sender, RoutedEventArgs e)
-        {
-            this.DialogResult = false;
-
-            this.Close();
-        }
-
-
+        public object Instance { get; private set; }
     }
 
     //public class TypeNamePair : IComparable

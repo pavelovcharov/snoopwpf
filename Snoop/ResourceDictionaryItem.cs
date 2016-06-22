@@ -3,20 +3,19 @@
 // Please see http://go.microsoft.com/fwlink/?LinkID=131993 for details.
 // All other rights reserved.
 
-using System.Collections.Generic;
-using System.Linq;
 using System.Windows;
-using System.Windows.Media;
+using System.Windows.Markup;
 
-namespace Snoop
-{
+namespace Snoop {
     public class ResourceDictionaryItem : VisualTreeItem {
+        readonly ResourceDictionary dictionary;
+
         public ResourceDictionaryItem(ResourceDictionary dictionary, VisualTreeItem parent) : base(dictionary, parent) {
-            this.dictionary = dictionary;            
+            this.dictionary = dictionary;
         }
 
         public override string ToString() {
-            return this.Children.Count + " Resources";
+            return Children.Count + " Resources";
         }
 
         protected override bool GetHasChildren() {
@@ -26,12 +25,12 @@ namespace Snoop
         protected override void ReloadImpl() {
             base.ReloadImpl();
 
-            foreach (object key in this.dictionary.Keys) {
+            foreach (var key in dictionary.Keys) {
                 object target;
                 try {
-                    target = this.dictionary[key];
+                    target = dictionary[key];
                 }
-                catch (System.Windows.Markup.XamlParseException) {
+                catch (XamlParseException) {
                     // sometimes you can get a XamlParseException ... because the xaml you are Snoop(ing) is bad.
                     // e.g. I got this once when I was Snoop(ing) some xaml that was refering to an image resource that was no longer there.
                     // in this case, just continue to the next resource in the dictionary.
@@ -44,29 +43,24 @@ namespace Snoop
                     continue;
                 }
 
-                this.Children.Add(new ResourceItem(target, key, this));
+                Children.Add(new ResourceItem(target, key, this));
             }
         }
-
-        private ResourceDictionary dictionary;
     }
 
-    public class ResourceItem : VisualTreeItem
-	{
+    public class ResourceItem : VisualTreeItem {
+        readonly object key;
+
+        public ResourceItem(object target, object key, VisualTreeItem parent) : base(target, parent) {
+            this.key = key;
+        }
+
         protected override bool GetHasChildren() {
             return false;
         }
 
-        public ResourceItem(object target, object key, VisualTreeItem parent): base(target, parent)
-		{
-			this.key = key;
-		}
-
-		public override string ToString()
-		{
-			return this.key.ToString() + " (" + this.Target.GetType().Name + ")";
-		}
-
-		private object key;
-	}
+        public override string ToString() {
+            return key + " (" + Target.GetType().Name + ")";
+        }
+    }
 }

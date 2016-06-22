@@ -14,418 +14,368 @@ using System.Windows.Input;
 using System.Windows.Threading;
 using Snoop.Infrastructure;
 
-namespace Snoop
-{
-	public partial class PropertyGrid2 : INotifyPropertyChanged
-	{
-		public static readonly RoutedCommand ShowBindingErrorsCommand = new RoutedCommand();
-		public static readonly RoutedCommand ClearCommand = new RoutedCommand();
-		public static readonly RoutedCommand SortCommand = new RoutedCommand();
+namespace Snoop {
+    public partial class PropertyGrid2 : INotifyPropertyChanged {
+        public static readonly RoutedCommand ShowBindingErrorsCommand = new RoutedCommand();
+        public static readonly RoutedCommand ClearCommand = new RoutedCommand();
+        public static readonly RoutedCommand SortCommand = new RoutedCommand();
+
+        public static readonly DependencyProperty TargetProperty =
+            DependencyProperty.Register
+                (
+                    "Target",
+                    typeof(object),
+                    typeof(PropertyGrid2),
+                    new PropertyMetadata(HandleTargetChanged)
+                );
+
+        readonly ObservableCollection<PropertyInformation> allProperties =
+            new ObservableCollection<PropertyInformation>();
+
+        readonly DelayedCall filterCall;
+
+        readonly DispatcherTimer filterTimer;
+        readonly DelayedCall processIncrementalCall;
+
+        bool _nameValueOnly;
+
+        ListSortDirection direction = ListSortDirection.Ascending;
+
+        IEnumerator<PropertyInformation> propertiesToAdd;
+        PropertyInformation selection;
 
 
-		public PropertyGrid2()
-		{
-			this.processIncrementalCall = new DelayedCall(this.ProcessIncrementalPropertyAdd, DispatcherPriority.Background);
-			this.filterCall = new DelayedCall(this.ProcessFilter, DispatcherPriority.Background);
-
-			this.InitializeComponent();
-
-			this.Loaded += this.HandleLoaded;
-			this.Unloaded += this.HandleUnloaded;
-
-			this.CommandBindings.Add(new CommandBinding(PropertyGrid2.ShowBindingErrorsCommand, this.HandleShowBindingErrors, this.CanShowBindingErrors));
-			this.CommandBindings.Add(new CommandBinding(PropertyGrid2.ClearCommand, this.HandleClear, this.CanClear));
-			this.CommandBindings.Add(new CommandBinding(PropertyGrid2.SortCommand, this.HandleSort));
+        object target;
+        bool unloaded;
+        int visiblePropertyCount;
 
 
-			filterTimer = new DispatcherTimer();
-			filterTimer.Interval = TimeSpan.FromSeconds(0.3);
-			filterTimer.Tick += (s, e) =>
-			{
-				this.filterCall.Enqueue();
-				filterTimer.Stop();
-			};
-		}
+        public PropertyGrid2() {
+            processIncrementalCall = new DelayedCall(ProcessIncrementalPropertyAdd, DispatcherPriority.Background);
+            filterCall = new DelayedCall(ProcessFilter, DispatcherPriority.Background);
+
+            InitializeComponent();
+
+            Loaded += HandleLoaded;
+            Unloaded += HandleUnloaded;
+
+            CommandBindings.Add(new CommandBinding(ShowBindingErrorsCommand, HandleShowBindingErrors,
+                CanShowBindingErrors));
+            CommandBindings.Add(new CommandBinding(ClearCommand, HandleClear, CanClear));
+            CommandBindings.Add(new CommandBinding(SortCommand, HandleSort));
 
 
-		public bool NameValueOnly
-		{
-			get
-			{
-				return _nameValueOnly;
-			}
-			set
-			{
-				_nameValueOnly = value;
-				GridView gridView = this.ListView != null && this.ListView.View != null ? this.ListView.View as GridView : null;
-				if (_nameValueOnly && gridView != null && gridView.Columns.Count != 2)
-				{
-					gridView.Columns.RemoveAt(0);
-					while (gridView.Columns.Count > 2)
-					{
-						gridView.Columns.RemoveAt(2);
-					}
-				}
-			}
-		}
-		private bool _nameValueOnly = false;
-
-		public ObservableCollection<PropertyInformation> Properties
-		{
-			get { return this.properties; }
-		}
-		private ObservableCollection<PropertyInformation> properties = new ObservableCollection<PropertyInformation>();
-		private ObservableCollection<PropertyInformation> allProperties = new ObservableCollection<PropertyInformation>();
-
-		public object Target
-		{
-			get { return this.GetValue(PropertyGrid2.TargetProperty); }
-			set { this.SetValue(PropertyGrid2.TargetProperty, value); }
-		}
-		public static readonly DependencyProperty TargetProperty =
-			DependencyProperty.Register
-			(
-				"Target",
-				typeof(object),
-				typeof(PropertyGrid2),
-				new PropertyMetadata(new PropertyChangedCallback(PropertyGrid2.HandleTargetChanged))
-			);
-		private static void HandleTargetChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-		{
-			PropertyGrid2 propertyGrid = (PropertyGrid2)d;
-			propertyGrid.ChangeTarget(e.NewValue);
-		}
-		private void ChangeTarget(object newTarget)
-		{
-			if (this.target != newTarget)
-			{
-				this.target = newTarget;
-
-				foreach (PropertyInformation property in this.properties)
-				{
-				    property.Teardown();
-				}
-				this.RefreshPropertyGrid();
-
-				this.OnPropertyChanged("Type");
-			}
-		}
-
-		public PropertyInformation Selection
-		{
-			get { return this.selection; }
-			set
-			{
-				this.selection = value;
-				this.OnPropertyChanged("Selection");
-			}
-		}
-		private PropertyInformation selection;
-
-		public Type Type
-		{
-			get
-			{
-				if (this.target != null)
-					return this.target.GetType();
-				return null;
-			}
-		}
+            filterTimer = new DispatcherTimer();
+            filterTimer.Interval = TimeSpan.FromSeconds(0.3);
+            filterTimer.Tick += (s, e) => {
+                filterCall.Enqueue();
+                filterTimer.Stop();
+            };
+        }
 
 
-		protected override void OnFilterChanged()
-		{
-			base.OnFilterChanged();
+        public bool NameValueOnly {
+            get { return _nameValueOnly; }
+            set {
+                _nameValueOnly = value;
+                var gridView = ListView != null && ListView.View != null ? ListView.View as GridView : null;
+                if (_nameValueOnly && gridView != null && gridView.Columns.Count != 2) {
+                    gridView.Columns.RemoveAt(0);
+                    while (gridView.Columns.Count > 2) {
+                        gridView.Columns.RemoveAt(2);
+                    }
+                }
+            }
+        }
 
-			filterTimer.Stop();
-			filterTimer.Start();
-		}
+        public ObservableCollection<PropertyInformation> Properties { get; } =
+            new ObservableCollection<PropertyInformation>();
 
+        public object Target {
+            get { return GetValue(TargetProperty); }
+            set { SetValue(TargetProperty, value); }
+        }
 
-		/// <summary>
-		/// Delayed loading of the property inspector to avoid creating the entire list of property
-		/// editors immediately after selection. Keeps that app running smooth.
-		/// </summary>
-		/// <param name="performInitialization"></param>
-		/// <returns></returns>
-		private void ProcessIncrementalPropertyAdd()
-		{
-			int numberToAdd = 10;
+        public PropertyInformation Selection {
+            get { return selection; }
+            set {
+                selection = value;
+                OnPropertyChanged("Selection");
+            }
+        }
 
-			if (this.propertiesToAdd == null)
-			{
-				this.propertiesToAdd = PropertyInformation.GetProperties(this.target).GetEnumerator();
+        public Type Type {
+            get {
+                if (target != null)
+                    return target.GetType();
+                return null;
+            }
+        }
 
-				numberToAdd = 0;
-			}
-			int i = 0;
-			for (; i < numberToAdd && this.propertiesToAdd.MoveNext(); ++i)
-			{
-				// iterate over the PropertyInfo objects,
-				// setting the property grid's filter on each object,
-				// and adding those properties to the observable collection of propertiesToSort (this.properties)
-				PropertyInformation property = this.propertiesToAdd.Current;
-				property.Filter = this.Filter;
+        static void HandleTargetChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) {
+            var propertyGrid = (PropertyGrid2) d;
+            propertyGrid.ChangeTarget(e.NewValue);
+        }
 
-				if (property.IsVisible)
-				{
-					this.properties.Add(property);
-				}
-				allProperties.Add(property);
+        void ChangeTarget(object newTarget) {
+            if (target != newTarget) {
+                target = newTarget;
 
-				// checking whether a property is visible ... actually runs the property filtering code
-				if (property.IsVisible)
-					property.Index = this.visiblePropertyCount++;
-			}
+                foreach (var property in Properties) {
+                    property.Teardown();
+                }
+                RefreshPropertyGrid();
 
-			if (i == numberToAdd)
-				this.processIncrementalCall.Enqueue();
-			else
-				this.propertiesToAdd = null;
-		}
-
-		private void HandleShowBindingErrors(object sender, ExecutedRoutedEventArgs eventArgs)
-		{
-			PropertyInformation propertyInformation = (PropertyInformation)eventArgs.Parameter;
-			Window window = new Window();
-			TextBox textbox = new TextBox();
-			textbox.IsReadOnly = true;
-			textbox.Text = propertyInformation.BindingError;
-			textbox.TextWrapping = TextWrapping.Wrap;
-			window.Content = textbox;
-			window.Width = 400;
-			window.Height = 300;
-			window.Title = "Binding Errors for " + propertyInformation.DisplayName;
-			SnoopPartsRegistry.AddSnoopVisualTreeRoot(window);
-			window.Closing +=
-				(s, e) =>
-				{
-					Window w = (Window)s;
-					SnoopPartsRegistry.RemoveSnoopVisualTreeRoot(w);
-				};
-			window.Show();
-		}
-		private void CanShowBindingErrors(object sender, CanExecuteRoutedEventArgs e)
-		{
-			if (e.Parameter != null && !string.IsNullOrEmpty(((PropertyInformation)e.Parameter).BindingError))
-				e.CanExecute = true;
-			e.Handled = true;
-		}
-
-		private void CanClear(object sender, CanExecuteRoutedEventArgs e)
-		{
-			if (e.Parameter != null && ((PropertyInformation)e.Parameter).IsLocallySet)
-				e.CanExecute = true;
-			e.Handled = true;
-		}
-		private void HandleClear(object sender, ExecutedRoutedEventArgs e)
-		{
-			((PropertyInformation)e.Parameter).Clear();
-		}
-
-		private ListSortDirection GetNewSortDirection(GridViewColumnHeader columnHeader)
-		{
-			if (!(columnHeader.Tag is ListSortDirection))
-				return (ListSortDirection)(columnHeader.Tag = ListSortDirection.Descending);
-
-			ListSortDirection direction = (ListSortDirection)columnHeader.Tag;
-			return (ListSortDirection)(columnHeader.Tag = (ListSortDirection)(((int)direction + 1) % 2));
-		}
+                OnPropertyChanged("Type");
+            }
+        }
 
 
-		private void HandleSort(object sender, ExecutedRoutedEventArgs args)
-		{
-			GridViewColumnHeader headerClicked = (GridViewColumnHeader)args.OriginalSource;
+        protected override void OnFilterChanged() {
+            base.OnFilterChanged();
 
-			direction = GetNewSortDirection(headerClicked);
-
-			switch (((TextBlock)headerClicked.Column.Header).Text)
-			{
-				case "Name":
-					this.Sort(PropertyGrid2.CompareNames, direction);
-					break;
-				case "Value":
-					this.Sort(PropertyGrid2.CompareValues, direction);
-					break;
-				case "ValueSource":
-					this.Sort(PropertyGrid2.CompareValueSources, direction);
-					break;
-			}
-		}
-
-		private void ProcessFilter()
-		{
-			foreach (var property in this.allProperties)
-			{
-				if (property.IsVisible)
-				{
-					if (!this.properties.Contains(property))
-					{
-						InsertInPropertOrder(property);
-					}
-				}
-				else
-				{
-					if (properties.Contains(property))
-					{
-						this.properties.Remove(property);
-					}
-				}
-			}
-
-			SetIndexesOfProperties();
-		}
-
-		private void InsertInPropertOrder(PropertyInformation property)
-		{
-			if (this.properties.Count == 0)
-			{
-				this.properties.Add(property);
-				return;
-			}
-
-			if (PropertiesAreInOrder(property, this.properties[0]))
-			{
-				this.properties.Insert(0, property);
-				return;
-			}
-
-			for (int i = 0; i < this.properties.Count - 1; i++)
-			{
-				if (PropertiesAreInOrder(this.properties[i], property) && PropertiesAreInOrder(property, this.properties[i + 1]))
-				{
-					this.properties.Insert(i + 1, property);
-					return;
-				}
-			}
-
-			this.properties.Add(property);
-		}
-
-		private bool PropertiesAreInOrder(PropertyInformation first, PropertyInformation last)
-		{
-			if (direction == ListSortDirection.Ascending)
-			{
-				return first.CompareTo(last) <= 0;
-			}
-			else
-			{
-				return last.CompareTo(first) <= 0;
-			}
-		}
-
-		private void SetIndexesOfProperties()
-		{
-			for (int i = 0; i < this.properties.Count; i++)
-			{
-				this.properties[i].Index = i;
-			}
-		}
-
-		private void HandleLoaded(object sender, EventArgs e)
-		{
-			if (this.unloaded)
-			{
-				this.RefreshPropertyGrid();
-				this.unloaded = false;
-			}
-		}
-		private void HandleUnloaded(object sender, EventArgs e)
-		{
-			foreach (PropertyInformation property in this.properties)
-				property.Teardown();
-
-			unloaded = true;
-		}
-
-		private void HandleNameClick(object sender, MouseButtonEventArgs e)
-		{
-			if (e.ClickCount == 2)
-			{
-				PropertyInformation property = (PropertyInformation)((FrameworkElement)sender).DataContext;
-
-				object newTarget = null;
-
-				if (Keyboard.Modifiers == ModifierKeys.Shift)
-					newTarget = property.Binding;
-				else if (Keyboard.Modifiers == ModifierKeys.Control)
-					newTarget = property.BindingExpression;
-				else if (Keyboard.Modifiers == ModifierKeys.None)
-					newTarget = property.Value;
-
-				if (newTarget != null)
-				{
-					PropertyInspector.DelveCommand.Execute(property, this);
-				}
-			}
-		}
-
-		private void Sort(Comparison<PropertyInformation> comparator, ListSortDirection direction)
-		{
-			Sort(comparator, direction, this.properties);
-			Sort(comparator, direction, this.allProperties);
-		}
-
-		private void Sort(Comparison<PropertyInformation> comparator, ListSortDirection direction, ObservableCollection<PropertyInformation> propertiesToSort)
-		{
-			List<PropertyInformation> sorter = new List<PropertyInformation>(propertiesToSort);
-			sorter.Sort(comparator);
-
-			if (direction == ListSortDirection.Descending)
-				sorter.Reverse();
-
-			propertiesToSort.Clear();
-			foreach (PropertyInformation property in sorter)
-				propertiesToSort.Add(property);
-		}
-
-		private void RefreshPropertyGrid()
-		{
-			this.allProperties.Clear();
-			this.properties.Clear();
-			this.visiblePropertyCount = 0;
-
-			this.propertiesToAdd = null;
-			this.processIncrementalCall.Enqueue();
-		}
+            filterTimer.Stop();
+            filterTimer.Start();
+        }
 
 
-		private object target;
+        /// <summary>
+        ///     Delayed loading of the property inspector to avoid creating the entire list of property
+        ///     editors immediately after selection. Keeps that app running smooth.
+        /// </summary>
+        /// <param name="performInitialization"></param>
+        /// <returns></returns>
+        void ProcessIncrementalPropertyAdd() {
+            var numberToAdd = 10;
 
-		private IEnumerator<PropertyInformation> propertiesToAdd;
-		private DelayedCall processIncrementalCall;
-		private DelayedCall filterCall;
-		private int visiblePropertyCount = 0;
-		private bool unloaded = false;
-		private ListSortDirection direction = ListSortDirection.Ascending;
+            if (propertiesToAdd == null) {
+                propertiesToAdd = PropertyInformation.GetProperties(target).GetEnumerator();
 
-		private DispatcherTimer filterTimer;
+                numberToAdd = 0;
+            }
+            var i = 0;
+            for (; i < numberToAdd && propertiesToAdd.MoveNext(); ++i) {
+                // iterate over the PropertyInfo objects,
+                // setting the property grid's filter on each object,
+                // and adding those properties to the observable collection of propertiesToSort (this.properties)
+                var property = propertiesToAdd.Current;
+                property.Filter = Filter;
+
+                if (property.IsVisible) {
+                    Properties.Add(property);
+                }
+                allProperties.Add(property);
+
+                // checking whether a property is visible ... actually runs the property filtering code
+                if (property.IsVisible)
+                    property.Index = visiblePropertyCount++;
+            }
+
+            if (i == numberToAdd)
+                processIncrementalCall.Enqueue();
+            else
+                propertiesToAdd = null;
+        }
+
+        void HandleShowBindingErrors(object sender, ExecutedRoutedEventArgs eventArgs) {
+            var propertyInformation = (PropertyInformation) eventArgs.Parameter;
+            var window = new Window();
+            var textbox = new TextBox();
+            textbox.IsReadOnly = true;
+            textbox.Text = propertyInformation.BindingError;
+            textbox.TextWrapping = TextWrapping.Wrap;
+            window.Content = textbox;
+            window.Width = 400;
+            window.Height = 300;
+            window.Title = "Binding Errors for " + propertyInformation.DisplayName;
+            SnoopPartsRegistry.AddSnoopVisualTreeRoot(window);
+            window.Closing +=
+                (s, e) => {
+                    var w = (Window) s;
+                    SnoopPartsRegistry.RemoveSnoopVisualTreeRoot(w);
+                };
+            window.Show();
+        }
+
+        void CanShowBindingErrors(object sender, CanExecuteRoutedEventArgs e) {
+            if (e.Parameter != null && !string.IsNullOrEmpty(((PropertyInformation) e.Parameter).BindingError))
+                e.CanExecute = true;
+            e.Handled = true;
+        }
+
+        void CanClear(object sender, CanExecuteRoutedEventArgs e) {
+            if (e.Parameter != null && ((PropertyInformation) e.Parameter).IsLocallySet)
+                e.CanExecute = true;
+            e.Handled = true;
+        }
+
+        void HandleClear(object sender, ExecutedRoutedEventArgs e) {
+            ((PropertyInformation) e.Parameter).Clear();
+        }
+
+        ListSortDirection GetNewSortDirection(GridViewColumnHeader columnHeader) {
+            if (!(columnHeader.Tag is ListSortDirection))
+                return (ListSortDirection) (columnHeader.Tag = ListSortDirection.Descending);
+
+            var direction = (ListSortDirection) columnHeader.Tag;
+            return (ListSortDirection) (columnHeader.Tag = (ListSortDirection) (((int) direction + 1)%2));
+        }
 
 
-		private static int CompareNames(PropertyInformation one, PropertyInformation two)
-		{
-			// use the PropertyInformation CompareTo method, instead of the string.Compare method
-			// so that collections get sorted correctly.
-			return one.CompareTo(two);
-		}
-		private static int CompareValues(PropertyInformation one, PropertyInformation two)
-		{
-			return string.Compare(one.StringValue, two.StringValue);
-		}
-		private static int CompareValueSources(PropertyInformation one, PropertyInformation two)
-		{
-			return string.Compare(one.ValueSource.BaseValueSource.ToString(), two.ValueSource.BaseValueSource.ToString());
-		}
+        void HandleSort(object sender, ExecutedRoutedEventArgs args) {
+            var headerClicked = (GridViewColumnHeader) args.OriginalSource;
+
+            direction = GetNewSortDirection(headerClicked);
+
+            switch (((TextBlock) headerClicked.Column.Header).Text) {
+                case "Name":
+                    Sort(CompareNames, direction);
+                    break;
+                case "Value":
+                    Sort(CompareValues, direction);
+                    break;
+                case "ValueSource":
+                    Sort(CompareValueSources, direction);
+                    break;
+            }
+        }
+
+        void ProcessFilter() {
+            foreach (var property in allProperties) {
+                if (property.IsVisible) {
+                    if (!Properties.Contains(property)) {
+                        InsertInPropertOrder(property);
+                    }
+                }
+                else {
+                    if (Properties.Contains(property)) {
+                        Properties.Remove(property);
+                    }
+                }
+            }
+
+            SetIndexesOfProperties();
+        }
+
+        void InsertInPropertOrder(PropertyInformation property) {
+            if (Properties.Count == 0) {
+                Properties.Add(property);
+                return;
+            }
+
+            if (PropertiesAreInOrder(property, Properties[0])) {
+                Properties.Insert(0, property);
+                return;
+            }
+
+            for (var i = 0; i < Properties.Count - 1; i++) {
+                if (PropertiesAreInOrder(Properties[i], property) && PropertiesAreInOrder(property, Properties[i + 1])) {
+                    Properties.Insert(i + 1, property);
+                    return;
+                }
+            }
+
+            Properties.Add(property);
+        }
+
+        bool PropertiesAreInOrder(PropertyInformation first, PropertyInformation last) {
+            if (direction == ListSortDirection.Ascending) {
+                return first.CompareTo(last) <= 0;
+            }
+            return last.CompareTo(first) <= 0;
+        }
+
+        void SetIndexesOfProperties() {
+            for (var i = 0; i < Properties.Count; i++) {
+                Properties[i].Index = i;
+            }
+        }
+
+        void HandleLoaded(object sender, EventArgs e) {
+            if (unloaded) {
+                RefreshPropertyGrid();
+                unloaded = false;
+            }
+        }
+
+        void HandleUnloaded(object sender, EventArgs e) {
+            foreach (var property in Properties)
+                property.Teardown();
+
+            unloaded = true;
+        }
+
+        void HandleNameClick(object sender, MouseButtonEventArgs e) {
+            if (e.ClickCount == 2) {
+                var property = (PropertyInformation) ((FrameworkElement) sender).DataContext;
+
+                object newTarget = null;
+
+                if (Keyboard.Modifiers == ModifierKeys.Shift)
+                    newTarget = property.Binding;
+                else if (Keyboard.Modifiers == ModifierKeys.Control)
+                    newTarget = property.BindingExpression;
+                else if (Keyboard.Modifiers == ModifierKeys.None)
+                    newTarget = property.Value;
+
+                if (newTarget != null) {
+                    PropertyInspector.DelveCommand.Execute(property, this);
+                }
+            }
+        }
+
+        void Sort(Comparison<PropertyInformation> comparator, ListSortDirection direction) {
+            Sort(comparator, direction, Properties);
+            Sort(comparator, direction, allProperties);
+        }
+
+        void Sort(Comparison<PropertyInformation> comparator, ListSortDirection direction,
+            ObservableCollection<PropertyInformation> propertiesToSort) {
+            var sorter = new List<PropertyInformation>(propertiesToSort);
+            sorter.Sort(comparator);
+
+            if (direction == ListSortDirection.Descending)
+                sorter.Reverse();
+
+            propertiesToSort.Clear();
+            foreach (var property in sorter)
+                propertiesToSort.Add(property);
+        }
+
+        void RefreshPropertyGrid() {
+            allProperties.Clear();
+            Properties.Clear();
+            visiblePropertyCount = 0;
+
+            propertiesToAdd = null;
+            processIncrementalCall.Enqueue();
+        }
 
 
-		#region INotifyPropertyChanged Members
-		public event PropertyChangedEventHandler PropertyChanged;
-		protected void OnPropertyChanged(string propertyName)
-		{
-			Debug.Assert(this.GetType().GetProperty(propertyName) != null);
-			if (this.PropertyChanged != null)
-				this.PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
-		}
-		#endregion
-	}
+        static int CompareNames(PropertyInformation one, PropertyInformation two) {
+            // use the PropertyInformation CompareTo method, instead of the string.Compare method
+            // so that collections get sorted correctly.
+            return one.CompareTo(two);
+        }
+
+        static int CompareValues(PropertyInformation one, PropertyInformation two) {
+            return string.Compare(one.StringValue, two.StringValue);
+        }
+
+        static int CompareValueSources(PropertyInformation one, PropertyInformation two) {
+            return string.Compare(one.ValueSource.BaseValueSource.ToString(), two.ValueSource.BaseValueSource.ToString());
+        }
+
+        #region INotifyPropertyChanged Members
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected void OnPropertyChanged(string propertyName) {
+            Debug.Assert(GetType().GetProperty(propertyName) != null);
+            if (PropertyChanged != null)
+                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        #endregion
+    }
 }
