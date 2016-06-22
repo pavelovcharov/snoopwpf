@@ -50,7 +50,7 @@ namespace Snoop.TreeList {
                         selected.IsExpanded = false;                        
                         break;
                     }
-                    Items.MoveCurrentToPrevious();
+                    Items.MoveCurrentTo(selected.Parent);
                     break;
                 case Key.Right:
                     e.Handled = true;
