@@ -253,6 +253,9 @@ namespace Snoop {
         public static bool IsFrameworkRenderElementContext(object obj) {
             return Is(obj, "FrameworkRenderElementContext", "DevExpress.Xpf.Core.Native", false);
         }
+        public static bool IsBaseLayoutItem(object obj) {
+            return Is(obj, "BaseLayoutItem", "DevExpress.Xpf.Docking", true);
+        }
 
         public static Assembly GetCoreAssembly(object obj) {
             if (Is(obj, null, "DevExpress.Xpf.Core.Native", false)) {
