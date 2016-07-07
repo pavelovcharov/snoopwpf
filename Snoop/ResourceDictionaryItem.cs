@@ -3,82 +3,64 @@
 // Please see http://go.microsoft.com/fwlink/?LinkID=131993 for details.
 // All other rights reserved.
 
-using System.Collections.Generic;
 using System.Windows;
-using System.Windows.Media;
+using System.Windows.Markup;
 
-namespace Snoop
-{
-	public class ResourceDictionaryItem : VisualTreeItem
-	{
-		public ResourceDictionaryItem(ResourceDictionary dictionary, VisualTreeItem parent): base(dictionary, parent)
-		{
-			this.dictionary = dictionary;
-		}
+namespace Snoop {
+    public class ResourceDictionaryItem : VisualTreeItem {
+        readonly ResourceDictionary dictionary;
 
-		public override string ToString()
-		{
-			return this.Children.Count + " Resources";
-		}
+        public ResourceDictionaryItem(ResourceDictionary dictionary, VisualTreeItem parent) : base(dictionary, parent) {
+            this.dictionary = dictionary;
+        }
 
-		protected override void Reload(List<VisualTreeItem> toBeRemoved)
-		{
-			base.Reload(toBeRemoved);
+        public override string ToString() {
+            return Children.Count + " Resources";
+        }
 
-			foreach (object key in this.dictionary.Keys)
-			{
-				object target;
-				try
-				{
-					target = this.dictionary[key];
-				}
-				catch (System.Windows.Markup.XamlParseException)
-				{
-					// sometimes you can get a XamlParseException ... because the xaml you are Snoop(ing) is bad.
-					// e.g. I got this once when I was Snoop(ing) some xaml that was refering to an image resource that was no longer there.
-					// in this case, just continue to the next resource in the dictionary.
-					continue;
-				}
+        protected override bool GetHasChildren() {
+            return dictionary != null && dictionary.Count > 0;
+        }
 
-				if (target == null)
-				{
-					// you only get a XamlParseException once. the next time through target just comes back null.
-					// in this case, just continue to the next resource in the dictionary (as before).
-					continue;
-				}
+        protected override void ReloadImpl() {
+            base.ReloadImpl();
 
-				bool foundItem = false;
-				foreach (VisualTreeItem item in toBeRemoved)
-				{
-					if (item.Target == target)
-					{
-						toBeRemoved.Remove(item);
-						item.Reload();
-						foundItem = true;
-						break;
-					}
-				}
+            foreach (var key in dictionary.Keys) {
+                object target;
+                try {
+                    target = dictionary[key];
+                }
+                catch (XamlParseException) {
+                    // sometimes you can get a XamlParseException ... because the xaml you are Snoop(ing) is bad.
+                    // e.g. I got this once when I was Snoop(ing) some xaml that was refering to an image resource that was no longer there.
+                    // in this case, just continue to the next resource in the dictionary.
+                    continue;
+                }
 
-				if (!foundItem)
-					this.Children.Add(new ResourceItem(target, key, this));
-			}
-		}
+                if (target == null) {
+                    // you only get a XamlParseException once. the next time through target just comes back null.
+                    // in this case, just continue to the next resource in the dictionary (as before).
+                    continue;
+                }
 
-		private ResourceDictionary dictionary;
-	}
+                Children.Add(new ResourceItem(target, key, this));
+            }
+        }
+    }
 
-	public class ResourceItem : VisualTreeItem
-	{
-		public ResourceItem(object target, object key, VisualTreeItem parent): base(target, parent)
-		{
-			this.key = key;
-		}
+    public class ResourceItem : VisualTreeItem {
+        readonly object key;
 
-		public override string ToString()
-		{
-			return this.key.ToString() + " (" + this.Target.GetType().Name + ")";
-		}
+        public ResourceItem(object target, object key, VisualTreeItem parent) : base(target, parent) {
+            this.key = key;
+        }
 
-		private object key;
-	}
+        protected override bool GetHasChildren() {
+            return false;
+        }
+
+        public override string ToString() {
+            return key + " (" + Target.GetType().Name + ")";
+        }
+    }
 }

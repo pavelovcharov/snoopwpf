@@ -4,188 +4,141 @@
 // All other rights reserved.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using System.Windows.Interop;
-using System.IO;
-using System.Reflection;
 
-namespace Snoop
-{
-	public enum WindowFinderType { Snoop, Magnify };
-
-	/// <summary>
-	/// Interaction logic for WindowFinder.xaml
-	/// </summary>
-	public partial class WindowFinder : UserControl
-	{
-		public WindowFinder()
-		{
-			InitializeComponent();
-
-			_crosshairsCursor = new Cursor(Assembly.GetExecutingAssembly().GetManifestResourceStream("Snoop.Resources.SnoopCrosshairsCursor.cur"));
-			
-			PreviewMouseLeftButtonDown += WindowFinderMouseLeftButtonDown;
-			MouseMove += WindowFinderMouseMove;
-			MouseLeftButtonUp += WindowFinderMouseLeftButtonUp;
-		}
+namespace Snoop {
+    public partial class WindowFinder : UserControl {
+        readonly Cursor _crosshairsCursor;
+        SnoopabilityFeedbackWindow _feedbackWindow;
+        IntPtr _feedbackWindowHandle;
 
 
-		public WindowFinderType WindowFinderType { get; set; }
+        WindowInfo _windowUnderCursor;
+
+        public WindowFinder() {
+            InitializeComponent();
+
+            _crosshairsCursor =
+                new Cursor(
+                    Assembly.GetExecutingAssembly()
+                        .GetManifestResourceStream("Snoop.Resources.SnoopCrosshairsCursor.cur"));
+
+            PreviewMouseLeftButtonDown += WindowFinderMouseLeftButtonDown;
+            MouseMove += WindowFinderMouseMove;
+            MouseLeftButtonUp += WindowFinderMouseLeftButtonUp;
+        }
+
+        bool IsDragging { get; set; }
 
 
-		private void WindowFinderMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-		{
-			StartSnoopTargetsSearch();
-			e.Handled = true;
-		}
-		private void WindowFinderMouseMove(object sender, MouseEventArgs e)
-		{
-			if (!IsDragging) return;
+        void WindowFinderMouseLeftButtonDown(object sender, MouseButtonEventArgs e) {
+            StartSnoopTargetsSearch();
+            e.Handled = true;
+        }
 
-			if (Mouse.LeftButton == MouseButtonState.Released)
-			{
-				StopSnoopTargetsSearch();
-				return;
-			}
-			
-			var windowUnderCursor = NativeMethods.GetWindowUnderMouse();
-			if (_windowUnderCursor == null)
-			{
-				_windowUnderCursor = new WindowInfo(windowUnderCursor);
-			}
+        void WindowFinderMouseMove(object sender, MouseEventArgs e) {
+            if (!IsDragging) return;
 
-			if (IsVisualFeedbackWindow(windowUnderCursor))
-			{
-				// if the window under the cursor is the feedback window, just ignore it.
-				return;
-			}
+            if (Mouse.LeftButton == MouseButtonState.Released) {
+                StopSnoopTargetsSearch();
+                return;
+            }
 
-			if (windowUnderCursor != _windowUnderCursor.HWnd)
-			{
-				// the window under the cursor has changed
+            var windowUnderCursor = NativeMethods.GetWindowUnderMouse();
+            if (_windowUnderCursor == null) {
+                _windowUnderCursor = new WindowInfo(windowUnderCursor);
+            }
 
-				RemoveVisualFeedback();
-				_windowUnderCursor = new WindowInfo(windowUnderCursor);
-				if (_windowUnderCursor.IsValidProcess)
-				{
-					ShowVisualFeedback();
-				}
-			}
+            if (IsVisualFeedbackWindow(windowUnderCursor)) {
+                // if the window under the cursor is the feedback window, just ignore it.
+                return;
+            }
 
-			UpdateFeedbackWindowPosition();
-		}
-		private void WindowFinderMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
-		{
-			StopSnoopTargetsSearch();
-			if (_windowUnderCursor != null && _windowUnderCursor.IsValidProcess)
-			{
-				if (WindowFinderType == WindowFinderType.Snoop)
-				{
-					AttachSnoop();
-				}
-				else if (WindowFinderType == WindowFinderType.Magnify)
-				{
-					AttachMagnify();
-				}
-			}
-		}
+            if (windowUnderCursor != _windowUnderCursor.HWnd) {
+                // the window under the cursor has changed
+
+                RemoveVisualFeedback();
+                _windowUnderCursor = new WindowInfo(windowUnderCursor);
+                if (_windowUnderCursor.IsValidProcess) {
+                    ShowVisualFeedback();
+                }
+            }
+
+            UpdateFeedbackWindowPosition();
+        }
+
+        void WindowFinderMouseLeftButtonUp(object sender, MouseButtonEventArgs e) {
+            StopSnoopTargetsSearch();
+            if (_windowUnderCursor != null && _windowUnderCursor.IsValidProcess) {
+                AttachSnoop();
+            }
+        }
 
 
-		private void StartSnoopTargetsSearch()
-		{
-			CaptureMouse();
-			IsDragging = true;
-			Cursor = _crosshairsCursor;
-			snoopCrosshairsImage.Visibility = Visibility.Hidden;
-			_windowUnderCursor = null;
-		}
-		private void StopSnoopTargetsSearch()
-		{
-			ReleaseMouseCapture();
-			IsDragging = false;
-			Cursor = Cursors.Arrow;
-			snoopCrosshairsImage.Visibility = Visibility.Visible;
-			RemoveVisualFeedback();
-		}
+        void StartSnoopTargetsSearch() {
+            CaptureMouse();
+            IsDragging = true;
+            Cursor = _crosshairsCursor;
+            snoopCrosshairsImage.Visibility = Visibility.Hidden;
+            _windowUnderCursor = null;
+        }
 
-		private void ShowVisualFeedback()
-		{
-			if (_feedbackWindow == null)
-			{
-				_feedbackWindow = new SnoopabilityFeedbackWindow();
+        void StopSnoopTargetsSearch() {
+            ReleaseMouseCapture();
+            IsDragging = false;
+            Cursor = Cursors.Arrow;
+            snoopCrosshairsImage.Visibility = Visibility.Visible;
+            RemoveVisualFeedback();
+        }
 
-				// we don't have to worry about not having an application or not having a main window,
-				// for, we are still in Snoop's process and not in the injected process.
-				// so, go ahead and grab the Application.Current.MainWindow.
-				_feedbackWindow.Owner = Application.Current.MainWindow;
-			}
+        void ShowVisualFeedback() {
+            if (_feedbackWindow == null) {
+                _feedbackWindow = new SnoopabilityFeedbackWindow();
 
-			if (!_feedbackWindow.IsVisible)
-			{
-				_feedbackWindow.SnoopTargetName = _windowUnderCursor.Description;
+                // we don't have to worry about not having an application or not having a main window,
+                // for, we are still in Snoop's process and not in the injected process.
+                // so, go ahead and grab the Application.Current.MainWindow.
+                _feedbackWindow.Owner = Application.Current.MainWindow;
+            }
 
-				UpdateFeedbackWindowPosition();
-				_feedbackWindow.Show();
+            if (!_feedbackWindow.IsVisible) {
+                _feedbackWindow.SnoopTargetName = _windowUnderCursor.Description;
 
-				if (_feedbackWindowHandle == IntPtr.Zero)
-				{
-					var wih = new WindowInteropHelper(_feedbackWindow);
-					_feedbackWindowHandle = wih.Handle;
-				}
-			}
-		}
-		private void RemoveVisualFeedback()
-		{
-			if (_feedbackWindow != null && _feedbackWindow.IsVisible)
-			{
-				_feedbackWindow.Hide();
-			}
-		}
+                UpdateFeedbackWindowPosition();
+                _feedbackWindow.Show();
 
-		private bool IsVisualFeedbackWindow(IntPtr hwnd)
-		{
-			return hwnd != IntPtr.Zero && hwnd == _feedbackWindowHandle;
-		}
-		private void UpdateFeedbackWindowPosition()
-		{
-			if (_feedbackWindow != null)
-			{
-				var mouse = NativeMethods.GetCursorPosition();
-				_feedbackWindow.Left = mouse.X - 34;//.Left;
-				_feedbackWindow.Top = mouse.Y + 10; // windowRect.Top;
-			}
-		}
+                if (_feedbackWindowHandle == IntPtr.Zero) {
+                    var wih = new WindowInteropHelper(_feedbackWindow);
+                    _feedbackWindowHandle = wih.Handle;
+                }
+            }
+        }
 
-		private void AttachSnoop()
-		{
-			new AttachFailedHandler(_windowUnderCursor);
-			_windowUnderCursor.Snoop();
-		}
+        void RemoveVisualFeedback() {
+            if (_feedbackWindow != null && _feedbackWindow.IsVisible) {
+                _feedbackWindow.Hide();
+            }
+        }
 
-		private void AttachMagnify()
-		{
-			new AttachFailedHandler(_windowUnderCursor);
-			_windowUnderCursor.Magnify();
-		}
+        bool IsVisualFeedbackWindow(IntPtr hwnd) {
+            return hwnd != IntPtr.Zero && hwnd == _feedbackWindowHandle;
+        }
 
+        void UpdateFeedbackWindowPosition() {
+            if (_feedbackWindow != null) {
+                var mouse = NativeMethods.GetCursorPosition();
+                _feedbackWindow.Left = mouse.X - 34; //.Left;
+                _feedbackWindow.Top = mouse.Y + 10; // windowRect.Top;
+            }
+        }
 
-		private bool IsDragging { get; set; }
-
-
-		private WindowInfo _windowUnderCursor;
-		private SnoopabilityFeedbackWindow _feedbackWindow;
-		private IntPtr _feedbackWindowHandle;
-		private Cursor _crosshairsCursor;
-	}	
+        void AttachSnoop() {
+            new AttachFailedHandler(_windowUnderCursor);
+            _windowUnderCursor.Snoop();
+        }
+    }
 }

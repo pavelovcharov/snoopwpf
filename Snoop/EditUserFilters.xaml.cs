@@ -3,156 +3,135 @@
 // Please see http://go.microsoft.com/fwlink/?LinkID=131993 for details.
 // All other rights reserved.
 
-using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
 
-namespace Snoop
-{
-	public partial class EditUserFilters : Window, INotifyPropertyChanged
-	{
-		public EditUserFilters()
-		{
-			InitializeComponent();
-			DataContext = this;
-		}
+namespace Snoop {
+    public partial class EditUserFilters : Window, INotifyPropertyChanged {
+        ObservableCollection<PropertyFilterSet> _itemsSource;
+        IEnumerable<PropertyFilterSet> _userFilters;
+
+        public EditUserFilters() {
+            InitializeComponent();
+            DataContext = this;
+        }
 
 
-		public IEnumerable<PropertyFilterSet> UserFilters
-		{
-			[DebuggerStepThrough]
-			get { return _userFilters; }
-			set
-			{
-				if (value != _userFilters)
-				{
-					_userFilters = value;
-					NotifyPropertyChanged("UserFilters");
-					ItemsSource = new ObservableCollection<PropertyFilterSet>(UserFilters);
-				}
-			}
-		}
-		private IEnumerable<PropertyFilterSet> _userFilters;
+        public IEnumerable<PropertyFilterSet> UserFilters {
+            [DebuggerStepThrough] get { return _userFilters; }
+            set {
+                if (value != _userFilters) {
+                    _userFilters = value;
+                    NotifyPropertyChanged("UserFilters");
+                    ItemsSource = new ObservableCollection<PropertyFilterSet>(UserFilters);
+                }
+            }
+        }
 
-		public ObservableCollection<PropertyFilterSet> ItemsSource
-		{
-			[DebuggerStepThrough]
-			get { return _itemsSource; }
-			private set
-			{
-				if (value != _itemsSource)
-				{
-					_itemsSource = value;
-					NotifyPropertyChanged("ItemsSource");
-				}
-			}
-		}
-		private ObservableCollection<PropertyFilterSet> _itemsSource;
+        public ObservableCollection<PropertyFilterSet> ItemsSource {
+            [DebuggerStepThrough] get { return _itemsSource; }
+            private set {
+                if (value != _itemsSource) {
+                    _itemsSource = value;
+                    NotifyPropertyChanged("ItemsSource");
+                }
+            }
+        }
 
 
-		private void OkHandler(object sender, RoutedEventArgs e)
-		{
-			DialogResult = true;
-			Close();
-		}
-		private void CancelHandler(object sender, RoutedEventArgs e)
-		{
-			DialogResult = false;
-			Close();
-		}
+        void OkHandler(object sender, RoutedEventArgs e) {
+            DialogResult = true;
+            Close();
+        }
 
-		private void AddHandler(object sender, RoutedEventArgs e)
-		{
-			var newSet =
-				new PropertyFilterSet()
-				{
-					DisplayName = "New Filter",
-					IsDefault = false,
-					IsEditCommand = false,
-					Properties = new String[] { "prop1,prop2" },
-				};
-			ItemsSource.Add(newSet);
+        void CancelHandler(object sender, RoutedEventArgs e) {
+            DialogResult = false;
+            Close();
+        }
 
-			// select this new item
-			int index = ItemsSource.IndexOf(newSet);
-			if (index >= 0)
-			{
-				filterSetList.SelectedIndex = index;
-			}
-		}
-		private void DeleteHandler(object sender, RoutedEventArgs e)
-		{
-			var selected = filterSetList.SelectedItem as PropertyFilterSet;
-			if (selected != null)
-			{
-				ItemsSource.Remove(selected);
-			}
-		}
+        void AddHandler(object sender, RoutedEventArgs e) {
+            var newSet =
+                new PropertyFilterSet {
+                    DisplayName = "New Filter",
+                    IsDefault = false,
+                    IsEditCommand = false,
+                    Properties = new[] {"prop1,prop2"}
+                };
+            ItemsSource.Add(newSet);
 
-		private void UpHandler(object sender, RoutedEventArgs e)
-		{
-			int index = filterSetList.SelectedIndex;
-			if (index <= 0)
-				return;
+            // select this new item
+            var index = ItemsSource.IndexOf(newSet);
+            if (index >= 0) {
+                filterSetList.SelectedIndex = index;
+            }
+        }
 
-			var item = ItemsSource[index];
-			ItemsSource.RemoveAt(index);
-			ItemsSource.Insert(index - 1, item);
+        void DeleteHandler(object sender, RoutedEventArgs e) {
+            var selected = filterSetList.SelectedItem as PropertyFilterSet;
+            if (selected != null) {
+                ItemsSource.Remove(selected);
+            }
+        }
 
-			// select the moved item
-			filterSetList.SelectedIndex = index - 1;
+        void UpHandler(object sender, RoutedEventArgs e) {
+            var index = filterSetList.SelectedIndex;
+            if (index <= 0)
+                return;
 
-		}
-		private void DownHandler(object sender, RoutedEventArgs e)
-		{
-			int index = filterSetList.SelectedIndex;
-			if (index >= ItemsSource.Count - 1)
-				return;
+            var item = ItemsSource[index];
+            ItemsSource.RemoveAt(index);
+            ItemsSource.Insert(index - 1, item);
 
-			var item = ItemsSource[index];
-			ItemsSource.RemoveAt(index);
-			ItemsSource.Insert(index + 1, item);
+            // select the moved item
+            filterSetList.SelectedIndex = index - 1;
+        }
 
-			// select the moved item
-			filterSetList.SelectedIndex = index + 1;
-		}
+        void DownHandler(object sender, RoutedEventArgs e) {
+            var index = filterSetList.SelectedIndex;
+            if (index >= ItemsSource.Count - 1)
+                return;
 
-		private void SelectionChangedHandler(object sender, SelectionChangedEventArgs e)
-		{
-			SetButtonStates();
-		}
+            var item = ItemsSource[index];
+            ItemsSource.RemoveAt(index);
+            ItemsSource.Insert(index + 1, item);
+
+            // select the moved item
+            filterSetList.SelectedIndex = index + 1;
+        }
+
+        void SelectionChangedHandler(object sender, SelectionChangedEventArgs e) {
+            SetButtonStates();
+        }
 
 
-		private void SetButtonStates()
-		{
-			MoveUp.IsEnabled = false;
-			MoveDown.IsEnabled = false;
-			DeleteItem.IsEnabled = false;
+        void SetButtonStates() {
+            MoveUp.IsEnabled = false;
+            MoveDown.IsEnabled = false;
+            DeleteItem.IsEnabled = false;
 
-			int index = filterSetList.SelectedIndex;
-			if (index >= 0)
-			{
-				MoveDown.IsEnabled = true;
-				DeleteItem.IsEnabled = true;
-			}
+            var index = filterSetList.SelectedIndex;
+            if (index >= 0) {
+                MoveDown.IsEnabled = true;
+                DeleteItem.IsEnabled = true;
+            }
 
-			if (index > 0)
-				MoveUp.IsEnabled = true;
+            if (index > 0)
+                MoveUp.IsEnabled = true;
 
-			if (index == filterSetList.Items.Count - 1)
-				MoveDown.IsEnabled = false;
-		}
+            if (index == filterSetList.Items.Count - 1)
+                MoveDown.IsEnabled = false;
+        }
+
+        protected void NotifyPropertyChanged(string propertyName) {
+            if (PropertyChanged != null)
+                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+        }
 
 
-		public event PropertyChangedEventHandler PropertyChanged;
-		protected void NotifyPropertyChanged(string propertyName)
-		{
-			if (PropertyChanged != null)
-				PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
-		}
-	}
+        public event PropertyChangedEventHandler PropertyChanged;
+    }
 }

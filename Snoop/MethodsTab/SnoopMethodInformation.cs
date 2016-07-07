@@ -5,61 +5,32 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Reflection;
 
-namespace Snoop.MethodsTab
-{
-    public class SnoopMethodInformation : IComparable, IEquatable<SnoopMethodInformation>
-    {
-        private MethodInfo _methodInfo;
-
-        public string MethodName
-        {
-            get;
-            set;
+namespace Snoop.MethodsTab {
+    public class SnoopMethodInformation : IComparable, IEquatable<SnoopMethodInformation> {
+        public SnoopMethodInformation(MethodInfo methodInfo) {
+            MethodInfo = methodInfo;
         }
 
-        public MethodInfo MethodInfo
-        {
-            get
-            {
-                return _methodInfo;
-            }
-        }
+        public string MethodName { get; set; }
 
-        public SnoopMethodInformation(MethodInfo methodInfo)
-        {
-            _methodInfo = methodInfo;
-        }
+        public MethodInfo MethodInfo { get; }
 
-        #region IComparable Members
-
-        public int CompareTo(object obj)
-        {
-            return this.MethodName.CompareTo(((SnoopMethodInformation)obj).MethodName);
-        }
-
-        #endregion
-
-        public override string ToString()
-        {
+        public override string ToString() {
             return MethodName;
         }
 
-        public IList<SnoopParameterInformation> GetParameters(Type declaringType)
-        {
-            if (_methodInfo == null)
+        public IList<SnoopParameterInformation> GetParameters(Type declaringType) {
+            if (MethodInfo == null)
                 return new List<SnoopParameterInformation>();
 
-            var parameterInfos = _methodInfo.GetParameters();
+            var parameterInfos = MethodInfo.GetParameters();
 
 
-            List<SnoopParameterInformation> parametersToReturn = new List<SnoopParameterInformation>();
+            var parametersToReturn = new List<SnoopParameterInformation>();
 
-            foreach (var parameterInfo in parameterInfos)
-            {
+            foreach (var parameterInfo in parameterInfos) {
                 var snoopParameterInfo = new SnoopParameterInformation(parameterInfo, declaringType);
                 parametersToReturn.Add(snoopParameterInfo);
             }
@@ -67,29 +38,35 @@ namespace Snoop.MethodsTab
             return parametersToReturn;
         }
 
+        #region IComparable Members
+
+        public int CompareTo(object obj) {
+            return MethodName.CompareTo(((SnoopMethodInformation) obj).MethodName);
+        }
+
+        #endregion
+
         #region IEquatable<SnoopMethodInformation> Members
 
-        public bool Equals(SnoopMethodInformation other)
-        {
+        public bool Equals(SnoopMethodInformation other) {
             if (other == null)
                 return false;
 
-            if (other.MethodName != this.MethodName)
+            if (other.MethodName != MethodName)
                 return false;
 
-            if (!(other.MethodInfo.ReturnType.Equals(this.MethodInfo.ReturnType)))
+            if (!other.MethodInfo.ReturnType.Equals(MethodInfo.ReturnType))
                 return false;
 
-            var thisParameterInfos = this.MethodInfo.GetParameters();
+            var thisParameterInfos = MethodInfo.GetParameters();
             var otherParameterInfos = other.MethodInfo.GetParameters();
 
             if (thisParameterInfos.Length != otherParameterInfos.Length)
                 return false;
 
-            for (int i = 0; i < thisParameterInfos.Length; i++)
-            {
+            for (var i = 0; i < thisParameterInfos.Length; i++) {
                 var thisParameterInfo = thisParameterInfos[i];
-                var otherParameterInfo = otherParameterInfos[i];             
+                var otherParameterInfo = otherParameterInfos[i];
 
                 //if (!thisParameterInfo.Equals(otherParameterInfo))
                 if (!ParameterInfosEqual(thisParameterInfo, otherParameterInfo))
@@ -99,12 +76,11 @@ namespace Snoop.MethodsTab
             return true;
         }
 
-        private bool ParameterInfosEqual(ParameterInfo parm1, ParameterInfo parm2)
-        {
-            if (!(parm1.Name.Equals(parm2.Name)))
+        bool ParameterInfosEqual(ParameterInfo parm1, ParameterInfo parm2) {
+            if (!parm1.Name.Equals(parm2.Name))
                 return false;
 
-            if (!(parm1.ParameterType.Equals(parm2.ParameterType)))
+            if (!parm1.ParameterType.Equals(parm2.ParameterType))
                 return false;
 
             return parm1.Position == parm2.Position;

@@ -4,78 +4,77 @@
 // All other rights reserved.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Windows;
-using System.Reflection;
-using System.Windows.Input;
 using System.ComponentModel;
+using System.Reflection;
+using System.Windows;
+using System.Windows.Input;
 using Snoop.Infrastructure;
 
-namespace Snoop.MethodsTab
-{
-    public class SnoopParameterInformation : DependencyObject
-    {
+namespace Snoop.MethodsTab {
+    public class SnoopParameterInformation : DependencyObject {
+        // Using a DependencyProperty as the backing store for ParameterValue.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty ParameterValueProperty =
+            DependencyProperty.Register("ParameterValue", typeof(object), typeof(SnoopParameterInformation),
+                new UIPropertyMetadata(null));
 
-        private ParameterInfo _parameterInfo = null;
-        private ICommand _createCustomParameterCommand = null;
-        private ICommand _nullOutParameter = null;
+        ICommand _createCustomParameterCommand;
+        ICommand _nullOutParameter;
 
-        public TypeConverter TypeConverter
-        {
-            get;
-            private set;
+        ParameterInfo _parameterInfo;
+
+        public SnoopParameterInformation(ParameterInfo parameterInfo, Type declaringType) {
+            _parameterInfo = parameterInfo;
+            if (parameterInfo == null)
+                return;
+
+            DeclaringType = declaringType;
+            ParameterName = parameterInfo.Name;
+            ParameterType = parameterInfo.ParameterType;
+            if (ParameterType.IsValueType) {
+                ParameterValue = Activator.CreateInstance(ParameterType);
+            }
+            TypeConverter = TypeDescriptor.GetConverter(ParameterType);
         }
 
-        public Type DeclaringType
-        {
-            get;
-            private set;
+        public TypeConverter TypeConverter { get; }
+
+        public Type DeclaringType { get; private set; }
+
+        public bool IsCustom {
+            get { return !IsEnum && (TypeConverter.GetType() == typeof(TypeConverter)); }
         }
 
-        public bool IsCustom
-        {
-            get
-            {
-                return !this.IsEnum && (TypeConverter.GetType() == typeof(TypeConverter));
+        public bool IsEnum {
+            get { return ParameterType.IsEnum; }
+        }
+
+        public ICommand CreateCustomParameterCommand {
+            get {
+                return _createCustomParameterCommand ??
+                       (_createCustomParameterCommand = new RelayCommand(x => CreateCustomParameter()));
             }
         }
 
-        public bool IsEnum
-        {
-            get
-            {
-                return this.ParameterType.IsEnum;
-            }
+        public ICommand NullOutParameterCommand {
+            get { return _nullOutParameter ?? (_nullOutParameter = new RelayCommand(x => ParameterValue = null)); }
         }
 
-        public ICommand CreateCustomParameterCommand
-        {
-            get
-            {                
-                return _createCustomParameterCommand ?? (_createCustomParameterCommand = new RelayCommand(x => CreateCustomParameter()));
-            }
+        public string ParameterName { get; set; }
+
+        public Type ParameterType { get; set; }
+
+        public object ParameterValue {
+            get { return GetValue(ParameterValueProperty); }
+            set { SetValue(ParameterValueProperty, value); }
         }
 
-        public ICommand NullOutParameterCommand
-        {
-            get
-            {
-                return _nullOutParameter ?? (_nullOutParameter = new RelayCommand(x => this.ParameterValue = null));
-            }
-        }
-
-        private static ITypeSelector GetTypeSelector(Type parameterType)
-        {
+        static ITypeSelector GetTypeSelector(Type parameterType) {
             ITypeSelector typeSelector = null;
-            if (parameterType.Equals(typeof(object)))
-            {
+            if (parameterType.Equals(typeof(object))) {
                 typeSelector = new FullTypeSelector();
             }
-            else
-            {
-                typeSelector = new TypeSelector() { BaseType = parameterType };
+            else {
+                typeSelector = new TypeSelector {BaseType = parameterType};
                 //typeSelector.BaseType = parameterType;
             }
 
@@ -84,68 +83,32 @@ namespace Snoop.MethodsTab
             return typeSelector;
         }
 
-        public void CreateCustomParameter()
-        {
+        public void CreateCustomParameter() {
             var paramCreator = new ParameterCreator();
             paramCreator.Title = "Create parameter";
-            paramCreator.TextBlockDescription.Text = "Modify the properties of the parameter. Press OK to finalize the parameter";
+            paramCreator.TextBlockDescription.Text =
+                "Modify the properties of the parameter. Press OK to finalize the parameter";
 
-            if (this.ParameterValue == null)
-            {
+            if (ParameterValue == null) {
                 var typeSelector = GetTypeSelector(ParameterType);
                 typeSelector.ShowDialog();
 
-                if (!typeSelector.DialogResult.Value)
-                {
+                if (!typeSelector.DialogResult.Value) {
                     return;
                 }
                 paramCreator.RootTarget = typeSelector.Instance;
             }
-            else
-            {
-                paramCreator.RootTarget = this.ParameterValue;
+            else {
+                paramCreator.RootTarget = ParameterValue;
             }
 
             paramCreator.WindowStartupLocation = WindowStartupLocation.CenterScreen;
             paramCreator.ShowDialog();
 
-            if (paramCreator.DialogResult.HasValue && paramCreator.DialogResult.Value)
-            {
-                ParameterValue = null;//To force a property changed
+            if (paramCreator.DialogResult.HasValue && paramCreator.DialogResult.Value) {
+                ParameterValue = null; //To force a property changed
                 ParameterValue = paramCreator.RootTarget;
             }
         }
-
-        public SnoopParameterInformation(ParameterInfo parameterInfo, Type declaringType)
-        {
-            _parameterInfo = parameterInfo;
-            if (parameterInfo == null)
-                return;
-
-            this.DeclaringType = declaringType;
-            this.ParameterName = parameterInfo.Name;
-            this.ParameterType = parameterInfo.ParameterType;
-            if (this.ParameterType.IsValueType)
-            {
-                this.ParameterValue = Activator.CreateInstance(this.ParameterType);
-            }
-            TypeConverter = TypeDescriptor.GetConverter(this.ParameterType);
-        }
-
-        public string ParameterName { get; set; }
-
-        public Type ParameterType { get; set; }
-
-        public object ParameterValue
-        {
-            get { return (object)GetValue(ParameterValueProperty); }
-            set { SetValue(ParameterValueProperty, value); }
-        }
-
-        // Using a DependencyProperty as the backing store for ParameterValue.  This enables animation, styling, binding, etc...
-        public static readonly DependencyProperty ParameterValueProperty =
-            DependencyProperty.Register("ParameterValue", typeof(object), typeof(SnoopParameterInformation), new UIPropertyMetadata(null));
-
-
     }
 }

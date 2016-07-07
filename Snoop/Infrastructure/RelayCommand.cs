@@ -4,16 +4,11 @@
 // All other rights reserved.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Windows.Input;
 using System.Diagnostics;
+using System.Windows.Input;
 
-namespace Snoop.Infrastructure
-{
-    public class RelayCommand : ICommand
-    {
+namespace Snoop.Infrastructure {
+    public class RelayCommand : ICommand {
         #region Fields
 
         readonly Action<object> _execute;
@@ -24,36 +19,31 @@ namespace Snoop.Infrastructure
         #region Constructors
 
         public RelayCommand(Action<object> execute)
-            : this(execute, null)
-        {
-        }
+            : this(execute, null) {}
 
-        public RelayCommand(Action<object> execute, Predicate<object> canExecute)
-        {
+        public RelayCommand(Action<object> execute, Predicate<object> canExecute) {
             if (execute == null)
                 throw new ArgumentNullException("execute");
 
             _execute = execute;
             _canExecute = canExecute;
         }
+
         #endregion // Constructors
 
         #region ICommand Members
 
         [DebuggerStepThrough]
-        public bool CanExecute(object parameter)
-        {
+        public bool CanExecute(object parameter) {
             return _canExecute == null ? true : _canExecute(parameter);
         }
 
-        public event EventHandler CanExecuteChanged
-        {
+        public event EventHandler CanExecuteChanged {
             add { CommandManager.RequerySuggested += value; }
             remove { CommandManager.RequerySuggested -= value; }
         }
 
-        public void Execute(object parameter)
-        {
+        public void Execute(object parameter) {
             _execute(parameter);
         }
 

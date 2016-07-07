@@ -4,148 +4,92 @@
 // All other rights reserved.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using System.ComponentModel;
 using Snoop.Infrastructure;
 
-namespace Snoop
-{
-	/// <summary>
-	/// Interaction logic for ZoomerControl.xaml
-	/// </summary>
-	public partial class ZoomerControl : UserControl
-	{
-		public ZoomerControl()
-		{
-			InitializeComponent();
+namespace Snoop {
+    /// <summary>
+    ///     Interaction logic for ZoomerControl.xaml
+    /// </summary>
+    public partial class ZoomerControl : UserControl {
+        const double ZoomFactor = 1.1;
+        readonly TransformGroup transform = new TransformGroup();
 
-			this.transform.Children.Add(this.zoom);
-			this.transform.Children.Add(this.translation);
+        readonly TranslateTransform translation = new TranslateTransform();
+        readonly ScaleTransform zoom = new ScaleTransform();
 
-			this.Viewbox.RenderTransform = this.transform;
+
+        Brush _pooSniffer;
+        Point downPoint;
+
+        public ZoomerControl() {
+            InitializeComponent();
+
+            transform.Children.Add(zoom);
+            transform.Children.Add(translation);
+
+            Viewbox.RenderTransform = transform;
 
 //			DependencyPropertyDescriptor.FromProperty(TargetProperty, typeof(ZoomerControl)).AddValueChanged(this, TargetChanged);
-		}
+        }
 
 
-		#region Target
-		/// <summary>
-		/// Gets or sets the Target property.
-		/// </summary>
-		public object Target
-		{
-			get { return (object)GetValue(TargetProperty); }
-			set { SetValue(TargetProperty, value); }
-		}
-		/// <summary>
-		/// Target Dependency Property
-		/// </summary>
-		public static readonly DependencyProperty TargetProperty =
-			DependencyProperty.Register
-			(
-				"Target",
-				typeof(object),
-				typeof(ZoomerControl),
-				new FrameworkPropertyMetadata
-				(
-					(object)null,
-					new PropertyChangedCallback(OnTargetChanged)
-				)
-			);
-		/// <summary>
-		/// Handles changes to the Target property.
-		/// </summary>
-		private static void OnTargetChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-		{
-			((ZoomerControl)d).OnTargetChanged(e);
-		}
-		/// <summary>
-		/// Provides derived classes an opportunity to handle changes to the Target property.
-		/// </summary>
-		protected virtual void OnTargetChanged(DependencyPropertyChangedEventArgs e)
-		{
-			ResetZoomAndTranslation();
-
-			if (_pooSniffer == null)
-				_pooSniffer = this.TryFindResource("poo_sniffer_xpr") as Brush;
-
-			Cursor = (Target == _pooSniffer) ? null : Cursors.SizeAll;
-
-			UIElement element = this.CreateIfPossible(Target);
-			if (element != null)
-				this.Viewbox.Child = element;
-		}
-		#endregion
+        protected override bool HandlesScrolling {
+            get { return base.HandlesScrolling; }
+        }
 
 
-		protected override bool HandlesScrolling
-		{
-			get
-			{
-				return base.HandlesScrolling;
-			}
-		}
+        bool IsValidTarget {
+            get { return Target != null && Target != _pooSniffer; }
+        }
 
 
-		private void Content_MouseDown(object sender, MouseButtonEventArgs e)
-		{
-			this.Focus();
-			this.downPoint = e.GetPosition(this.DocumentRoot);
-			this.DocumentRoot.CaptureMouse();
-		}
-		private void Content_MouseMove(object sender, MouseEventArgs e)
-		{
-			if (IsValidTarget && this.DocumentRoot.IsMouseCaptured)
-			{
-				Vector delta = e.GetPosition(this.DocumentRoot) - this.downPoint;
-				this.translation.X += delta.X;
-				this.translation.Y += delta.Y;
+        void Content_MouseDown(object sender, MouseButtonEventArgs e) {
+            Focus();
+            downPoint = e.GetPosition(DocumentRoot);
+            DocumentRoot.CaptureMouse();
+        }
 
-				this.downPoint = e.GetPosition(this.DocumentRoot);
-			}
-		}
-		private void Content_MouseUp(object sender, MouseEventArgs e)
-		{
-			this.DocumentRoot.ReleaseMouseCapture();
-		}
+        void Content_MouseMove(object sender, MouseEventArgs e) {
+            if (IsValidTarget && DocumentRoot.IsMouseCaptured) {
+                var delta = e.GetPosition(DocumentRoot) - downPoint;
+                translation.X += delta.X;
+                translation.Y += delta.Y;
 
-		public void DoMouseWheel(object sender, MouseWheelEventArgs e)
-		{
-			if (IsValidTarget)
-			{
-				double zoom = Math.Pow(ZoomFactor, e.Delta / 120.0);
-				Point offset = e.GetPosition(this.Viewbox);
-				this.Zoom(zoom, offset);
-			}
-		}
+                downPoint = e.GetPosition(DocumentRoot);
+            }
+        }
+
+        void Content_MouseUp(object sender, MouseEventArgs e) {
+            DocumentRoot.ReleaseMouseCapture();
+        }
+
+        public void DoMouseWheel(object sender, MouseWheelEventArgs e) {
+            if (IsValidTarget) {
+                var zoom = Math.Pow(ZoomFactor, e.Delta/120.0);
+                var offset = e.GetPosition(Viewbox);
+                Zoom(zoom, offset);
+            }
+        }
 
 
-		private void ResetZoomAndTranslation()
-		{
-			//Zoom(0, new Point(-this.translation.X, -this.translation.Y));
-			//Zoom(1.0 / zoom.ScaleX, new Point());
-			this.zoom.ScaleX = 1.0;
-			this.zoom.ScaleY = 1.0;
+        void ResetZoomAndTranslation() {
+            //Zoom(0, new Point(-this.translation.X, -this.translation.Y));
+            //Zoom(1.0 / zoom.ScaleX, new Point());
+            zoom.ScaleX = 1.0;
+            zoom.ScaleY = 1.0;
 
-			this.translation.X = 0.0;
-			this.translation.Y = 0.0;
-		}
+            translation.X = 0.0;
+            translation.Y = 0.0;
+        }
 
-        private UIElement CreateIfPossible(object item)
-        {
+        UIElement CreateIfPossible(object item) {
             return ZoomerUtilities.CreateIfPossible(item);
         }
+
         //private UIElement CreateIfPossible(object item)
         //{
         //    if (item is Window && VisualTreeHelper.GetChildrenCount((Visual)item) == 1)
@@ -200,35 +144,66 @@ namespace Snoop
         //    return null;
         //}
 
-		private void Zoom(double zoom, Point offset)
-		{
-			Vector v = new Vector((1 - zoom) * offset.X, (1 - zoom) * offset.Y);
+        void Zoom(double zoom, Point offset) {
+            var v = new Vector((1 - zoom)*offset.X, (1 - zoom)*offset.Y);
 
-			Vector translationVector = v * this.transform.Value;
-			this.translation.X += translationVector.X;
-			this.translation.Y += translationVector.Y;
+            var translationVector = v*transform.Value;
+            translation.X += translationVector.X;
+            translation.Y += translationVector.Y;
 
-			this.zoom.ScaleX = this.zoom.ScaleX * zoom;
-			this.zoom.ScaleY = this.zoom.ScaleY * zoom;
-		}
+            this.zoom.ScaleX = this.zoom.ScaleX*zoom;
+            this.zoom.ScaleY = this.zoom.ScaleY*zoom;
+        }
 
+        #region Target
 
-		private bool IsValidTarget
-		{
-			get
-			{
-				return Target != null && Target != _pooSniffer;
-			}
-		}
+        /// <summary>
+        ///     Gets or sets the Target property.
+        /// </summary>
+        public object Target {
+            get { return GetValue(TargetProperty); }
+            set { SetValue(TargetProperty, value); }
+        }
 
+        /// <summary>
+        ///     Target Dependency Property
+        /// </summary>
+        public static readonly DependencyProperty TargetProperty =
+            DependencyProperty.Register
+                (
+                    "Target",
+                    typeof(object),
+                    typeof(ZoomerControl),
+                    new FrameworkPropertyMetadata
+                        (
+                        null,
+                        OnTargetChanged
+                        )
+                );
 
-		private Brush _pooSniffer = null;
+        /// <summary>
+        ///     Handles changes to the Target property.
+        /// </summary>
+        static void OnTargetChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) {
+            ((ZoomerControl) d).OnTargetChanged(e);
+        }
 
-		private TranslateTransform translation = new TranslateTransform();
-		private ScaleTransform zoom = new ScaleTransform();
-		private TransformGroup transform = new TransformGroup();
-		private Point downPoint;
+        /// <summary>
+        ///     Provides derived classes an opportunity to handle changes to the Target property.
+        /// </summary>
+        protected virtual void OnTargetChanged(DependencyPropertyChangedEventArgs e) {
+            ResetZoomAndTranslation();
 
-		private const double ZoomFactor = 1.1;
-	}
+            if (_pooSniffer == null)
+                _pooSniffer = TryFindResource("poo_sniffer_xpr") as Brush;
+
+            Cursor = Target == _pooSniffer ? null : Cursors.SizeAll;
+
+            var element = CreateIfPossible(Target);
+            if (element != null)
+                Viewbox.Child = element;
+        }
+
+        #endregion
+    }
 }

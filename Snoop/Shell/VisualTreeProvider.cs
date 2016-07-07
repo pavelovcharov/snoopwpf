@@ -12,85 +12,69 @@ using System.Management.Automation;
 using System.Management.Automation.Provider;
 using System.Threading;
 
-namespace Snoop.Shell
-{
+namespace Snoop.Shell {
     [CmdletProvider("VisualTreeProvider", ProviderCapabilities.Filter)]
-    public class VisualTreeProvider : NavigationCmdletProvider, IDisposable
-    {
+    public class VisualTreeProvider : NavigationCmdletProvider, IDisposable {
         internal const int LocationChangeNotifyDelay = 250;
 
-        private VisualTreeItem Root
-        {
-            get
-            {
-                var data = (Hashtable)Host.PrivateData.BaseObject;
-                return (VisualTreeItem)data[ShellConstants.Root];
-            }
-        }
+        readonly Timer selectedTimer;
+        string lastLocation;
 
-        private readonly Timer selectedTimer;
-        private string lastLocation;
-
-        public VisualTreeProvider()
-        {
+        public VisualTreeProvider() {
             selectedTimer = new Timer(OnSyncSelectedItem, null, Timeout.Infinite, Timeout.Infinite);
         }
 
-        private void OnSyncSelectedItem(object _)
-        {
-            // the PSDrive.CurrentLocation gets set, but i couldn't find a way to have it notify
-            // so unfortunately we have to poll :(
-            if (this.PSDriveInfo.CurrentLocation != this.lastLocation)
-            {
-                var item = GetTreeItem(this.PSDriveInfo.CurrentLocation);
-
-                if (item != null)
-                {
-                    var data = (Hashtable)Host.PrivateData.BaseObject;
-                    var action = (Action<VisualTreeItem>)data[ShellConstants.LocationChangedActionKey];
-                    action(item);
-                }
-                else
-                {
-                    // the visual tree changed drastically, we must reset the current location
-                    this.PSDriveInfo.CurrentLocation = string.Empty;
-                }
-
-                this.lastLocation = this.PSDriveInfo.CurrentLocation;
+        VisualTreeItem Root {
+            get {
+                var data = (Hashtable) Host.PrivateData.BaseObject;
+                return (VisualTreeItem) data[ShellConstants.Root];
             }
         }
 
-        private static string GetValidPath(string path)
-        {
+        void OnSyncSelectedItem(object _) {
+            // the PSDrive.CurrentLocation gets set, but i couldn't find a way to have it notify
+            // so unfortunately we have to poll :(
+            if (PSDriveInfo.CurrentLocation != lastLocation) {
+                var item = GetTreeItem(PSDriveInfo.CurrentLocation);
+
+                if (item != null) {
+                    var data = (Hashtable) Host.PrivateData.BaseObject;
+                    var action = (Action<VisualTreeItem>) data[ShellConstants.LocationChangedActionKey];
+                    action(item);
+                }
+                else {
+                    // the visual tree changed drastically, we must reset the current location
+                    PSDriveInfo.CurrentLocation = string.Empty;
+                }
+
+                lastLocation = PSDriveInfo.CurrentLocation;
+            }
+        }
+
+        static string GetValidPath(string path) {
             path = path.Replace('/', '\\');
-            if (!path.EndsWith("\\"))
-            {
+            if (!path.EndsWith("\\")) {
                 path += '\\';
             }
 
             return path;
         }
 
-        private VisualTreeItem GetTreeItem(string path)
-        {
+        VisualTreeItem GetTreeItem(string path) {
             path = GetValidPath(path);
 
-            if (path.Equals("\\"))
-            {
-                this.selectedTimer.Change(LocationChangeNotifyDelay, Timeout.Infinite);
+            if (path.Equals("\\")) {
+                selectedTimer.Change(LocationChangeNotifyDelay, Timeout.Infinite);
                 return Root;
             }
 
-            var parts = path.Split(new[] { '\\' }, StringSplitOptions.RemoveEmptyEntries);
+            var parts = path.Split(new[] {'\\'}, StringSplitOptions.RemoveEmptyEntries);
             var current = Root;
             var count = 0;
-            foreach (var part in parts)
-            {
-                foreach (var c in current.Children)
-                {
+            foreach (var part in parts) {
+                foreach (var c in current.Children) {
                     var name = c.NodeName();
-                    if (name.Equals(part, StringComparison.OrdinalIgnoreCase))
-                    {
+                    if (name.Equals(part, StringComparison.OrdinalIgnoreCase)) {
                         current = c;
                         count++;
                         break;
@@ -98,62 +82,50 @@ namespace Snoop.Shell
                 }
             }
 
-            if (count == parts.Length)
-            {
-                this.selectedTimer.Change(LocationChangeNotifyDelay, Timeout.Infinite);
+            if (count == parts.Length) {
+                selectedTimer.Change(LocationChangeNotifyDelay, Timeout.Infinite);
                 return current;
             }
 
             return null;
         }
 
-        protected override void GetChildItems(string path, bool recurse)
-        {
+        protected override void GetChildItems(string path, bool recurse) {
             var item = GetTreeItem(path);
-            if (item != null)
-            {
-                foreach (var c in item.Children)
-                {
+            if (item != null) {
+                foreach (var c in item.Children) {
                     var p = c.NodePath();
                     GetItem(p);
                 }
             }
-            else
-            {
+            else {
                 WriteWarning(path + " was not found.");
             }
         }
 
-        protected override void GetItem(string path)
-        {
+        protected override void GetItem(string path) {
             var item = GetTreeItem(path);
             WriteItemObject(item, path, true);
         }
 
-        protected override bool HasChildItems(string path)
-        {
+        protected override bool HasChildItems(string path) {
             var item = GetTreeItem(path);
             return item != null && item.Children.Count > 0;
         }
 
-        protected override bool IsItemContainer(string path)
-        {
+        protected override bool IsItemContainer(string path) {
             return true;
         }
 
-        protected override bool IsValidPath(string path)
-        {
+        protected override bool IsValidPath(string path) {
             path = GetValidPath(path);
 
-            foreach (var c in path)
-            {
-                if (c == '/' || c == '\\')
-                {
+            foreach (var c in path) {
+                if (c == '/' || c == '\\') {
                     continue;
                 }
 
-                if (!char.IsLetter(c))
-                {
+                if (!char.IsLetter(c)) {
                     return false;
                 }
             }
@@ -161,23 +133,18 @@ namespace Snoop.Shell
             return true;
         }
 
-        protected override bool ItemExists(string path)
-        {
+        protected override bool ItemExists(string path) {
             return GetTreeItem(path) != null;
         }
 
-        protected override string GetChildName(string path)
-        {
+        protected override string GetChildName(string path) {
             return Path.GetFileName(path);
         }
 
-        protected override void GetChildNames(string path, ReturnContainers returnContainers)
-        {
+        protected override void GetChildNames(string path, ReturnContainers returnContainers) {
             var item = GetTreeItem(path);
-            if (item != null)
-            {
-                foreach (var child in item.Children)
-                {
+            if (item != null) {
+                foreach (var child in item.Children) {
                     var name = child.NodeName();
                     var nodePath = child.NodePath();
                     WriteItemObject(name, nodePath, true);
@@ -185,22 +152,18 @@ namespace Snoop.Shell
             }
         }
 
-        public void Dispose()
-        {
-            this.selectedTimer.Dispose();
+        public void Dispose() {
+            selectedTimer.Dispose();
             GC.SuppressFinalize(this);
         }
     }
 
-    internal static class VisualTreeProviderExtensions
-    {
-        public static string NodePath(this VisualTreeItem item)
-        {
+    internal static class VisualTreeProviderExtensions {
+        public static string NodePath(this VisualTreeItem item) {
             var parts = new List<string>();
-            
+
             var current = item;
-            while (current.Parent != null)
-            {
+            while (current.Parent != null) {
                 var name = current.NodeName();
                 parts.Insert(0, name);
                 current = current.Parent;
@@ -209,25 +172,21 @@ namespace Snoop.Shell
             return string.Join("\\", parts.ToArray());
         }
 
-        public static string NodeName(this VisualTreeItem item)
-        {
+        public static string NodeName(this VisualTreeItem item) {
             var name = GetName(item);
 
-            if (item.Parent != null)
-            {
+            if (item.Parent != null) {
                 var parent = item.Parent;
                 var similarChildren = parent.Children.Where(c => GetName(c).Equals(name)).ToList();
-                if (similarChildren.Count > 1)
-                {
-                    name += (similarChildren.IndexOf(item) + 1);
+                if (similarChildren.Count > 1) {
+                    name += similarChildren.IndexOf(item) + 1;
                 }
             }
 
             return name;
         }
 
-        private static string GetName(VisualTreeItem item)
-        {
+        static string GetName(VisualTreeItem item) {
             return item.Target.GetType().Name;
         }
     }
