@@ -4,6 +4,8 @@
 // All other rights reserved.
 
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -274,26 +276,33 @@ namespace Snoop {
 
 
         public VisualTreeItem FindNode(object target) {
+            return FindNode(this, target);
+        }
+
+        static VisualTreeItem FindNode(VisualTreeItem currentVisualTreeItem, object target) {
             // it might be faster to have a map for the lookup
             // check into this at some point            
-            if (Target == target) {
-                var chrome = Target.Wrap<IChrome>();
-                if (chrome!=null && target is IInputElement) {
-                    var root = chrome.Root;
-                    if (root != null) {
-                        var child = RenderTreeHelper.HitTest(root, Mouse.GetPosition((IInputElement) target));
-                        var node = FindNode(child);
-                        if (node != null)
-                            return node;
+            Queue<VisualTreeItem> items = new Queue<VisualTreeItem>();
+            items.Enqueue(currentVisualTreeItem);
+            while (items.Count>0) {
+                currentVisualTreeItem = items.Dequeue();
+                if (currentVisualTreeItem.Target == target) {
+                    var chrome = currentVisualTreeItem.Target.Wrap<IChrome>();
+                    if (chrome != null && target is IInputElement) {
+                        var root = chrome.Root;
+                        if (root != null) {
+                            var child = RenderTreeHelper.HitTest(root, Mouse.GetPosition((IInputElement)target));
+                            var node = currentVisualTreeItem.FindNode(child);
+                            if (node != null)
+                                return node;
+                        }
                     }
+                    return currentVisualTreeItem;
                 }
-                return this;
-            }
 
-            foreach (var child in Children) {
-                var node = child.FindNode(target);
-                if (node != null)
-                    return node;
+                foreach (var child in currentVisualTreeItem.Children) {
+                    items.Enqueue(child);
+                }
             }
             return null;
         }
