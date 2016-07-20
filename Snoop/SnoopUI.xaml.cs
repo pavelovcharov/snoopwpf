@@ -21,6 +21,7 @@ using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Threading;
+using ReflectionFramework;
 using Snoop.Infrastructure;
 using Snoop.Properties;
 using Snoop.Shell;
@@ -704,6 +705,10 @@ namespace Snoop {
 
         #region Private Event Handlers
 
+        public interface IMouseDevice {
+            [ReflectionFramework.ReflectionHelperAttributes.BindingFlags(BindingFlags.Instance | BindingFlags.NonPublic)]
+            IInputElement RawDirectlyOver { get; }
+        }
         void HandlePreProcessInput(object sender, PreProcessInputEventArgs e) {
             OnPropertyChanged("CurrentFocus");
 
@@ -711,7 +716,7 @@ namespace Snoop {
             if (!((currentModifiers & ModifierKeys.Control) != 0 && (currentModifiers & ModifierKeys.Shift) != 0))
                 return;
 
-            var directlyOver = Mouse.PrimaryDevice.DirectlyOver as Visual;
+            var directlyOver = Mouse.PrimaryDevice.Wrap<IMouseDevice>().RawDirectlyOver as Visual;
             if ((directlyOver == null) || directlyOver.IsDescendantOf(this))
                 return;
 
