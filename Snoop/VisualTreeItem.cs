@@ -11,6 +11,7 @@ using System.Text;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
+using ReflectionFramework;
 
 namespace Snoop {
     public class DumbVisualTreeItem : VisualTreeItem {
@@ -140,7 +141,9 @@ namespace Snoop {
 
         public static VisualTreeItem Construct(object target, VisualTreeItem parent) {
             VisualTreeItem visualTreeItem;
-            if (DXMethods.IsFrameworkRenderElementContext(target))
+            if (target is ReflectionFramework.Internal.IReflectionGeneratedObject) {
+                visualTreeItem = new VisualItem(((ReflectionFramework.Internal.IReflectionGeneratedObject)target).Source, parent);
+            }else if (target.Wrap<IFrameworkRenderElementContext>()!=null)
                 visualTreeItem = new VisualItem(target, parent);
             else if (target is Visual)
                 visualTreeItem = new VisualItem((Visual) target, parent);
@@ -207,10 +210,15 @@ namespace Snoop {
         public void Reload() {
             RaiseBeginUpdate(this);
             if (Target is IFrameworkInputElement) {
-                name = ((IFrameworkInputElement) Target).Name;
-            }
-            else if (DXMethods.IsFrameworkRenderElementContext(Target)) {
-                name = DXMethods.GetName(Target);
+                name = ((IFrameworkInputElement)Target).Name;
+            } else {
+                var frec = Target.Wrap<IFrameworkRenderElementContext>();
+                if (frec!=null) {                         
+                    name = frec.Name;
+                    Guid gresult;
+                    if (Guid.TryParse(name, out gresult))
+                        name = null;
+                }
             }
             nameLower = (name ?? "").ToLower();
             typeNameLower = Target != null ? Target.GetType().Name.ToLower() : string.Empty;
@@ -269,8 +277,9 @@ namespace Snoop {
             // it might be faster to have a map for the lookup
             // check into this at some point            
             if (Target == target) {
-                if (DXMethods.IsChrome(Target) && target is IInputElement) {
-                    var root = DXMethods.GetRoot(Target);
+                var chrome = Target.Wrap<IChrome>();
+                if (chrome!=null && target is IInputElement) {
+                    var root = chrome.Root;
                     if (root != null) {
                         var child = RenderTreeHelper.HitTest(root, Mouse.GetPosition((IInputElement) target));
                         var node = FindNode(child);

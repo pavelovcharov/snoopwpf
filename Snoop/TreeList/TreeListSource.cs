@@ -34,10 +34,8 @@ namespace Snoop.TreeList {
 
         int GetCount() {
             if (root == null)
-                return 0;
-            var count = 0;
-            root.Iterate(x => x.IsExpanded, x => count++);
-            return count;
+                return 0;            
+            return visibleItems.Count;
         }
 
         public override object GetItemAt(int index) {
@@ -97,15 +95,18 @@ namespace Snoop.TreeList {
             return descendants;
         }
 
+        void BaseOnCollectionChanged(NotifyCollectionChangedEventArgs args) {
+            invalidateEnumerableWrapper(this);
+            base.OnCollectionChanged(args);
+        }
         protected override void OnCollectionChanged(NotifyCollectionChangedEventArgs args) {
-            try {
-                invalidateEnumerableWrapper(this);
+            try {                
                 switch (args.Action) {
                     case NotifyCollectionChangedAction.Add:
                         var newIndex = args.NewStartingIndex;
                         foreach (VisualTreeItem item in args.NewItems) {
                             visibleItems.Insert(newIndex, item);
-                            base.OnCollectionChanged(new NotifyCollectionChangedEventArgs(
+                            BaseOnCollectionChanged(new NotifyCollectionChangedEventArgs(
                                 NotifyCollectionChangedAction.Add, new List<object> {item}, newIndex++));
                         }
                         return;
@@ -113,12 +114,12 @@ namespace Snoop.TreeList {
                         var oldIndex = args.OldStartingIndex + args.OldItems.Count - 1;
                         foreach (VisualTreeItem item in args.OldItems.OfType<object>().Reverse()) {
                             visibleItems.RemoveAt(oldIndex);
-                            base.OnCollectionChanged(new NotifyCollectionChangedEventArgs(
+                            BaseOnCollectionChanged(new NotifyCollectionChangedEventArgs(
                                 NotifyCollectionChangedAction.Remove, new List<object> {item}, oldIndex--));
                         }
                         return;
                     default:
-                        base.OnCollectionChanged(args);
+                        BaseOnCollectionChanged(args);
                         return;
                 }
             }

@@ -12,7 +12,12 @@ All other rights reserved.
         x:Name="btnStartWindowsSearch"
         Width="20"
         Height="20"
-        Style="{DynamicResource appChooserButtonStyle}">
+        >
+        <Button.Template>
+            <ControlTemplate TargetType="Button">
+                <ContentPresenter/>
+            </ControlTemplate>
+        </Button.Template>
         <Image
             x:Name="snoopCrosshairsImage"
             Width="16"

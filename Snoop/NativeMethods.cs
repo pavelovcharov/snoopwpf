@@ -14,6 +14,8 @@ using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Media;
 using Microsoft.Win32.SafeHandles;
+using ReflectionFramework;
+using ReflectionFramework.Internal;
 
 namespace Snoop {
     public static class NativeMethods {
@@ -148,50 +150,69 @@ namespace Snoop {
                 return CloseHandle(handle);
             }
         }
+    }        
+    [ReflectionHelperAttributes.Wrapper]
+    [ReflectionHelperAttributes.AssignableFrom("DevExpress.Xpf.Core.Native.IFrameworkRenderElementContext")]
+    public interface IIFrameworkRenderElementContext {
+        [ReflectionHelperAttributes.InterfaceMember("DevExpress.Xpf.Core.Native.IFrameworkRenderElementContext")]
+        int RenderChildrenCount { get; }
+        [ReflectionHelperAttributes.InterfaceMember("DevExpress.Xpf.Core.Native.IFrameworkRenderElementContext")]
+        object GetRenderChild(int index);
+        [ReflectionHelperAttributes.InterfaceMember("DevExpress.Xpf.Core.Native.IFrameworkRenderElementContext")]
+        Size RenderSize { get; }
+    }    
+    [ReflectionHelperAttributes.Wrapper]
+    [ReflectionHelperAttributes.AssignableFrom("DevExpress.Xpf.Core.Native.FrameworkRenderElementContext")]
+    public interface IFrameworkRenderElementContext : IIFrameworkRenderElementContext {        
+        string Name { get; }
+        void Render(DrawingContext drawingContext);
+        IIElementHost ElementHost { get; }
+        Visibility? Visibility { get; }
+        IFrameworkRenderElement Factory { get; }
+    }
+    [ReflectionHelperAttributes.Wrapper]
+    public interface IIElementHost {
+        [ReflectionHelperAttributes.InterfaceMember("DevExpress.Xpf.Core.Native.IElementHost")]
+        FrameworkElement Parent { get; }
+    }    
+    [ReflectionHelperAttributes.Wrapper]
+    [ReflectionHelperAttributes.AssignableFrom("DevExpress.Xpf.Core.Native.IChrome")]
+    [ReflectionHelperAttributes.AssignableFrom("DevExpress.Xpf.Grid.LightweightCellEditor", Inverse = true)]
+    public interface IIChrome {
+        [ReflectionHelperAttributes.InterfaceMember("DevExpress.Xpf.Core.Native.IChrome")]
+        IFrameworkRenderElementContext Root { get; }
+    }
+    [ReflectionHelperAttributes.Wrapper]
+    public interface IChrome : IIChrome {
+        
     }
 
-    public static class DXMethods {
-        static readonly ReflectionHelper Helper = new ReflectionHelper();
-        static Func<object, object> getRoot;
+    [ReflectionHelperAttributes.Wrapper]
+    [ReflectionHelperAttributes.AssignableFrom("DevExpress.Xpf.Core.Native.RenderControlBaseContext")]
+    public interface IRenderControlBaseContext : IFrameworkRenderElementContext {
+        Transform GeneralTransform { get; }
+        FrameworkElement Control { get; }
+    }
 
-        public static int RenderChildrenCount(object obj) {
-            return
-                Helper.GetInstanceMethodHandler<object, Func<object, int>>(obj, "get_RenderChildrenCount",
-                    BindingFlags.NonPublic | BindingFlags.Instance)(obj);
-        }
+    [ReflectionHelperAttributes.Wrapper]
+    public interface IFrameworkRenderElement {
+        Visibility Visibility { get; set; }
+    }    
 
-        public static FrameworkElement GetParent(object elementHost) {
-            return
-                ReflectionHelper.CreateInstanceMethodHandler<Func<object, FrameworkElement>>(elementHost, "get_Parent",
-                    BindingFlags.Public | BindingFlags.Instance,
-                    GetCoreAssembly(elementHost).GetType("DevExpress.Xpf.Core.Native.IElementHost"), false, null,
-                    typeof(object))(elementHost);
-        }
-
-        public static string GetName(object frameworkRenderElementContext) {
-            var result =
-                ReflectionHelper.CreateInstanceMethodHandler<Func<object, string>>(frameworkRenderElementContext,
-                    "get_Name", BindingFlags.Instance | BindingFlags.Public, frameworkRenderElementContext.GetType(),
-                    true, forcedThisArgType: typeof(object))(frameworkRenderElementContext);
-            Guid gresult;
-            if (Guid.TryParse(result, out gresult))
-                return null;
-            return result;
-        }
-
-        public static bool Is(object obj, string typeName, string typeNamespace, bool isInterface) {
+    public class RenderTreeHelper {
+        static bool Is(object obj, string typeName, string typeNamespace, bool isInterface) {
             if (obj == null)
                 return false;
             var type = obj.GetType();
             while (type != null) {
-                Type[] types = {type};
+                Type[] types = { type };
                 if (isInterface) {
                     types = types.Concat(type.GetInterfaces()).ToArray();
                 }
                 foreach (var typeOrInterface in types) {
                     var isValidType =
-                        (string.IsNullOrEmpty(typeNamespace) || string.Equals(typeNamespace, typeOrInterface.Namespace))
-                        && (string.IsNullOrEmpty(typeName) || string.Equals(typeName, typeOrInterface.Name));
+                        (String.IsNullOrEmpty(typeNamespace) || String.Equals(typeNamespace, typeOrInterface.Namespace))
+                        && (String.IsNullOrEmpty(typeName) || String.Equals(typeName, typeOrInterface.Name));
                     if (isValidType)
                         return true;
                 }
@@ -200,74 +221,13 @@ namespace Snoop {
             return false;
         }
 
-        public static bool Is(object obj, string typeName, string typeNamespace, bool isInterface, out Type targetType) {
-            targetType = null;
-            if (obj == null)
-                return false;
-            var type = obj.GetType();
-            while (type != null) {
-                Type[] types = {type};
-                if (isInterface) {
-                    types = types.Concat(type.GetInterfaces()).ToArray();
-                }
-                foreach (var typeOrInterface in types) {
-                    var isValidType =
-                        (string.IsNullOrEmpty(typeNamespace) || string.Equals(typeNamespace, typeOrInterface.Namespace))
-                        && (string.IsNullOrEmpty(typeName) || string.Equals(typeName, typeOrInterface.Name));
-                    if (isValidType) {
-                        targetType = typeOrInterface;
-                        return true;
-                    }
-                }
-                type = type.BaseType;
-            }
-            return false;
-        }
-
-        public static void Render(object factory, object dc, object context) {
-            ReflectionHelper.CreateInstanceMethodHandler<Action<object, object, object>>(factory, "Render",
-                BindingFlags.Public | BindingFlags.Instance, factory.GetType(), true, null, typeof(object))(factory, dc,
-                    context);
-        }
-
-        public static bool IsChrome(object obj) {
-            return Is(obj, "IChrome", "DevExpress.Xpf.Core.Native", true) &&
-                   !Is(obj, "LightweightCellEditor", "DevExpress.Xpf.Grid", false);
-        }
-
-        public static object GetRoot(object chrome) {
-            Type iChromeType;
-            if (!Is(chrome, "IChrome", "DevExpress.Xpf.Core.Native", true, out iChromeType))
-                return null;
-            if (getRoot == null) {
-                getRoot = ReflectionHelper.CreateInstanceMethodHandler<Func<object, object>>(null, "get_Root",
-                    BindingFlags.Public | BindingFlags.Instance, iChromeType, false, typeof(object), typeof(object));
-            }
-            return getRoot(chrome);
-        }
-
-        public static bool IsIFrameworkRenderElementContext(object obj) {
-            return Is(obj, "IFrameworkRenderElementContext", "DevExpress.Xpf.Core.Native", true);
-        }
-
-        public static bool IsFrameworkRenderElementContext(object obj) {
-            return Is(obj, "FrameworkRenderElementContext", "DevExpress.Xpf.Core.Native", false);
-        }
-
-        public static Assembly GetCoreAssembly(object obj) {
+        static Assembly GetCoreAssembly(object obj) {
             if (Is(obj, null, "DevExpress.Xpf.Core.Native", false)) {
                 return obj.GetType().Assembly;
             }
             return null;
         }
 
-        public static object GetRenderChild(object source, int index) {
-            return Helper.GetInstanceMethodHandler<object, Func<object, int, object>>(
-                source, "GetRenderChild", BindingFlags.NonPublic | BindingFlags.Instance)(source, index);
-        }
-    }
-
-    public class RenderTreeHelper {
         [ThreadStatic] static Func<object, IEnumerable> renderDescendants;
 
         [ThreadStatic] static Func<object, Transform> transformToRoot;
@@ -276,49 +236,57 @@ namespace Snoop {
 
         [ThreadStatic] static Func<object, object, object> hitTest;
 
+        static object Simplify(object obj) {
+            return (obj as IReflectionGeneratedObject)?.Source ?? obj;
+        }
+
         public static IEnumerable<object> RenderDescendants(object context) {
+            context = Simplify(context);
             if (renderDescendants == null)
                 renderDescendants = ReflectionHelper.CreateInstanceMethodHandler<Func<object, IEnumerable>>(
                     null,
                     "RenderDescendants",
                     BindingFlags.Public | BindingFlags.Static,
-                    DXMethods.GetCoreAssembly(context).GetType("DevExpress.Xpf.Core.Native.RenderTreeHelper"),
+                    GetCoreAssembly(context).GetType("DevExpress.Xpf.Core.Native.RenderTreeHelper"),
                     true, typeof(IEnumerable), null
                     );
             return renderDescendants(context).OfType<object>();
         }
 
         public static Transform TransformToRoot(object frec) {
+            frec = Simplify(frec);
             if (transformToRoot == null)
                 transformToRoot = ReflectionHelper.CreateInstanceMethodHandler<Func<object, Transform>>(
                     null,
                     "TransformToRoot",
                     BindingFlags.Public | BindingFlags.Static,
-                    DXMethods.GetCoreAssembly(frec).GetType("DevExpress.Xpf.Core.Native.RenderTreeHelper"),
+                    GetCoreAssembly(frec).GetType("DevExpress.Xpf.Core.Native.RenderTreeHelper"),
                     true, typeof(Transform), null
                     );
             return transformToRoot(frec);
         }
 
         public static IEnumerable<object> RenderAncestors(object context) {
+            context = Simplify(context);
             if (renderAncestors == null)
                 renderAncestors = ReflectionHelper.CreateInstanceMethodHandler<Func<object, IEnumerable>>(
                     null,
                     "RenderAncestors",
                     BindingFlags.Public | BindingFlags.Static,
-                    DXMethods.GetCoreAssembly(context).GetType("DevExpress.Xpf.Core.Native.RenderTreeHelper"),
+                    GetCoreAssembly(context).GetType("DevExpress.Xpf.Core.Native.RenderTreeHelper"),
                     true, typeof(IEnumerable), null
                     );
             return renderAncestors(context).OfType<object>();
         }
 
         public static object HitTest(object root, Point point) {
+            root = Simplify(root);
             if (hitTest == null)
                 hitTest = ReflectionHelper.CreateInstanceMethodHandler<Func<object, object, object>>(
                     null,
                     "HitTest",
                     BindingFlags.Public | BindingFlags.Static,
-                    DXMethods.GetCoreAssembly(root).GetType("DevExpress.Xpf.Core.Native.RenderTreeHelper"),
+                    GetCoreAssembly(root).GetType("DevExpress.Xpf.Core.Native.RenderTreeHelper"),
                     true, typeof(object), null, 2
                     );
             return hitTest(root, point);

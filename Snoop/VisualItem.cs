@@ -12,6 +12,7 @@ using System.Windows.Data;
 using System.Windows.Diagnostics;
 using System.Windows.Documents;
 using System.Windows.Media;
+using ReflectionFramework;
 
 namespace Snoop {
     /// <summary>
@@ -57,9 +58,9 @@ namespace Snoop {
 
         public override Brush Foreground {
             get {
-                if (DXMethods.IsChrome(Visual))
+                if (Visual.Wrap<IIChrome>()!=null)
                     return Brushes.Green;
-                if (DXMethods.IsIFrameworkRenderElementContext(Visual))
+                if (Visual.Wrap<IIFrameworkRenderElementContext>()!=null)
                     return Brushes.Red;
                 return base.Foreground;
             }
@@ -74,7 +75,7 @@ namespace Snoop {
                 VisualBrush brush = null;
                 if (Visual is Visual)
                     brush = new VisualBrush((Visual) Visual);
-                if (DXMethods.IsFrameworkRenderElementContext(Visual))
+                if (Visual.Wrap<IFrameworkRenderElementContext>() != null)
                     brush = new VisualBrush(new FREDrawingVisual(Visual));
                 if (brush == null)
                     return null;
@@ -111,9 +112,9 @@ namespace Snoop {
             var visual_ = Visual as Visual;
             var offset = new Thickness();
             if (visual_ == null) {
-                var frec = (dynamic) Visual;
+                var frec = Visual.Wrap<IFrameworkRenderElementContext>();
                 if (frec != null && CommonTreeHelper.IsVisible(frec)) {
-                    FrameworkElement fe = DXMethods.GetParent(frec.ElementHost);
+                    FrameworkElement fe = frec.ElementHost.Parent;
                     visual_ = fe;
                     var rect =
                         ((Transform) RenderTreeHelper.TransformToRoot(frec)).TransformBounds(new Rect(frec.RenderSize));
@@ -167,19 +168,19 @@ namespace Snoop {
     }
 
     public class FREDrawingVisual : DrawingVisual {
-        object context;
+        IFrameworkRenderElementContext context;
 
-        public FREDrawingVisual(object context) {
-            this.context = context;
+        public FREDrawingVisual(object c) {
+            this.context = c.Wrap<IFrameworkRenderElementContext>();            
             using (var dc = RenderOpen()) {
-                DXMethods.Render(((dynamic) context).Factory, dc, context);
+                context.Render(dc);                                
                 var controls = new[] {context}.Concat(RenderTreeHelper.RenderDescendants(context));
                 foreach (var ctrl in controls) {
-                    if (!DXMethods.Is(ctrl, "RenderControlBaseContext", null, false))
+                    var rcbc = ctrl.Wrap<IRenderControlBaseContext>();
+                    if (rcbc==null)
                         continue;
-                    var dctrl = (dynamic) ctrl;
-                    dc.PushTransform(dctrl.GeneralTransform);
-                    dc.DrawRectangle(new VisualBrush(dctrl.Control), null, new Rect(new Point(0, 0), dctrl.RenderSize));
+                    dc.PushTransform(rcbc.GeneralTransform);
+                    dc.DrawRectangle(new VisualBrush(rcbc.Control), null, new Rect(new Point(0, 0), rcbc.RenderSize));
                     dc.Pop();
                 }
                 dc.Close();
@@ -189,18 +190,17 @@ namespace Snoop {
 
     public static class CommonTreeHelper {
         public static int GetChildrenCount(object source) {
-            if (DXMethods.IsChrome(source)) {
-                var root = DXMethods.GetRoot(source);
+            var chrome = source.Wrap<IChrome>();
+            if (chrome!=null) {
+                var root = chrome.Root;
                 if (root != null)
                     return 1;
             }
-            if (DXMethods.IsIFrameworkRenderElementContext(source)) {
-                var hasControl =
-                    DXMethods.Is(source, "RenderControlBaseContext", "DevExpress.Xpf.Core.Native", false) &&
-                    ((dynamic) source).Control != null
-                        ? 1
-                        : 0;
-                return DXMethods.RenderChildrenCount(source) + hasControl;
+            var ifrec = source.Wrap<IIFrameworkRenderElementContext>();
+            if (ifrec!=null) {
+                var rcbc = source.Wrap<IRenderControlBaseContext>();
+                var hasControl = rcbc!=null && rcbc.Control != null ? 1 : 0;
+                return ifrec.RenderChildrenCount + hasControl;
             }
             if (source is Visual)
                 return VisualTreeHelper.GetChildrenCount((Visual) source);
@@ -208,44 +208,46 @@ namespace Snoop {
         }
 
         public static object GetChild(object source, int index) {
-            if (DXMethods.IsChrome(source)) {
-                return DXMethods.GetRoot(source);
+            var chrome = source.Wrap<IChrome>();
+            if (chrome!=null) {
+                return chrome.Root;
             }
-            if (DXMethods.IsIFrameworkRenderElementContext(source)) {
-                var control = DXMethods.Is(source, "RenderControlBaseContext", "DevExpress.Xpf.Core.Native", false)
-                    ? ((dynamic) source).Control
-                    : null;
-                var rcc = DXMethods.RenderChildrenCount(source);
+            var ifrec = source.Wrap<IIFrameworkRenderElementContext>();
+            if (ifrec!=null) {
+                var control = source.Wrap<IRenderControlBaseContext>()?.Control;
+                var rcc = ifrec.RenderChildrenCount;
                 if (index >= rcc) {
                     if (index == rcc && control != null)
                         return control;
                     return null;
                 }
-                return DXMethods.GetRenderChild(source, index);
+                return ifrec.GetRenderChild(index);
             }
             if (source is Visual)
                 return VisualTreeHelper.GetChild((Visual) source, index);
             return null;
         }
 
-        public static bool IsVisible(object context) {
-            return isVisible(context) && RenderTreeHelper.RenderAncestors(context).All(x => isVisible(x));
+        public static bool IsVisible(IFrameworkRenderElementContext context) {
+            return isVisible(context) && RenderTreeHelper.RenderAncestors(context).Select(x=>x.Wrap<IFrameworkRenderElementContext>()).All(x => isVisible(x));
         }
 
-        static bool isVisible(object context) {
-            return ((Visibility?) ((dynamic) context).Visibility).HasValue
-                ? (Visibility?) ((dynamic) context).Visibility == Visibility.Visible
-                : ((dynamic) context).Factory.Visibility == Visibility.Visible;
+        static bool isVisible(IFrameworkRenderElementContext context) {
+            return context.Visibility.HasValue
+                ? context.Visibility == Visibility.Visible
+                : context.Factory.Visibility == Visibility.Visible;
         }
 
         public static bool IsDescendantOf(object visual, object rootVisual) {
             if (visual is Visual && rootVisual is Visual)
                 return ((Visual) visual).IsDescendantOf((Visual) rootVisual);
-            if (DXMethods.IsFrameworkRenderElementContext(visual) &&
-                DXMethods.IsFrameworkRenderElementContext(rootVisual))
+            var visualFrec = visual.Wrap<IFrameworkRenderElementContext>();
+            if (visualFrec!=null &&
+                rootVisual.Wrap<IFrameworkRenderElementContext>() != null)
                 return RenderTreeHelper.RenderAncestors(visual).Any(x => x == rootVisual);
-            if (DXMethods.IsFrameworkRenderElementContext(visual) && rootVisual is Visual) {
-                return DXMethods.GetParent(((dynamic) visual).ElementHost).Parent.IsDescendantOf((Visual) rootVisual);
+
+            if (visualFrec!=null && rootVisual is Visual) {
+                return visualFrec.ElementHost.Parent.IsDescendantOf((Visual) rootVisual);
             }
             return false;
         }

@@ -4,14 +4,19 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:SnoopTestApp"
+        xmlns:dxb="http://schemas.devexpress.com/winfx/2008/xaml/bars"
         mc:Ignorable="d"
         Title="MainWindow" Height="350" Width="525">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <Button Content="Add" Click="OnAddButtonClick" />
-        <StackPanel Grid.Row="1" x:Name="sPanel" />
+        <dxb:ToolBarControl>
+            <dxb:BarButtonItem Content="Change theme" ItemClick="BarItem_OnItemClick"></dxb:BarButtonItem>
+        </dxb:ToolBarControl>
+        <Button Grid.Row="1" Content="Add" Click="OnAddButtonClick" />
+        <StackPanel Grid.Row="2" x:Name="sPanel" />
     </Grid>
 </Window>

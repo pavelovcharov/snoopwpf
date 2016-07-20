@@ -6,6 +6,7 @@
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
+using ReflectionFramework;
 
 namespace Snoop {
     public partial class Previewer {
@@ -22,7 +23,7 @@ namespace Snoop {
 
 
         void HandleTargetOrIsActiveChanged() {
-            if (IsActive && (Target is Visual || DXMethods.IsFrameworkRenderElementContext(Target))) {
+            if (IsActive && (Target is Visual || Target.Wrap<IFrameworkRenderElementContext>()!=null)) {
                 Zoomer.Target = Target;
             }
             else {
@@ -33,7 +34,7 @@ namespace Snoop {
 
 
         void HandleCanMagnify(object sender, CanExecuteRoutedEventArgs e) {
-            e.CanExecute = Target as Visual != null || DXMethods.IsFrameworkRenderElementContext(Target);
+            e.CanExecute = Target as Visual != null || Target.Wrap<IFrameworkRenderElementContext>() != null;
             e.Handled = true;
         }
 

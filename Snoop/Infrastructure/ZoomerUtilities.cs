@@ -7,13 +7,14 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Shapes;
+using ReflectionFramework;
 
 namespace Snoop.Infrastructure {
     public static class ZoomerUtilities {
         public static UIElement CreateIfPossible(object item) {
             if (item is Window && CommonTreeHelper.GetChildrenCount(item) == 1)
                 item = CommonTreeHelper.GetChild(item, 0);
-            if (DXMethods.IsFrameworkRenderElementContext(item)) {
+            if (item.Wrap<IFrameworkRenderElementContext>()!=null) {
                 return CreateRectangleForFrameworkRenderElement(item);
             }
             if (item is FrameworkElement) {

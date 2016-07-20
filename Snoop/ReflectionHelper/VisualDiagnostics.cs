@@ -1,9 +1,12 @@
 ﻿using System.Reflection;
 using System.Windows.Diagnostics;
-using DevExpress.Xpf.Core.Internal;
+using ReflectionFramework;
 
 namespace Snoop {
     public interface IVisualDiagnostics {
+        [ReflectionHelperAttributes.FieldAccessor]
+        [ReflectionHelperAttributes.Name("s_isDebuggerCheckDisabledForTestPurposes")]
+        [ReflectionHelperAttributes.BindingFlags(BindingFlags.NonPublic)]
         bool Enabled { get; set; }
     }
 
@@ -12,13 +15,7 @@ namespace Snoop {
         static readonly IVisualDiagnostics instanceVisualDiagnostics;
 
         static VisualDiagnosticsExtensions() {
-            instanceVisualDiagnostics = typeof(VisualDiagnostics).DefineWrapper<IVisualDiagnostics>()
-                .DefineProperty(x => x.Enabled)
-                .FieldAccessor()
-                .BindingFlags(BindingFlags.NonPublic)
-                .Name("s_isDebuggerCheckDisabledForTestPurposes")
-                .EndMember()
-                .Create();
+            instanceVisualDiagnostics = typeof(VisualDiagnostics).Wrap<IVisualDiagnostics>();
         }
 
         public static bool Enabled {
