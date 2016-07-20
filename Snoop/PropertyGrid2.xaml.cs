@@ -36,6 +36,7 @@ namespace Snoop {
 
         readonly DispatcherTimer filterTimer;
         readonly DelayedCall processIncrementalCall;
+        readonly DelayedCall processRefreshCall;
 
         bool _nameValueOnly;
 
@@ -51,6 +52,7 @@ namespace Snoop {
 
 
         public PropertyGrid2() {
+            processRefreshCall = new DelayedCall(ProcessRefresh, DispatcherPriority.ApplicationIdle);
             processIncrementalCall = new DelayedCall(ProcessIncrementalPropertyAdd, DispatcherPriority.Background);
             filterCall = new DelayedCall(ProcessFilter, DispatcherPriority.Background);
 
@@ -71,7 +73,7 @@ namespace Snoop {
                 filterCall.Enqueue();
                 filterTimer.Stop();
             };
-        }
+        }        
 
 
         public bool NameValueOnly {
@@ -114,9 +116,11 @@ namespace Snoop {
 
         static void HandleTargetChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) {
             var propertyGrid = (PropertyGrid2) d;
-            propertyGrid.ChangeTarget(e.NewValue);
+            propertyGrid.processRefreshCall.Enqueue();
         }
-
+        void ProcessRefresh() {
+            ChangeTarget(Target);
+        }
         void ChangeTarget(object newTarget) {
             if (target != newTarget) {
                 target = newTarget;

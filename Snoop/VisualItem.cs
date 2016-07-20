@@ -199,7 +199,7 @@ namespace Snoop {
             var ifrec = source.Wrap<IIFrameworkRenderElementContext>();
             if (ifrec!=null) {
                 var rcbc = source.Wrap<IRenderControlBaseContext>();
-                var hasControl = rcbc!=null && rcbc.Control != null ? 1 : 0;
+                var hasControl = rcbc!=null && rcbc.ElementHost!=null && rcbc.Control != null ? 1 : 0;
                 return ifrec.RenderChildrenCount + hasControl;
             }
             if (source is Visual)
@@ -229,7 +229,7 @@ namespace Snoop {
         }
 
         public static bool IsVisible(IFrameworkRenderElementContext context) {
-            return isVisible(context) && RenderTreeHelper.RenderAncestors(context).Select(x=>x.Wrap<IFrameworkRenderElementContext>()).All(x => isVisible(x));
+            return isVisible(context) && context.ElementHost!=null && RenderTreeHelper.RenderAncestors(context).Select(x=>x.Wrap<IFrameworkRenderElementContext>()).All(x => isVisible(x));
         }
 
         static bool isVisible(IFrameworkRenderElementContext context) {

@@ -142,8 +142,8 @@ namespace Snoop {
             InitShell();
         }
 
-        protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e) {
-            if (e.Property.Name == "TreeWalker") {
+        protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e) {            
+            if (e.Property.Name == "Walker" || e.Property.Name == "TreeWalker") {
                 SetValue(e.Property, null);
             }
             base.OnPropertyChanged(e);
