@@ -277,6 +277,11 @@
       <DependentUpon>TypeSelector.xaml</DependentUpon>
     </Compile>
     <Compile Include="NativeMethods.cs" />
+    <Compile Include="NativeMethods\EntryPoint.cs" />
+    <Compile Include="NativeMethods\HotKeyHelper.cs" />
+    <Compile Include="NativeMethods\NativeMethods.cs" />
+    <Compile Include="NativeMethods\RegistryHelper.cs" />
+    <Compile Include="NativeMethods\Settings.cs" />
     <Compile Include="ObjectToStringConverter.cs" />
     <Compile Include="PertinentPropertyFilter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

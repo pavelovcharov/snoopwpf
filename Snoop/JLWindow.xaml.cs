@@ -15,15 +15,113 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Windows.Threading;
+using Brush = System.Windows.Media.Brush;
+using Color = System.Windows.Media.Color;
+using ColorConverter = System.Windows.Media.ColorConverter;
 using MouseEventArgs = System.Windows.Input.MouseEventArgs;
+using Orientation = System.Windows.Controls.Orientation;
 using Rectangle = System.Drawing.Rectangle;
 
 namespace Snoop {    
     public partial class JlWindow : Window {
+        public static readonly DependencyProperty ExtendedVisibilityProperty = DependencyProperty.Register(
+            "ExtendedVisibility", typeof(Visibility), typeof(JlWindow), new FrameworkPropertyMetadata(Visibility.Collapsed, null, new CoerceValueCallback((o, value) => ((JlWindow)o).IsPinned ? Visibility.Visible : (Visibility)value)));
+
+        public static readonly DependencyProperty IsPinnedProperty = DependencyProperty.Register(
+            "IsPinned", typeof(bool), typeof(JlWindow), new PropertyMetadata(default(bool), (d, e) => IsPinnedChanged(d)));
+
+        static void IsPinnedChanged(DependencyObject d) {
+            ((JlWindow)d).CoerceValue(ExtendedVisibilityProperty);
+            RegistrySettings.Pinned = ((JlWindow)d).IsPinned;
+        }
+
+        public bool IsPinned {
+            get { return (bool)GetValue(IsPinnedProperty); }
+            set { SetValue(IsPinnedProperty, value); }
+        }
+        public Visibility ExtendedVisibility {
+            get { return (Visibility)GetValue(ExtendedVisibilityProperty); }
+            set { SetValue(ExtendedVisibilityProperty, value); }
+        }
+        HwndSource hwndSource;
+        DispatcherTimer flickTimer;
+        int count = 0;
+        Brush cachedBackground;
+        Brush contrastBackground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#A3D2FF"));
         public JlWindow() {
+            IsPinned = RegistrySettings.Pinned;
+            Left = RegistrySettings.Left;
+            Top = RegistrySettings.Top;
+            CoercePosition();
             InitializeComponent();
-            ElementsGrid.Visibility = Visibility.Hidden;
+            rootPanel.Orientation = RegistrySettings.Orientation;
+            DataContext = this;
+            MouseEnter += JlWindow_MouseEnter;
+            MouseLeave += JlWindow_MouseLeave;
+            //ElementsGrid.Visibility = Visibility.Hidden;
             Update();
+            Dispatcher.BeginInvoke(new Action(() => {                
+                hwndSource = HwndSource.FromVisual(this) as HwndSource;
+                hwndSource.AddHook(OnHwndSourceHook);
+                flickTimer.Start();
+            }), DispatcherPriority.ApplicationIdle);
+            flickTimer = new DispatcherTimer();
+            flickTimer.Interval = TimeSpan.FromMilliseconds(200);
+            flickTimer.Tick += FlickTimer_Tick;
+            cachedBackground = Root.BorderBrush;
+            Deactivated += JlWindow_Deactivated;                        
+        }
+
+        void CoercePosition() {
+            Point position = new Point((int)Left, (int)Top);
+            var screens = Screen.AllScreens.Select(x => new Rect(x.WorkingArea.X, x.WorkingArea.Y, x.WorkingArea.Width, x.WorkingArea.Height));
+            if (screens.Any(x => x.Contains(position)))
+                return;
+            var centers = screens.Select(x => new Point((x.Left + x.Width)/2, (x.Top + x.Height)/2));
+            var distances = centers.Select(x => (position - x).Length);
+            var screen = distances.Select((x, i) => new {Index = i, Value = x}).OrderBy(x => x.Value).FirstOrDefault()?.Index ?? 0;
+            var screenBounds = Screen.AllScreens[screen].WorkingArea;
+            Left = Math.Abs(position.X)%screenBounds.Width + screenBounds.Left;
+            Top = Math.Abs(position.Y)%screenBounds.Height + screenBounds.Top;
+        }
+
+        void JlWindow_Deactivated(object sender, EventArgs e) {
+            Topmost = true;
+        }
+
+        void FlickTimer_Tick(object sender, EventArgs e) {
+            if (count >= 10) {
+                Root.BorderBrush = cachedBackground;
+                Foreground = cachedBackground;
+                count = 0;
+                flickTimer.Stop();
+                return;
+            }
+            count++;
+            if (count%2 == 1) {
+                Foreground = contrastBackground;
+                Root.BorderBrush = contrastBackground;
+            } else {
+                Root.BorderBrush = cachedBackground;
+                Foreground = cachedBackground;
+            }                
+        }
+
+        IntPtr OnHwndSourceHook(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled) {
+            if (msg == NativeMethods.WM_SHOWSNOOP /*|| HotKeyHelper.ProcessMessage(msg, wParam)*/) {                
+                Activate();
+                flickTimer.Start();
+            }
+            return IntPtr.Zero;
+        }
+
+        private void JlWindow_MouseLeave(object sender, MouseEventArgs e) {
+            ExtendedVisibility = Visibility.Collapsed;
+        }
+
+        private void JlWindow_MouseEnter(object sender, MouseEventArgs e) {
+            ExtendedVisibility = Visibility.Visible;
         }
 
         void OnDragDelta(object sender, DragDeltaEventArgs e) {
@@ -31,16 +129,13 @@ namespace Snoop {
             this.Top += e.VerticalChange;
         }
 
-        bool allowShow = true;
         void OnDragStarted(object sender, DragStartedEventArgs e) {
-            allowShow = false;
-            ElementsGrid.Visibility = Visibility.Collapsed;
-            RootGrid.Margin = defaultPositions[currentPosition];
+            ExtendedVisibility = Visibility.Collapsed;
         }
 
         void OnDragCompleted(object sender, DragCompletedEventArgs e) {
-            allowShow = true;
             Update();
+            ExtendedVisibility = Visibility.Visible;
         }
 
         enum Position {
@@ -71,38 +166,30 @@ namespace Snoop {
             switch (primary) {
                 case Position.Left:
                     Left = screen.WorkingArea.Left;
-                    ((RotateTransform) ElementsGrid.RenderTransform).Angle = -90;
-                    RootGrid.Margin = new Thickness(-100, 0, 0, 0);
+                    rootPanel.Orientation = Orientation.Vertical;                    
                     break;
                 case Position.Top:
                     Top = screen.WorkingArea.Top;
-                    ((RotateTransform) ElementsGrid.RenderTransform).Angle = 0;
-                    RootGrid.Margin = new Thickness(0, -100, 0, 0);
+                    rootPanel.Orientation = Orientation.Horizontal;
                     break;
                 case Position.Right:
-                    Left= screen.WorkingArea.Right-100;
-                    ((RotateTransform)ElementsGrid.RenderTransform).Angle = 90;
-                    RootGrid.Margin = new Thickness(0, 0, -100, 0);
+                    Left = screen.WorkingArea.Right - 32;
+                    rootPanel.Orientation = Orientation.Vertical;
                     break;
                 case Position.Bottom:
-                    Top = screen.WorkingArea.Bottom - 100;
-                    ((RotateTransform)ElementsGrid.RenderTransform).Angle = 180;
-                    RootGrid.Margin = new Thickness(0, 0, 0, -100);
+                    Top = screen.WorkingArea.Bottom - 32;
+                    rootPanel.Orientation = Orientation.Horizontal;
                     break;
             }
-        }
-
-        void WindowMouseEnter(object sender, MouseEventArgs e) {
-            ElementsGrid.Visibility = Visibility.Visible;
-        }
+            RegistrySettings.Top = (int)Top;
+            RegistrySettings.Left = (int)Left;
+            RegistrySettings.Orientation = rootPanel.Orientation;
+        }        
 
         void ExitButtonClick(object sender, RoutedEventArgs e) {
             App.Current.Shutdown(0);
         }
-
-        void WindowMouseLeave(object sender, MouseEventArgs e) {
-            ElementsGrid.Visibility = Visibility.Collapsed;
-        }
+        
         public class WpfScreen {
             public static IEnumerable<WpfScreen> AllScreens() {
                 foreach (Screen screen in System.Windows.Forms.Screen.AllScreens) {
@@ -115,7 +202,7 @@ namespace Snoop {
                 Screen screen = System.Windows.Forms.Screen.FromHandle(windowInteropHelper.Handle);
                 WpfScreen wpfScreen = new WpfScreen(screen);
                 return wpfScreen;
-            }            
+            }
 
             public static WpfScreen Primary {
                 get { return new WpfScreen(System.Windows.Forms.Screen.PrimaryScreen); }

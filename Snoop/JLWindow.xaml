@@ -4,97 +4,80 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:snoop="clr-namespace:Snoop"
-        mc:Ignorable="d"
-        Title="JlWindow" Width="100" Height="100" WindowStyle="None" Topmost="True" AllowsTransparency="True" Background="Transparent">
+        mc:Ignorable="d" SizeToContent="WidthAndHeight"
+        Foreground="#4689ca"
+        Title="JlWindow" WindowStyle="None" Topmost="True" AllowsTransparency="True" Background="Transparent" ShowInTaskbar="False">
     <Window.Resources>
-        <Style TargetType="Button">
-            <Setter Property="Width" Value="26"></Setter>
-            <Setter Property="Height" Value="26"></Setter>
+        <Style x:Key="baseStyle" TargetType="Control">
+            <Setter Property="Foreground" Value="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=snoop:JlWindow}, Path=Foreground}"></Setter>
+            <Setter Property="Width" Value="28"/>
+            <Setter Property="Height" Value="28"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Foreground" Value="#53A3F0"></Setter>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="baseButtonStyle" TargetType="ButtonBase" BasedOn="{StaticResource baseStyle}">
             <Setter Property="Template">
                 <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border x:Name="PART_Border" CornerRadius="100">
-                            <Border.Background>
-                                <RadialGradientBrush >
-                                    <GradientStop Color="#FF0B9FF2" Offset="0" />
-                                    <GradientStop Color="#FF036194" Offset="0.9" />
-                                    <GradientStop Color="#FF024A72" Offset="1" />
-                                </RadialGradientBrush>
-                            </Border.Background>
+                    <ControlTemplate TargetType="ButtonBase">
+                        <Border Background="Transparent">
                             <ContentPresenter/>
                         </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="Background" TargetName="PART_Border">
-                                    <Setter.Value>
-                                        <RadialGradientBrush >
-                                            <GradientStop Color="#2DACF3" Offset="0" />
-                                            <GradientStop Color="#296F95" Offset="0.9" />
-                                            <GradientStop Color="#295E7C" Offset="1" />
-                                        </RadialGradientBrush>
-                                    </Setter.Value>
-                                </Setter>
-                            </Trigger>
-                            <Trigger Property="IsPressed" Value="True">
-                                <Setter Property="Background" TargetName="PART_Border">
-                                    <Setter.Value>
-                                        <RadialGradientBrush >
-                                            <GradientStop Color="#097DBE" Offset="0" />
-                                            <GradientStop Color="#024569" Offset="0.9" />
-                                            <GradientStop Color="#012C44" Offset="1" />
-                                        </RadialGradientBrush>
-                                    </Setter.Value>
-                                </Setter>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
         </Style>
-        <Style TargetType="Thumb">
+        <Style TargetType="Button" BasedOn="{StaticResource baseButtonStyle}">
+        </Style>
+        <Style TargetType="ToggleButton" BasedOn="{StaticResource baseButtonStyle}">
+            <Style.Triggers>
+                <Trigger Property="IsChecked" Value="True">
+                    <Setter Property="Foreground" Value="#53A3F0"></Setter>
+                </Trigger>
+            </Style.Triggers>
+        </Style>              
+        <Style TargetType="Thumb" BasedOn="{StaticResource baseStyle}">
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Thumb">
-                        <Border x:Name="PART_Border" CornerRadius="100">
-                            <Border.Background>
-                                <RadialGradientBrush >
-                                    <GradientStop Color="#FF0B9FF2" Offset="0" />
-                                    <GradientStop Color="#FF036194" Offset="0.9" />
-                                    <GradientStop Color="#FF024A72" Offset="1" />
-                                </RadialGradientBrush>
-                            </Border.Background>
+                        <Border Background="Transparent">
+                            <TextBlock FontSize="28" Margin="4,-4,0,0" RenderTransformOrigin="0.5, 0.5">
+                                <TextBlock.RenderTransform>
+                                    <RotateTransform Angle="90"></RotateTransform>
+                                </TextBlock.RenderTransform>⏸</TextBlock>
                         </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="Background" TargetName="PART_Border">
-                                    <Setter.Value>
-                                        <RadialGradientBrush >
-                                            <GradientStop Color="#2DACF3" Offset="0" />
-                                            <GradientStop Color="#296F95" Offset="0.9" />
-                                            <GradientStop Color="#295E7C" Offset="1" />
-                                        </RadialGradientBrush>
-                                    </Setter.Value>
-                                </Setter>
-                            </Trigger>
-                            <Trigger Property="IsDragging" Value="True">
-                                <Setter Property="Background" TargetName="PART_Border">
-                                    <Setter.Value>
-                                        <RadialGradientBrush >
-                                            <GradientStop Color="#097DBE" Offset="0" />
-                                            <GradientStop Color="#024569" Offset="0.9" />
-                                            <GradientStop Color="#012C44" Offset="1" />
-                                        </RadialGradientBrush>
-                                    </Setter.Value>
-                                </Setter>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
         </Style>
     </Window.Resources>
-    <Grid >
-        <Border Background="#01FFFFFF" MouseLeave="WindowMouseLeave" IsHitTestVisible="True">
+    <Border VerticalAlignment="Center" x:Name="Root" HorizontalAlignment="Center"  BorderThickness="2" BorderBrush="#4689ca" CornerRadius="2">
+        <Border.Background>
+            <LinearGradientBrush>
+                <GradientStop Color="#366794" Offset="0"></GradientStop>
+                <GradientStop Color="#1d3348" Offset="1"></GradientStop>
+            </LinearGradientBrush>
+        </Border.Background>
+        <StackPanel Orientation="Horizontal" x:Name="rootPanel">
+            <Thumb DragDelta="OnDragDelta" DragStarted="OnDragStarted" DragCompleted="OnDragCompleted"/>
+            <Border MinWidth="2" MinHeight="2" Background="{Binding ElementName=Root, Path=BorderBrush}" x:Name="splitter1" Visibility="{Binding ExtendedVisibility}"/>
+            <Button x:Name="searchButton" Visibility="{Binding ExtendedVisibility}">
+                <!--<TextBlock FontSize="33" Margin="1,-10,0,0">⌖</TextBlock>-->
+                <snoop:WindowFinder Margin="0,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center"
+                             ToolTip="Drag and drop this crosshairs over a WPF window in order to Snoop it." />
+            </Button>
+            <Border MinWidth="2" MinHeight="2"  Background="{Binding ElementName=Root, Path=BorderBrush}" x:Name="splitter2" Visibility="{Binding ExtendedVisibility}"/>
+            <Button x:Name="closeButton" Visibility="{Binding ExtendedVisibility}" Click="ExitButtonClick">
+                <Path Fill="{Binding Path=(TextElement.Foreground), RelativeSource={RelativeSource Self}}" Data="F1M0,0L2,0 5,3 8,0 10,0 6,4 10,8 8,8 5,5 2,8 0,8 4,4 0,0z" Stretch="Uniform" Margin="5"></Path>
+            </Button>
+            <Border MinWidth="2" MinHeight="2"  Background="{Binding ElementName=Root, Path=BorderBrush}" x:Name="splitter3" Visibility="{Binding ExtendedVisibility}"/>
+            <ToggleButton x:Name="pinButton" Visibility="{Binding ExtendedVisibility}" IsChecked="{Binding IsPinned}">
+                <Path Fill="{Binding Path=(TextElement.Foreground), RelativeSource={RelativeSource Self}}" Data="F1M3,11L3,7 0,7 0,6 1,6 1,1 1,0 6,0 6,1 6,6 7,6 7,7 4,7 4,11 3,11z M2,1L2,6 4,6 4,1 2,1z" Stretch="Uniform" Margin="5"></Path>
+            </ToggleButton>
+        </StackPanel>
+        <!--<Border Background="#01FFFFFF" MouseLeave="WindowMouseLeave" IsHitTestVisible="True">
             <Grid x:Name="RootGrid" Margin="0,-60,0,0">
                 <Thumb Width="40" Height="40" DragDelta="OnDragDelta" DragStarted="OnDragStarted" DragCompleted="OnDragCompleted" MouseEnter="WindowMouseEnter"/>
                 <Grid RenderTransformOrigin="0.5, 0.5" x:Name="ElementsGrid">
@@ -111,6 +94,6 @@
                     </Button>
                 </Grid>
             </Grid>
-        </Border>
-    </Grid>
+        </Border>-->
+    </Border>
 </Window>

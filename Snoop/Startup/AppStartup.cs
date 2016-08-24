@@ -24,7 +24,7 @@ namespace Snoop.Startup {
                 }
             }
             else {
-                App.Main();
+                EntryPoint.Main(param);
             }
         }
     }

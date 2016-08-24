@@ -709,11 +709,36 @@ namespace Snoop {
             [ReflectionFramework.ReflectionHelperAttributes.BindingFlags(BindingFlags.Instance | BindingFlags.NonPublic)]
             IInputElement RawDirectlyOver { get; }
         }
+
+        bool navigatingBetweenTree = false;
         void HandlePreProcessInput(object sender, PreProcessInputEventArgs e) {
             OnPropertyChanged("CurrentFocus");
 
             var currentModifiers = InputManager.Current.PrimaryKeyboardDevice.Modifiers;
-            if (!((currentModifiers & ModifierKeys.Control) != 0 && (currentModifiers & ModifierKeys.Shift) != 0))
+            if (!((currentModifiers & ModifierKeys.Control) != 0 && (currentModifiers & ModifierKeys.Shift) != 0)) {
+                navigatingBetweenTree = false;
+                return;
+            }
+            if (e.StagingItem.Input.RoutedEvent == Mouse.PreviewMouseWheelEvent) {
+                navigatingBetweenTree = true;
+                if (((MouseWheelEventArgs)e.StagingItem.Input).Delta > 0)
+                    Tree.Items.MoveCurrentToPrevious();                
+                else
+                    Tree.Items.MoveCurrentToNext();
+                e.StagingItem.Input.Handled = true;
+                return;
+            }
+            if (e.StagingItem.Input.RoutedEvent == Mouse.PreviewMouseDownEvent) {
+                if (((MouseButtonEventArgs)e.StagingItem.Input).ChangedButton == MouseButton.Middle) {
+                    var vi = Tree.SelectedValue as VisualTreeItem;
+                    if (vi != null) {
+                        vi.IsExpanded = !vi.IsExpanded;
+                    }
+                    e.StagingItem.Input.Handled = true;
+                    return;
+                }                
+            }
+            if (navigatingBetweenTree)
                 return;
 
             var directlyOver = Mouse.PrimaryDevice.Wrap<IMouseDevice>().RawDirectlyOver as Visual;

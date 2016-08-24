@@ -19,6 +19,23 @@ using ReflectionFramework.Internal;
 
 namespace Snoop {
     public static class NativeMethods {
+        public const int HWND_BROADCAST = 0xffff;
+        public static readonly int WM_SHOWSNOOP = RegisterWindowMessage("WM_SHOWSNOOP");
+        public static readonly int WM_HOTKEY = 0x0312;
+        [DllImport("user32")]
+        public static extern bool PostMessage(IntPtr hwnd, int msg, IntPtr wparam, IntPtr lparam);
+        [DllImport("user32.dll", CharSet = CharSet.Auto)]
+        public static extern IntPtr SendMessage(IntPtr hWnd, UInt32 Msg, IntPtr wParam, IntPtr lParam);
+        [DllImport("user32")]
+        public static extern int RegisterWindowMessage(string message);
+        [DllImport("user32.dll", EntryPoint = "RegisterHotKey", CharSet = CharSet.Auto, SetLastError = true)]
+        public static extern bool RegisterHotKey(IntPtr hWnd, int id, uint fsModifiers, uint vk);
+        [DllImport("user32.dll", EntryPoint = "UnregisterHotKey", CharSet = CharSet.Auto, SetLastError = true)]
+        public static extern bool UnregisterHotKey(IntPtr hWnd, int id);
+        [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        public static extern short GlobalAddAtom(string lpString);
+        [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        public static extern short GlobalDeleteAtom(short atom);
         [Flags]
         public enum SnapshotFlags : uint {
             HeapList = 0x00000001,
