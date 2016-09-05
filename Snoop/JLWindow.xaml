@@ -43,10 +43,24 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="Thumb">
                         <Border Background="Transparent">
-                            <TextBlock FontSize="28" Margin="4,-4,0,0" RenderTransformOrigin="0.5, 0.5">
-                                <TextBlock.RenderTransform>
-                                    <RotateTransform Angle="90"></RotateTransform>
-                                </TextBlock.RenderTransform>⏸</TextBlock>
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition/>
+                                    <RowDefinition/>
+                                    <RowDefinition/>
+                                    <RowDefinition/>
+                                    <RowDefinition/>
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition/>
+                                    <ColumnDefinition/>
+                                    <ColumnDefinition/>
+                                    <ColumnDefinition/>
+                                    <ColumnDefinition/>
+                                </Grid.ColumnDefinitions>
+                                <Border Background="{Binding Path=(TextElement.Foreground), RelativeSource={RelativeSource Self}}" Grid.Row="1" VerticalAlignment="Bottom" HorizontalAlignment="Stretch" Height="3" Grid.Column="1" Grid.ColumnSpan="3"></Border>
+                                <Border Background="{Binding Path=(TextElement.Foreground), RelativeSource={RelativeSource Self}}" Grid.Row="3" VerticalAlignment="Top" HorizontalAlignment="Stretch" Height="3" Grid.Column="1" Grid.ColumnSpan="3"></Border>
+                            </Grid>
                         </Border>
                     </ControlTemplate>
                 </Setter.Value>

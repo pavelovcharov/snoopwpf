@@ -7,7 +7,8 @@ All other rights reserved.
 <UserControl
     x:Class="Snoop.WindowFinder"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:effects="clr-namespace:Snoop.Shaders.Effects">
     <Button
         x:Name="btnStartWindowsSearch"
         Width="20"
@@ -22,6 +23,10 @@ All other rights reserved.
             x:Name="snoopCrosshairsImage"
             Width="16"
             Height="16"
-            Source="Resources/SnoopCrosshairsCursor.png" />
+            Source="Resources/SnoopCrosshairsCursor.png" >
+            <Image.Effect>
+                <effects:ColorizeShaderEffect TargetColor="{Binding ElementName=snoopCrosshairsImage, Path=(TextElement.Foreground).(SolidColorBrush.Color)}"/>
+            </Image.Effect>
+        </Image>
     </Button>
 </UserControl>
