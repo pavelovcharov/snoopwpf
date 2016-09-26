@@ -46,6 +46,7 @@ namespace Snoop {
         }
         HwndSource hwndSource;
         DispatcherTimer flickTimer;
+        DispatcherTimer topMostTimer;
         int count = 0;
         Brush cachedBackground;
         Brush contrastBackground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#A3D2FF"));
@@ -66,12 +67,17 @@ namespace Snoop {
                 hwndSource.AddHook(OnHwndSourceHook);
                 flickTimer.Start();
             }), DispatcherPriority.ApplicationIdle);
+            topMostTimer = new DispatcherTimer();
+            topMostTimer.Interval = TimeSpan.FromSeconds(5);
+            topMostTimer.Tick += JlWindow_HandleUpdateTopMost;
+            topMostTimer.Start();
             flickTimer = new DispatcherTimer();
             flickTimer.Interval = TimeSpan.FromMilliseconds(200);
             flickTimer.Tick += FlickTimer_Tick;
             cachedBackground = Root.BorderBrush;
-            Deactivated += JlWindow_Deactivated;                        
-        }
+            Deactivated += JlWindow_HandleUpdateTopMost;
+            LayoutUpdated += JlWindow_HandleUpdateTopMost;
+        }        
 
         void CoercePosition() {
             Point position = new Point((int)Left, (int)Top);
@@ -86,8 +92,17 @@ namespace Snoop {
             Top = Math.Abs(position.Y)%screenBounds.Height + screenBounds.Top;
         }
 
-        void JlWindow_Deactivated(object sender, EventArgs e) {
-            Topmost = true;
+        void JlWindow_HandleUpdateTopMost(object sender, EventArgs e) {
+            UpdateTopMost();
+        }        
+
+        private void UpdateTopMost() {
+            if (hwndSource == null)
+                return;
+              NativeMethods.SetWindowPos(hwndSource.Handle,
+                                       new IntPtr(-1),
+                                       0, 0, 0, 0,
+                                       NativeMethods.SWP_NOMOVE | NativeMethods.SWP_NOSIZE | NativeMethods.SWP_NOACTIVATE);
         }
 
         void FlickTimer_Tick(object sender, EventArgs e) {

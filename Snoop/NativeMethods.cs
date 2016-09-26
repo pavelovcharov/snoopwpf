@@ -19,7 +19,11 @@ using ReflectionFramework.Internal;
 
 namespace Snoop {
     public static class NativeMethods {
-        public const int HWND_BROADCAST = 0xffff;
+        public const int 
+            SWP_NOMOVE = 0x0002,
+            SWP_NOSIZE = 0x0001,
+            SWP_NOACTIVATE = 0x0010,
+            HWND_BROADCAST = 0xffff;
         public static readonly int WM_SHOWSNOOP = RegisterWindowMessage("WM_SHOWSNOOP");
         public static readonly int WM_HOTKEY = 0x0312;
         [DllImport("user32")]
@@ -36,6 +40,9 @@ namespace Snoop {
         public static extern short GlobalAddAtom(string lpString);
         [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         public static extern short GlobalDeleteAtom(short atom);
+        [DllImport("user32.dll", EntryPoint = "SetWindowPos", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int x, int y, int cx, int cy, int uFlags);
         [Flags]
         public enum SnapshotFlags : uint {
             HeapList = 0x00000001,
