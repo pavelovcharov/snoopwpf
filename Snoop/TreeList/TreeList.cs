@@ -170,6 +170,8 @@ namespace Snoop.TreeList {
             (ItemsSource as TreeListSource).MoveCurrentTo(item);
         }
 
-        public void Filter(string filter) {}
+        public void Filter(string filter) {
+            
+        }
     }
 }

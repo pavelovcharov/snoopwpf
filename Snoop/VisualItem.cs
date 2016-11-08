@@ -13,6 +13,7 @@ using System.Windows.Diagnostics;
 using System.Windows.Documents;
 using System.Windows.Media;
 using ReflectionFramework;
+using ReflectionFramework.Extensions;
 
 namespace Snoop {
     /// <summary>

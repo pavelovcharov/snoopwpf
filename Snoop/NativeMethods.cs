@@ -15,6 +15,7 @@ using System.Windows;
 using System.Windows.Media;
 using Microsoft.Win32.SafeHandles;
 using ReflectionFramework;
+using ReflectionFramework.Attributes;
 using ReflectionFramework.Internal;
 
 namespace Snoop {
@@ -175,18 +176,18 @@ namespace Snoop {
             }
         }
     }        
-    [ReflectionHelperAttributes.Wrapper]
-    [ReflectionHelperAttributes.AssignableFrom("DevExpress.Xpf.Core.Native.IFrameworkRenderElementContext")]
+    [Wrapper]
+    [AssignableFrom("DevExpress.Xpf.Core.Native.IFrameworkRenderElementContext")]
     public interface IIFrameworkRenderElementContext {
-        [ReflectionHelperAttributes.InterfaceMember("DevExpress.Xpf.Core.Native.IFrameworkRenderElementContext")]
+        [InterfaceMember("DevExpress.Xpf.Core.Native.IFrameworkRenderElementContext")]
         int RenderChildrenCount { get; }
-        [ReflectionHelperAttributes.InterfaceMember("DevExpress.Xpf.Core.Native.IFrameworkRenderElementContext")]
+        [InterfaceMember("DevExpress.Xpf.Core.Native.IFrameworkRenderElementContext")]
         object GetRenderChild(int index);
-        [ReflectionHelperAttributes.InterfaceMember("DevExpress.Xpf.Core.Native.IFrameworkRenderElementContext")]
+        [InterfaceMember("DevExpress.Xpf.Core.Native.IFrameworkRenderElementContext")]
         Size RenderSize { get; }
     }    
-    [ReflectionHelperAttributes.Wrapper]
-    [ReflectionHelperAttributes.AssignableFrom("DevExpress.Xpf.Core.Native.FrameworkRenderElementContext")]
+    [Wrapper]
+    [AssignableFrom("DevExpress.Xpf.Core.Native.FrameworkRenderElementContext")]
     public interface IFrameworkRenderElementContext : IIFrameworkRenderElementContext {        
         string Name { get; }
         void Render(DrawingContext drawingContext);
@@ -194,31 +195,31 @@ namespace Snoop {
         Visibility? Visibility { get; }
         IFrameworkRenderElement Factory { get; }
     }
-    [ReflectionHelperAttributes.Wrapper]
+    [Wrapper]
     public interface IIElementHost {
-        [ReflectionHelperAttributes.InterfaceMember("DevExpress.Xpf.Core.Native.IElementHost")]
+        [InterfaceMember("DevExpress.Xpf.Core.Native.IElementHost")]
         FrameworkElement Parent { get; }
     }    
-    [ReflectionHelperAttributes.Wrapper]
-    [ReflectionHelperAttributes.AssignableFrom("DevExpress.Xpf.Core.Native.IChrome")]
-    [ReflectionHelperAttributes.AssignableFrom("DevExpress.Xpf.Grid.LightweightCellEditor", Inverse = true)]
+    [Wrapper]
+    [AssignableFrom("DevExpress.Xpf.Core.Native.IChrome")]
+    [AssignableFrom("DevExpress.Xpf.Grid.LightweightCellEditor", Inverse = true)]
     public interface IIChrome {
-        [ReflectionHelperAttributes.InterfaceMember("DevExpress.Xpf.Core.Native.IChrome")]
+        [InterfaceMember("DevExpress.Xpf.Core.Native.IChrome")]
         IFrameworkRenderElementContext Root { get; }
     }
-    [ReflectionHelperAttributes.Wrapper]
+    [Wrapper]
     public interface IChrome : IIChrome {
         
     }
 
-    [ReflectionHelperAttributes.Wrapper]
-    [ReflectionHelperAttributes.AssignableFrom("DevExpress.Xpf.Core.Native.RenderControlBaseContext")]
+    [Wrapper]
+    [AssignableFrom("DevExpress.Xpf.Core.Native.RenderControlBaseContext")]
     public interface IRenderControlBaseContext : IFrameworkRenderElementContext {
         Transform GeneralTransform { get; }
         FrameworkElement Control { get; }
     }
 
-    [ReflectionHelperAttributes.Wrapper]
+    [Wrapper]
     public interface IFrameworkRenderElement {
         Visibility Visibility { get; set; }
     }    
@@ -261,7 +262,7 @@ namespace Snoop {
         [ThreadStatic] static Func<object, object, object> hitTest;
 
         static object Simplify(object obj) {
-            return (obj as IReflectionGeneratedObject)?.Source ?? obj;
+            return (obj as IReflectionHelperInterfaceWrapper)?.Source ?? obj;
         }
 
         public static IEnumerable<object> RenderDescendants(object context) {

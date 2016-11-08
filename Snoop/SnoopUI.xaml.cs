@@ -22,10 +22,12 @@ using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Threading;
 using ReflectionFramework;
+using ReflectionFramework.Extensions;
 using Snoop.Infrastructure;
 using Snoop.Properties;
 using Snoop.Shell;
 using Snoop.TreeList;
+using ReflectionFramework.Attributes;
 
 namespace Snoop {
 
@@ -706,7 +708,7 @@ namespace Snoop {
         #region Private Event Handlers
 
         public interface IMouseDevice {
-            [ReflectionFramework.ReflectionHelperAttributes.BindingFlags(BindingFlags.Instance | BindingFlags.NonPublic)]
+            [BindingFlags(BindingFlags.Instance | BindingFlags.NonPublic)]
             IInputElement RawDirectlyOver { get; }
         }
 

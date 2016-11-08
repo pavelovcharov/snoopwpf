@@ -14,6 +14,8 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using ReflectionFramework;
+using ReflectionFramework.Extensions;
+using ReflectionFramework.Internal;
 
 namespace Snoop {
     public class DumbVisualTreeItem : VisualTreeItem {
@@ -143,8 +145,8 @@ namespace Snoop {
 
         public static VisualTreeItem Construct(object target, VisualTreeItem parent) {
             VisualTreeItem visualTreeItem;
-            if (target is ReflectionFramework.Internal.IReflectionGeneratedObject) {
-                visualTreeItem = new VisualItem(((ReflectionFramework.Internal.IReflectionGeneratedObject)target).Source, parent);
+            if (target is IReflectionHelperInterfaceWrapper) {
+                visualTreeItem = new VisualItem(((IReflectionHelperInterfaceWrapper)target).Source, parent);
             }else if (target.Wrap<IFrameworkRenderElementContext>()!=null)
                 visualTreeItem = new VisualItem(target, parent);
             else if (target is Visual)

@@ -1,12 +1,14 @@
 ﻿using System.Reflection;
 using System.Windows.Diagnostics;
 using ReflectionFramework;
+using ReflectionFramework.Attributes;
+using ReflectionFramework.Extensions;
 
 namespace Snoop {
     public interface IVisualDiagnostics {
-        [ReflectionHelperAttributes.FieldAccessor]
-        [ReflectionHelperAttributes.Name("s_isDebuggerCheckDisabledForTestPurposes")]
-        [ReflectionHelperAttributes.BindingFlags(BindingFlags.NonPublic)]
+        [FieldAccessor]
+        [Name("s_isDebuggerCheckDisabledForTestPurposes")]
+        [BindingFlags(BindingFlags.NonPublic)]
         bool Enabled { get; set; }
     }
 

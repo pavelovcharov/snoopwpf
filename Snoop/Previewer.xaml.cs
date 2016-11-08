@@ -7,6 +7,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using ReflectionFramework;
+using ReflectionFramework.Extensions;
 
 namespace Snoop {
     public partial class Previewer {
