@@ -23,7 +23,7 @@ All other rights reserved.
             x:Name="snoopCrosshairsImage"
             Width="16"
             Height="16"
-            Source="Resources/SnoopCrosshairsCursor.png" >
+            Source="../Resources/SnoopCrosshairsCursor.png" >
             <Image.Effect>
                 <effects:ColorizeShaderEffect TargetColor="{Binding ElementName=snoopCrosshairsImage, Path=(TextElement.Foreground).(SolidColorBrush.Color)}"/>
             </Image.Effect>

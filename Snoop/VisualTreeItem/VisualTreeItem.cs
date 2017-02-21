@@ -43,6 +43,7 @@ namespace Snoop {
         string nameLower = string.Empty;
         string typeNameLower = string.Empty;
 
+        public bool MatchesFilter(string filter) { return (nameLower?.Contains(filter) ?? false) || (typeNameLower?.Contains(filter) ?? false); }
         protected VisualTreeItem(object target, VisualTreeItem parent) {
             if (target == null) throw new ArgumentNullException("target");
             Target = target;

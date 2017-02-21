@@ -91,9 +91,10 @@ namespace Snoop {
 
         #region Public Constructor
 
+        SearchEngine SearchEngine;
         public SnoopUI() {
             //ThemeManagerHelper.SetThemeName(this, null);
-            filterCall = new DelayedCall(ProcessFilter, DispatcherPriority.Background);
+            SearchEngine = new SearchEngine(this);
 
             InheritanceBehavior = InheritanceBehavior.SkipToThemeNext;
             InitializeComponent();
@@ -133,14 +134,7 @@ namespace Snoop {
 
             // we can't catch the mouse wheel at the ZoomerControl level,
             // so we catch it here, and relay it to the ZoomerControl.
-            MouseWheel += SnoopUI_MouseWheel;
-
-            filterTimer = new DispatcherTimer();
-            filterTimer.Interval = TimeSpan.FromSeconds(0.3);
-            filterTimer.Tick += (s, e) => {
-                EnqueueAfterSettingFilter();
-                filterTimer.Stop();
-            };
+            MouseWheel += SnoopUI_MouseWheel;            
 
             InitShell();
         }
@@ -369,34 +363,12 @@ namespace Snoop {
         ///     TreeView.
         ///     Every time the user types a key, the setter gets called, enqueueing a delayed call to the ProcessFilter method.
         /// </summary>
-        public string Filter {
-            get { return filter; }
-            set {
-                filter = value;
-
-                if (!fromTextBox) {
-                    EnqueueAfterSettingFilter();
-                }
-                else {
-                    filterTimer.Stop();
-                    filterTimer.Start();
-                }
-            }
-        }
+        public string Filter { get { return SearchEngine.Filter; } set { SearchEngine.Filter = value; } }
 
         void SetFilter(string value) {
-            fromTextBox = false;
-            Filter = value;
-            fromTextBox = true;
-        }
+            SearchEngine.SetFilter(value);
+        }        
 
-        void EnqueueAfterSettingFilter() {
-            filterCall.Enqueue();
-
-            OnPropertyChanged("Filter");
-        }
-
-        string filter = string.Empty;
 
         #endregion
 
@@ -623,8 +595,6 @@ namespace Snoop {
                     if (visualItem != null)
                         CurrentSelection = visualItem;
                 }
-
-                SetFilter(filter);
             }
             finally {
                 Mouse.OverrideCursor = saveCursor;
@@ -767,7 +737,6 @@ namespace Snoop {
 
                 node = rootVisualTreeItem.FindNode(target);
 
-                SetFilter(filter);
             }
             return node;
         }
@@ -781,6 +750,7 @@ namespace Snoop {
 
         void HandleTreeSelectedItemChanged(object sender, SelectionChangedEventArgs e) {
             var item = Tree.SelectedItem as VisualTreeItem;
+            SearchEngine.Root = item;
             if (item != null)
                 CurrentSelection = item;
         }
@@ -864,8 +834,6 @@ namespace Snoop {
             Root = VisualTreeItem.Construct(root, null);
             CurrentSelection = rootVisualTreeItem;
 
-            SetFilter(filter);
-
             OnPropertyChanged("Root");
         }
 
@@ -873,13 +841,8 @@ namespace Snoop {
 
         #region Private Fields
 
-        bool fromTextBox = true;
-        readonly DispatcherTimer filterTimer;
-
         string propertyFilter = string.Empty;
-        string eventFilter = string.Empty;
-
-        readonly DelayedCall filterCall;
+        string eventFilter = string.Empty;        
 
         VisualTreeItem m_reducedDepthRoot;
 
@@ -905,6 +868,10 @@ namespace Snoop {
         }
 
         #endregion
+
+        void ButtonBase_OnClick(object sender, RoutedEventArgs e) {
+            SearchEngine.Next();
+        }
     }
 
     #endregion

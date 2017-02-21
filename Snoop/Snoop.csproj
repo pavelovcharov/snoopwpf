@@ -211,6 +211,7 @@
   <ItemGroup>
     <Compile Include="AdornerContainer.cs" />
     <Compile Include="Properties\Annotations.cs" />
+    <Compile Include="Search\SearchEngine.cs" />
     <Compile Include="VisualTreeItem\ApplicationTreeItem.cs" />
     <Compile Include="Behaviors\BringIntoViewBehavior.cs" />
     <Compile Include="Helpers\Converters\ArgbToPartsConverter.cs" />

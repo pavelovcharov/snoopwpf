@@ -1,5 +1,4 @@
 <Window
-    x:Class="Snoop.SnoopUI"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="clr-namespace:Snoop"
@@ -11,6 +10,7 @@
     xmlns:MethodsTabNS="clr-namespace:Snoop.MethodsTab"
     xmlns:DebugListenerNS="clr-namespace:Snoop.DebugListenerTab"
     xmlns:treeList="clr-namespace:Snoop.TreeList"
+    x:Class="Snoop.SnoopUI"
     mc:Ignorable="d"
     Icon="Snoop.ico"
     Title="Snoop"
@@ -75,13 +75,9 @@
                                             Value="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}" />
                                 </Trigger>
                                 <DataTrigger
-                                    Binding="{Binding Path=(ToggleButton.IsChecked), RelativeSource={RelativeSource Self}}"
+                                    Binding="{Binding (ToggleButton.IsChecked), RelativeSource={RelativeSource Self}}"
                                     Value="True">
-                                    <Setter Property="Background" TargetName="border">
-                                        <Setter.Value>
-                                            <SolidColorBrush Color="#FFA0A0A0" />
-                                        </Setter.Value>
-                                    </Setter>
+                                    <Setter Property="Background" TargetName="border" Value="#FFA0A0A0"/>
                                 </DataTrigger>
                                 <Trigger Property="IsMouseOver" Value="True">
                                     <Setter Property="Background" TargetName="border">
@@ -136,10 +132,10 @@
                         VerticalAlignment="Center"
                         Margin="0,2,2,2"
                         Command="{x:Static local:SnoopUI.RefreshCommand}">
-                        <Image Source="{StaticResource reloadDrawingImage}" />
                         <Button.ToolTip>
                             <TextBlock Style="{x:Null}" Text="Refresh the tree view" />
                         </Button.ToolTip>
+                        <Image Source="{StaticResource reloadDrawingImage}" />
                     </Button>
                     <ToggleButton
                         DockPanel.Dock="Right"
@@ -149,7 +145,10 @@
                         HorizontalAlignment="Right"
                         VerticalAlignment="Center"
                         Margin="0,2,2,2"
-                        IsChecked="{Binding Path=EnableLiveTree, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type local:SnoopUI}}, Mode=TwoWay}">
+                        IsChecked="{Binding EnableLiveTree, Mode=TwoWay, RelativeSource={RelativeSource AncestorType={x:Type local:SnoopUI}, Mode=FindAncestor}}">
+                        <ToggleButton.ToolTip>
+                            <TextBlock Style="{x:Null}" Text="Track visual tree changes" />
+                        </ToggleButton.ToolTip>
                         <Viewbox Width="16" Height="16" Stretch="Uniform" StretchDirection="Both"
                                  HorizontalAlignment="Center" VerticalAlignment="Center">
                             <Grid Margin="-5,-5,5,5">
@@ -164,27 +163,25 @@
                                     Fill="Black" HorizontalAlignment="Left" VerticalAlignment="Top" />
                             </Grid>
                         </Viewbox>
-                        <ToggleButton.ToolTip>
-                            <TextBlock Style="{x:Null}" Text="Track visual tree changes" />
-                        </ToggleButton.ToolTip>
                     </ToggleButton>
                     <!-- Filter Combo Box -->
+                    <Button Click="ButtonBase_OnClick" Content="NextFilter"/>
                     <ComboBox DockPanel.Dock="Left"
                               x:Name="filterComboBox"
                               i:ComboBoxSettings.IsSnoopPart="True"
                               IsEditable="True"
                               Text="{Binding Filter, UpdateSourceTrigger=PropertyChanged}"
                               Margin="2,2,2,2">
+                        <ComboBox.ToolTip>
+                            <TextBlock Style="{x:Null}"
+                                       Text="Enter text in the combo box to filter the tree view by name or type" />
+                        </ComboBox.ToolTip>
                         <ComboBoxItem>
                             <TextBlock Style="{x:Null}" Text="Clear any filter applied to the tree view" />
                         </ComboBoxItem>
                         <ComboBoxItem>
                             <TextBlock Style="{x:Null}" Text="Show only visuals with binding errors" />
                         </ComboBoxItem>
-                        <ComboBox.ToolTip>
-                            <TextBlock Style="{x:Null}"
-                                       Text="Enter text in the combo box to filter the tree view by name or type" />
-                        </ComboBox.ToolTip>
                     </ComboBox>
                 </DockPanel>
                 <!-- Visual Tree TreeView -->
@@ -248,6 +245,7 @@
                 </treeList:TreeList>
             </Grid>
 
+            <!-- Tab Control (for the property grid, the data context property grid, and the events view) -->
             <!-- Vertical GridSplitter (between the visual tree tree view and the tab control (with the property grid/events view)) -->
             <GridSplitter
                 x:Name="GridSplitter"
@@ -385,46 +383,41 @@
                     Margin="2,4,2,0"
                     Target="{Binding CurrentSelection.Target}" />
             </Grid>
-            <!-- Tab Control (for the property grid, the data context property grid, and the events view) -->
         </Grid>
         <!-- StatusBar -->
         <StatusBar Grid.Row="1">
             <StackPanel Orientation="Horizontal">
                 <StackPanel Orientation="Horizontal">
-                    <TextBlock Text="Keyboard.FocusedElement:" />
-                    <TextBlock Margin="3,0,0,0">
-                        <local:NoFocusHyperlink
-                            Focusable="False"
-                            Command="{x:Static local:SnoopUI.SelectFocusCommand}"
-                            CommandParameter="{Binding CurrentFocus}">
-                            <TextBlock Text="{Binding CurrentFocus, Converter={StaticResource niceNamer}}" />
-                        </local:NoFocusHyperlink>
-                    </TextBlock>
-                    <TextBlock Text="; " />
                     <StackPanel.ToolTip>
                         <StackPanel>
                             <TextBlock Text="This is the object that has keyboard focus." />
                             <TextBlock Text="Click the link to select this object." />
                         </StackPanel>
                     </StackPanel.ToolTip>
+                    <TextBlock Text="Keyboard.FocusedElement:" />
+                    <TextBlock Margin="3,0,0,0"><local:NoFocusHyperlink
+                            Focusable="False"
+                            Command="{x:Static local:SnoopUI.SelectFocusCommand}"
+                            CommandParameter="{Binding CurrentFocus}"><InlineUIContainer>
+                                <TextBlock Text="{Binding CurrentFocus, Converter={StaticResource niceNamer}}" />
+                            </InlineUIContainer></local:NoFocusHyperlink></TextBlock>
+                    <TextBlock Text="; " />
                 </StackPanel>
 
                 <StackPanel Orientation="Horizontal">
-                    <TextBlock Text="Current FocusScope:" />
-                    <TextBlock Margin="3,0,0,0">
-                        <local:NoFocusHyperlink
-                            Focusable="False"
-                            Command="{x:Static local:SnoopUI.SelectFocusScopeCommand}"
-                            CommandParameter="{Binding CurrentFocusScope}">
-                            <TextBlock Text="{Binding CurrentFocusScope, Converter={StaticResource niceNamer}}" />
-                        </local:NoFocusHyperlink>
-                    </TextBlock>
                     <StackPanel.ToolTip>
                         <StackPanel>
                             <TextBlock Text="This is the object that is the root of the current focus scope." />
                             <TextBlock Text="Click the link to select this object." />
                         </StackPanel>
                     </StackPanel.ToolTip>
+                    <TextBlock Text="Current FocusScope:" />
+                    <TextBlock Margin="3,0,0,0"><local:NoFocusHyperlink
+                            Focusable="False"
+                            Command="{x:Static local:SnoopUI.SelectFocusScopeCommand}"
+                            CommandParameter="{Binding CurrentFocusScope}"><InlineUIContainer>
+                                <TextBlock Text="{Binding CurrentFocusScope, Converter={StaticResource niceNamer}}" />
+                            </InlineUIContainer></local:NoFocusHyperlink></TextBlock>
                 </StackPanel>
             </StackPanel>
         </StatusBar>

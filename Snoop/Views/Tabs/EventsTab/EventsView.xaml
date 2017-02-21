@@ -19,7 +19,7 @@ All other rights reserved.
     <Grid.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="ProperTreeViewResources.xaml" />
+                <ResourceDictionary Source="../../../ProperTreeViewResources.xaml" />
             </ResourceDictionary.MergedDictionaries>
 
             <my:ObjectToStringConverter x:Key="NiceNamer" />

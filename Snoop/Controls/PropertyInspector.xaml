@@ -16,8 +16,8 @@ All other rights reserved.
     <Grid.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="Icons.xaml" />
-                <ResourceDictionary Source="ValueEditors\EditorTemplates.xaml" />
+                <ResourceDictionary Source="../Icons.xaml" />
+                <ResourceDictionary Source="../ValueEditors/EditorTemplates.xaml" />
             </ResourceDictionary.MergedDictionaries>
 
             <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
