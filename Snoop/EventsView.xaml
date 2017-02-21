@@ -326,7 +326,7 @@ All other rights reserved.
         ItemsSource="{Binding ElementName=Events, Path=InterestingEvents}"
         HorizontalContentAlignment="Stretch">
         <TreeView.ItemContainerStyle>
-            <Style BasedOn="{StaticResource ProperTreeViewItemStyle}" TargetType="{x:Type TreeViewItem}">
+            <Style TargetType="{x:Type TreeViewItem}">
                 <Setter Property="HorizontalContentAlignment" Value="Stretch" />
                 <Setter Property="HorizontalAlignment" Value="Stretch" />
                 <Style.Triggers>

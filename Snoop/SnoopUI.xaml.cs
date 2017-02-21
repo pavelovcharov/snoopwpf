@@ -128,7 +128,7 @@ namespace Snoop {
             CommandBindings.Add(new CommandBinding(CopyPropertyChangesCommand, CopyPropertyChangesHandler));
 
             InputManager.Current.PreProcessInput += HandlePreProcessInput;
-            Tree.ItemsSource = new TreeListSource(this);
+            Tree.ItemsSource = (TreeListSource = new TreeListSource(this));
             Tree.SelectionChanged += HandleTreeSelectedItemChanged;
 
             // we can't catch the mouse wheel at the ZoomerControl level,
@@ -290,8 +290,7 @@ namespace Snoop {
         /// <summary>
         ///     This is the collection of VisualTreeItem(s) that the visual tree TreeView binds to.
         /// </summary>
-        public ObservableCollection<VisualTreeItem> VisualTreeItems { get; } =
-            new ObservableCollection<VisualTreeItem>();
+        public TreeListSource TreeListSource { get; }
 
         #endregion
 
@@ -344,19 +343,16 @@ namespace Snoop {
                     OnPropertyChanged("CurrentSelection");
                     OnPropertyChanged("CurrentFocusScope");
 
-                    if (VisualTreeItems.Count > 1 ||
-                        VisualTreeItems.Count == 1 && VisualTreeItems[0] != rootVisualTreeItem) {
-                        // Check whether the selected item is filtered out by the filter,
-                        // in which case reset the filter.
+                    if (rootVisualTreeItem != TreeListSource.GetItemAt(0)) {
                         var tmp = currentSelection;
-                        while (tmp != null && !VisualTreeItems.Contains(tmp)) {
+                        while (tmp != null && !TreeListSource.Contains(tmp)) {
                             tmp = tmp.Parent;
                         }
-                        if (tmp == null) {
+                         if (tmp == null) {
                             // The selected item is not a descendant of any root.
                             RefreshCommand.Execute(null, this);
                         }
-                    }
+                    }                    
                 }
             }
         }
@@ -526,25 +522,7 @@ namespace Snoop {
             var result = dialog.ShowDialog();
             if (result.HasValue && result.Value)
                 e.Handled = true;
-        }
-
-        public void ApplyReduceDepthFilter(VisualTreeItem newRoot) {
-            if (m_reducedDepthRoot != newRoot) {
-                if (m_reducedDepthRoot == null) {
-                    Dispatcher.BeginInvoke
-                        (
-                            DispatcherPriority.Background,
-                            (function)
-                                delegate {
-                                    VisualTreeItems.Clear();
-                                    VisualTreeItems.Add(m_reducedDepthRoot);
-                                    m_reducedDepthRoot = null;
-                                }
-                        );
-                }
-                m_reducedDepthRoot = newRoot;
-            }
-        }
+        }        
 
 
         /// <summary>
@@ -637,8 +615,6 @@ namespace Snoop {
             Mouse.OverrideCursor = Cursors.Wait;
             try {
                 var currentTarget = CurrentSelection != null ? CurrentSelection.Target : null;
-
-                VisualTreeItems.Clear();
 
                 Root = VisualTreeItem.Construct(root, null);
 
@@ -810,37 +786,25 @@ namespace Snoop {
         }
 
         void ProcessFilter() {
-            if (SnoopModes.MultipleDispatcherMode && !Dispatcher.CheckAccess()) {
-                Action action = () => ProcessFilter();
-                Dispatcher.BeginInvoke(action);
-                return;
-            }
+            Tree.TreeListSource.Refresh();
+            //if (SnoopModes.MultipleDispatcherMode && !Dispatcher.CheckAccess()) {
+            //    Action action = () => ProcessFilter();
+            //    Dispatcher.BeginInvoke(action);
+            //    return;
+            //}
 
-            VisualTreeItems.Clear();
-
-            // cplotts todo: we've got to come up with a better way to do this.
-            if (filter == "Clear any filter applied to the tree view") {
-                SetFilter(string.Empty);
-            }
-            else if (filter == "Show only visuals with binding errors") {
-                FilterBindings(rootVisualTreeItem);
-            }
-            else if (filter.Length == 0) {
-                VisualTreeItems.Add(rootVisualTreeItem);
-            }
-            else {
-                Tree.Filter(filter);
-            }
+            //// cplotts todo: we've got to come up with a better way to do this.
+            //if (filter == "Clear any filter applied to the tree view") {
+            //    SetFilter(string.Empty);
+            //}
+            //else if (filter == "Show only visuals with binding errors") {
+            //    Tree.FilterBindings();
+            //} else {
+            //    Tree.Filter(filter);
+            //}
         }
 
-        void FilterBindings(VisualTreeItem node) {
-            foreach (var child in node.Children) {
-                if (child.HasBindingError)
-                    VisualTreeItems.Add(child);
-                else
-                    FilterBindings(child);
-            }
-        }
+
 
         object FindRoot() {
             object root = null;
@@ -896,8 +860,6 @@ namespace Snoop {
 
         void Load(object root) {
             this.root = root;
-
-            VisualTreeItems.Clear();
 
             Root = VisualTreeItem.Construct(root, null);
             CurrentSelection = rootVisualTreeItem;

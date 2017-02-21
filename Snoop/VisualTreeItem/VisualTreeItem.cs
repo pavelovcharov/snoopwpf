@@ -7,8 +7,11 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Windows;
 using System.Windows.Input;
@@ -16,10 +19,12 @@ using System.Windows.Media;
 using ReflectionFramework;
 using ReflectionFramework.Extensions;
 using ReflectionFramework.Internal;
+using Snoop.Annotations;
 
 namespace Snoop {
     public class DumbVisualTreeItem : VisualTreeItem {
-        public DumbVisualTreeItem(object target, VisualTreeItem parent) : base(target, parent) {}
+        public DumbVisualTreeItem(object target, VisualTreeItem parent) : base(target, parent) {
+        }
 
         protected override bool GetHasChildren() {
             return false;
@@ -28,7 +33,6 @@ namespace Snoop {
 
     public abstract class VisualTreeItem : INotifyPropertyChanged {
         ObservableCollection<VisualTreeItem> children;
-
         bool fillingChildren;
         bool hasChildren;
         bool isExpanded;
@@ -71,11 +75,42 @@ namespace Snoop {
                 if (children != null)
                     return children;
                 children = new ObservableCollection<VisualTreeItem>();
+                children.CollectionChanged += OnChildrenCollectionChanged;
                 FillChildren();
                 return children;
             }
         }
 
+        class ObservableCollection2<TItem> : ObservableCollection<TItem> {
+            protected override void ClearItems() {
+                while (Count != 0) {
+                    RemoveAt(0);
+                }
+            }
+        }
+
+        void OnChildrenCollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e) {
+            switch (e.Action) {
+                case NotifyCollectionChangedAction.Add:
+                    ItemsAdded(e.NewItems.OfType<VisualTreeItem>());
+                    break;
+                case NotifyCollectionChangedAction.Remove:
+                    ItemsRemoved(e.OldItems.OfType<VisualTreeItem>());
+                    break;
+                case NotifyCollectionChangedAction.Replace:
+                    ItemsAdded(e.NewItems.OfType<VisualTreeItem>());
+                    ItemsRemoved(e.OldItems.OfType<VisualTreeItem>());
+                    break;                
+            }
+        }
+
+        void ItemsAdded(IEnumerable<VisualTreeItem> visualTreeItems) {
+            //throw new NotImplementedException();
+        }
+
+        void ItemsRemoved(IEnumerable<VisualTreeItem> visualTreeItems) {
+            //throw new NotImplementedException();
+        }
 
         public bool IsSelected {
             get { return isSelected; }
@@ -87,7 +122,7 @@ namespace Snoop {
                     if (isSelected && Parent != null)
                         Parent.ExpandTo();
 
-                    OnPropertyChanged("IsSelected");
+                    OnPropertyChanged();
                     OnSelectionChanged();
                 }
             }
@@ -101,7 +136,7 @@ namespace Snoop {
             set {
                 if (isExpanded != value) {
                     isExpanded = value;
-                    OnPropertyChanged("IsExpanded");
+                    OnPropertyChanged();
                     if (Parent != null)
                         Parent.OnChildExpanded(this);
                     else {
@@ -139,9 +174,11 @@ namespace Snoop {
             get { return hasChildren; }
             set {
                 hasChildren = value;
-                OnPropertyChanged("HasChildren");
+                OnPropertyChanged();
             }
-        }
+        }        
+
+        public bool ChildrenInitialized { get { return children != null; } }
 
         public static VisualTreeItem Construct(object target, VisualTreeItem parent) {
             VisualTreeItem visualTreeItem;
@@ -156,7 +193,7 @@ namespace Snoop {
             else if (target is Application)
                 visualTreeItem = new ApplicationTreeItem((Application) target, parent);
             else
-                return new DumbVisualTreeItem(target, parent);
+                visualTreeItem = new DumbVisualTreeItem(target, parent);            
             //visualTreeItem = new VisualTreeItem(target, parent);
 
             visualTreeItem.Reload();
@@ -307,30 +344,7 @@ namespace Snoop {
                 }
             }
             return null;
-        }
-
-
-        /// <summary>
-        ///     Used for tree search.
-        /// </summary>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public bool Filter(string value) {
-            if (typeNameLower.Contains(value))
-                return true;
-            if (nameLower.Contains(value))
-                return true;
-            int n;
-            if (int.TryParse(value, out n) && n == Depth)
-                return true;
-            return false;
-        }
-
-        protected void OnPropertyChanged(string propertyName) {
-            Debug.Assert(GetType().GetProperty(propertyName) != null);
-            if (PropertyChanged != null)
-                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
-        }
+        }       
 
         public void Iterate(Func<VisualTreeItem, bool> enterChildrenPredicate, Action<VisualTreeItem> childAction) {
             childAction(this);
@@ -361,5 +375,8 @@ namespace Snoop {
 
 
         public event PropertyChangedEventHandler PropertyChanged;
+
+        [NotifyPropertyChangedInvocator]
+        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null) { PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName)); }
     }
 }

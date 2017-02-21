@@ -166,12 +166,16 @@ namespace Snoop.TreeList {
             }
         }
 
+        public TreeListSource TreeListSource { get { return ItemsSource as TreeListSource; } }
+
         public void Select(VisualTreeItem item) {
-            (ItemsSource as TreeListSource).MoveCurrentTo(item);
+            TreeListSource.MoveCurrentTo(item);
         }
 
-        public void Filter(string filter) {
-            
-        }
+        //public void Filter(string filter) {            
+        //}
+
+        //public void FilterBindings() {
+        //}        
     }
 }

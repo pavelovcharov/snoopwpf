@@ -94,8 +94,8 @@
       <HintPath>..\..\..\..\..\..\Program Files\Reference Assemblies\Microsoft\WinFX\v3.0\PresentationFramework.dll</HintPath>
       <RequiredTargetFramework>3.0</RequiredTargetFramework>
     </Reference>
-    <Reference Include="ReflectionHelper, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\ReflectionHelper.1.0.0\lib\net40\ReflectionHelper.dll</HintPath>
+    <Reference Include="ReflectionHelper, Version=1.0.3.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\ReflectionHelper.1.0.3\lib\net40\ReflectionHelper.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
@@ -206,12 +206,12 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Resource Include="Shaders\Compiled\colorizeshader.ps" />
-    <None Include="VisualTreeItem.cd" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
     <Compile Include="AdornerContainer.cs" />
-    <Compile Include="ApplicationTreeItem.cs" />
+    <Compile Include="Properties\Annotations.cs" />
+    <Compile Include="VisualTreeItem\ApplicationTreeItem.cs" />
     <Compile Include="BringIntoViewBehavior.cs" />
     <Compile Include="Converters\ArgbToPartsConverter.cs" />
     <Compile Include="Converters\FilterTypeToIntConverter.cs" />
@@ -365,7 +365,7 @@
     <Compile Include="PropertyFilter.cs" />
     <Compile Include="PropertyInformation.cs" />
     <Compile Include="ResourceContainerItem.cs" />
-    <Compile Include="ResourceDictionaryItem.cs" />
+    <Compile Include="VisualTreeItem\ResourceDictionaryItem.cs" />
     <Compile Include="ScreenshotDialog.xaml.cs">
       <DependentUpon>ScreenshotDialog.xaml</DependentUpon>
     </Compile>
@@ -400,7 +400,7 @@
       <DependentUpon>SnoopUI.xaml</DependentUpon>
     </Compile>
     <Compile Include="VisualTreeHelper2.cs" />
-    <Compile Include="VisualTreeItem.cs" />
+    <Compile Include="VisualTreeItem\VisualTreeItem.cs" />
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>

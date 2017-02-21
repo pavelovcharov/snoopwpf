@@ -313,7 +313,7 @@ namespace Snoop {
                     "RenderDescendants",
                     BindingFlags.Public | BindingFlags.Static,
                     GetCoreAssembly(context).GetType("DevExpress.Xpf.Core.Native.RenderTreeHelper"),
-                    true, typeof(IEnumerable), null
+                    true, typeof(IEnumerable)
                     );
             return renderDescendants(context).OfType<object>();
         }
@@ -326,7 +326,7 @@ namespace Snoop {
                     "TransformToRoot",
                     BindingFlags.Public | BindingFlags.Static,
                     GetCoreAssembly(frec).GetType("DevExpress.Xpf.Core.Native.RenderTreeHelper"),
-                    true, typeof(Transform), null
+                    true, typeof(Transform)
                     );
             return transformToRoot(frec);
         }
@@ -339,7 +339,7 @@ namespace Snoop {
                     "RenderAncestors",
                     BindingFlags.Public | BindingFlags.Static,
                     GetCoreAssembly(context).GetType("DevExpress.Xpf.Core.Native.RenderTreeHelper"),
-                    true, typeof(IEnumerable), null
+                    true, typeof(IEnumerable)
                     );
             return renderAncestors(context).OfType<object>();
         }
