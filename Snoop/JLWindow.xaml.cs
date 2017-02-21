@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -46,7 +47,6 @@ namespace Snoop {
         }
         HwndSource hwndSource;
         DispatcherTimer flickTimer;
-        DispatcherTimer topMostTimer;
         int count = 0;
         Brush cachedBackground;
         Brush contrastBackground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#A3D2FF"));
@@ -60,23 +60,12 @@ namespace Snoop {
             DataContext = this;
             MouseEnter += JlWindow_MouseEnter;
             MouseLeave += JlWindow_MouseLeave;
-            //ElementsGrid.Visibility = Visibility.Hidden;
-            Update();
-            Dispatcher.BeginInvoke(new Action(() => {                
-                hwndSource = HwndSource.FromVisual(this) as HwndSource;
-                hwndSource.AddHook(OnHwndSourceHook);
-                flickTimer.Start();
-            }), DispatcherPriority.ApplicationIdle);
-            topMostTimer = new DispatcherTimer();
-            topMostTimer.Interval = TimeSpan.FromSeconds(5);
-            topMostTimer.Tick += JlWindow_HandleUpdateTopMost;
-            topMostTimer.Start();
+            Update();            
             flickTimer = new DispatcherTimer();
             flickTimer.Interval = TimeSpan.FromMilliseconds(200);
             flickTimer.Tick += FlickTimer_Tick;
             cachedBackground = Root.BorderBrush;
-            Deactivated += JlWindow_HandleUpdateTopMost;
-            LayoutUpdated += JlWindow_HandleUpdateTopMost;
+            Loaded += JlWindow_HandleUpdateTopMost;
         }        
 
         void CoercePosition() {
@@ -94,15 +83,27 @@ namespace Snoop {
 
         void JlWindow_HandleUpdateTopMost(object sender, EventArgs e) {
             UpdateTopMost();
-        }        
+        }
 
-        private void UpdateTopMost() {
+        void UpdateTopMost() {
+            hwndSource = PresentationSource.FromVisual(this) as HwndSource;
             if (hwndSource == null)
                 return;
-              NativeMethods.SetWindowPos(hwndSource.Handle,
-                                       new IntPtr(-1),
-                                       0, 0, 0, 0,
-                                       NativeMethods.SWP_NOMOVE | NativeMethods.SWP_NOSIZE | NativeMethods.SWP_NOACTIVATE);
+            hwndSource.AddHook(OnHwndSourceHook);
+            flickTimer.Start();
+
+            var handle = hwndSource.Handle;
+
+            var newWindowLong = NativeMethods.GetWindowLongPtr(handle, -20) | 0x00000080L;
+            var newWindowLongPtr = new IntPtr(newWindowLong);
+            NativeMethods.SetWindowLongPtr(new HandleRef(this, handle), -20, newWindowLongPtr);
+
+            handle = NativeMethods.GetWindow(new WindowInteropHelper(this).Handle, 4);
+            if (handle != IntPtr.Zero)
+                NativeMethods.SetWindowPos(handle,
+                                           new IntPtr(-1),
+                                           0, 0, 0, 0,
+                                           NativeMethods.SWP_NOMOVE | NativeMethods.SWP_NOSIZE | NativeMethods.SWP_NOACTIVATE);
         }
 
         void FlickTimer_Tick(object sender, EventArgs e) {

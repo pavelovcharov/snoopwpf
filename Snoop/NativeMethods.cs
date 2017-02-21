@@ -44,6 +44,46 @@ namespace Snoop {
         [DllImport("user32.dll", EntryPoint = "SetWindowPos", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int x, int y, int cx, int cy, int uFlags);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        public static extern IntPtr GetWindow(IntPtr hWnd, uint uCmd);
+
+        [DllImport("user32.dll", EntryPoint = "GetWindowLong")]
+        static extern IntPtr GetWindowLongPtr32(IntPtr hWnd, int nIndex);
+
+        [DllImport("user32.dll", EntryPoint = "GetWindowLongPtr")]
+        static extern IntPtr GetWindowLongPtr64(IntPtr hWnd, int nIndex);
+
+        public static Int32 GetWindowLongPtr(IntPtr hWnd, int nIndex) {
+            int iResult = 0;
+            IntPtr result = IntPtr.Zero;
+
+            if (IntPtr.Size == 4) {
+                // use GetWindowLong
+                result = GetWindowLongPtr32(hWnd, nIndex);
+                iResult = Marshal.ReadInt32(result);
+            } else {
+                // use GetWindowLongPtr
+                result = GetWindowLongPtr64(hWnd, nIndex);
+                iResult = IntPtrToInt32(result);
+            }
+
+            return iResult;
+        }
+
+        public static int IntPtrToInt32(IntPtr intPtr) { return unchecked((int) intPtr.ToInt64()); }
+
+        public static IntPtr SetWindowLongPtr(HandleRef hWnd, int nIndex, IntPtr dwNewLong) {
+            if (IntPtr.Size == 8)
+                return SetWindowLongPtr64(hWnd, nIndex, dwNewLong);
+            return new IntPtr(SetWindowLong32(hWnd, nIndex, dwNewLong.ToInt32()));
+        }
+
+        [DllImport("user32.dll", EntryPoint = "SetWindowLong")]
+        static extern int SetWindowLong32(HandleRef hWnd, int nIndex, int dwNewLong);
+
+        [DllImport("user32.dll", EntryPoint = "SetWindowLongPtr")]
+        static extern IntPtr SetWindowLongPtr64(HandleRef hWnd, int nIndex, IntPtr dwNewLong);
         [Flags]
         public enum SnapshotFlags : uint {
             HeapList = 0x00000001,
