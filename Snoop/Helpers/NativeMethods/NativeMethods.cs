@@ -312,8 +312,7 @@ namespace Snoop {
                     null,
                     "RenderDescendants",
                     BindingFlags.Public | BindingFlags.Static,
-                    GetCoreAssembly(context).GetType("DevExpress.Xpf.Core.Native.RenderTreeHelper"),
-                    true, typeof(IEnumerable)
+                    GetCoreAssembly(context).GetType("DevExpress.Xpf.Core.Native.RenderTreeHelper")                    
                     );
             return renderDescendants(context).OfType<object>();
         }
@@ -325,8 +324,7 @@ namespace Snoop {
                     null,
                     "TransformToRoot",
                     BindingFlags.Public | BindingFlags.Static,
-                    GetCoreAssembly(frec).GetType("DevExpress.Xpf.Core.Native.RenderTreeHelper"),
-                    true, typeof(Transform)
+                    GetCoreAssembly(frec).GetType("DevExpress.Xpf.Core.Native.RenderTreeHelper")
                     );
             return transformToRoot(frec);
         }
@@ -338,8 +336,7 @@ namespace Snoop {
                     null,
                     "RenderAncestors",
                     BindingFlags.Public | BindingFlags.Static,
-                    GetCoreAssembly(context).GetType("DevExpress.Xpf.Core.Native.RenderTreeHelper"),
-                    true, typeof(IEnumerable)
+                    GetCoreAssembly(context).GetType("DevExpress.Xpf.Core.Native.RenderTreeHelper")                    
                     );
             return renderAncestors(context).OfType<object>();
         }
@@ -351,8 +348,7 @@ namespace Snoop {
                     null,
                     "HitTest",
                     BindingFlags.Public | BindingFlags.Static,
-                    GetCoreAssembly(root).GetType("DevExpress.Xpf.Core.Native.RenderTreeHelper"),
-                    true, typeof(object), null, 2
+                    GetCoreAssembly(root).GetType("DevExpress.Xpf.Core.Native.RenderTreeHelper")                    
                     );
             return hitTest(root, point);
         }

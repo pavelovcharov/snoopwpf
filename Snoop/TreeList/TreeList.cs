@@ -20,9 +20,9 @@ namespace Snoop.TreeList {
         DispatcherOperation updateIndicatorOperation;
 
         static TreeList() {
-            set_CanSelectMultiple = ReflectionHelper.CreateInstanceMethodHandler<Selector, Action<Selector, bool>>(
+            set_CanSelectMultiple = ReflectionFramework.ReflectionHelper.CreateInstanceMethodHandler<Selector, Action<Selector, bool>>(
                 null, "set_CanSelectMultiple", BindingFlags.Instance | BindingFlags.NonPublic);
-            get_ItemsHost = ReflectionHelper.CreateInstanceMethodHandler<ItemsControl, Func<ItemsControl, Panel>>(null,
+            get_ItemsHost = ReflectionFramework.ReflectionHelper.CreateInstanceMethodHandler<ItemsControl, Func<ItemsControl, Panel>>(null,
                 "get_ItemsHost", BindingFlags.Instance | BindingFlags.NonPublic);
         }
 
