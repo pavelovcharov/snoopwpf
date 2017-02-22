@@ -30,23 +30,26 @@
     </SccAuxPath>
     <SccProvider>
     </SccProvider>
-    <PublishUrl>publish\</PublishUrl>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <TargetFrameworkProfile>
+    </TargetFrameworkProfile>
+    <PublishUrl>\\corp\internal\common\snoop\</PublishUrl>
     <Install>true</Install>
-    <InstallFrom>Disk</InstallFrom>
-    <UpdateEnabled>false</UpdateEnabled>
-    <UpdateMode>Foreground</UpdateMode>
+    <InstallFrom>Unc</InstallFrom>
+    <UpdateEnabled>true</UpdateEnabled>
+    <UpdateMode>Background</UpdateMode>
     <UpdateInterval>7</UpdateInterval>
     <UpdateIntervalUnits>Days</UpdateIntervalUnits>
     <UpdatePeriodically>false</UpdatePeriodically>
     <UpdateRequired>false</UpdateRequired>
     <MapFileExtensions>true</MapFileExtensions>
+    <CreateWebPageOnPublish>true</CreateWebPageOnPublish>
+    <WebPage>publish.htm</WebPage>
     <ApplicationRevision>0</ApplicationRevision>
-    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
-    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <ApplicationVersion>2.10.13.0</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
+    <PublishWizardCompleted>true</PublishWizardCompleted>
     <BootstrapperEnabled>true</BootstrapperEnabled>
-    <TargetFrameworkProfile>
-    </TargetFrameworkProfile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -78,6 +81,18 @@
   <PropertyGroup>
     <StartupObject>Snoop.Startup.AppStartup</StartupObject>
   </PropertyGroup>
+  <PropertyGroup>
+    <ManifestCertificateThumbprint>CDC939FC91B654E015E31BC87275950F475D6BB6</ManifestCertificateThumbprint>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ManifestKeyFile>Snoop_TemporaryKey.pfx</ManifestKeyFile>
+  </PropertyGroup>
+  <PropertyGroup>
+    <GenerateManifests>true</GenerateManifests>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignManifests>true</SignManifests>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="CommandLine, Version=1.9.71.2, Culture=neutral, PublicKeyToken=de6f01bd326f8c32, processorArchitecture=MSIL">
       <HintPath>..\packages\CommandLineParser.1.9.71\lib\net45\CommandLine.dll</HintPath>
@@ -100,6 +115,7 @@
     <Reference Include="System" />
     <Reference Include="System.configuration" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Deployment" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Management.Automation, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\..\..\Windows\assembly\GAC_MSIL\System.Management.Automation\1.0.0.0__31bf3856ad364e35\System.Management.Automation.dll</HintPath>
@@ -204,6 +220,7 @@
     <Content Include="Scripts\Snoop.psm1">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <None Include="Snoop_TemporaryKey.pfx" />
     <Resource Include="Shaders\Compiled\colorizeshader.ps" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
@@ -443,7 +460,24 @@
   <ItemGroup>
     <Resource Include="Resources\SnoopCrosshairsCursor.png" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\ManagedInjectorLauncher\ManagedInjectorLauncher32-4.0.csproj">
+      <Project>{837eed94-d254-4f58-8949-635015de371d}</Project>
+      <Name>ManagedInjectorLauncher32-4.0</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ManagedInjectorLauncher\ManagedInjectorLauncher64-4.0.csproj">
+      <Project>{21e131d3-760f-4e93-8bdd-502591bd1f97}</Project>
+      <Name>ManagedInjectorLauncher64-4.0</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ManagedInjector\ManagedInjector32-4.0.vcxproj">
+      <Project>{8072b47b-5611-4bab-8ef4-cb3125d676a5}</Project>
+      <Name>ManagedInjector32-4.0</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ManagedInjector\ManagedInjector64-4.0.vcxproj">
+      <Project>{a27c8b34-2527-4258-8c07-d2720c576b90}</Project>
+      <Name>ManagedInjector64-4.0</Name>
+    </ProjectReference>
+  </ItemGroup>
   <ProjectExtensions>
     <InteractiveDesigner>
       <ProjectExtensions>

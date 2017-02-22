@@ -884,7 +884,7 @@ namespace Snoop {
             SearchEngine.Previous();
         }
 
-        void ButtonBase_OnClick3(object sender, RoutedEventArgs e) { SetFilter(""); }
+        void ButtonBase_OnClick3(object sender, RoutedEventArgs e) { filterComboBox.Text = ""; }
     }
 
     #endregion

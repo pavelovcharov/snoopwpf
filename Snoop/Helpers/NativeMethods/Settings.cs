@@ -20,6 +20,10 @@ namespace Snoop {
             set { RegistryHelper.SetInt(value); }
         }
 
+        public static string LastVersion {
+            get { return RegistryHelper.GetString() ?? "1.0.0"; }
+            set { RegistryHelper.SetString(value); }
+        }
         public static Orientation Orientation {
             get { return (Orientation)Enum.Parse(typeof(Orientation), RegistryHelper.GetString() ?? "Horizontal"); }
             set { RegistryHelper.SetString(value.ToString()); }
