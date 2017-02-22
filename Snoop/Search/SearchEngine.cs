@@ -14,8 +14,7 @@ namespace Snoop {
         readonly DelayedCall filterCall;
         readonly DispatcherTimer filterTimer;
         bool immediateFilter = false;
-        string filter;
-
+        string filter;        
         public VisualTreeItem Root {
             get { return root; }
             set {
@@ -39,6 +38,15 @@ namespace Snoop {
             set {
                 if (value == filter) return;
                 filter = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public string CurrentFilter {
+            get { return currentFilter; }
+            set {
+                if (value == currentFilter) return;
+                currentFilter = value;
                 OnPropertyChanged();
             }
         }
@@ -72,29 +80,44 @@ namespace Snoop {
             filterCall = new DelayedCall(ProcessNewFilter, DispatcherPriority.Background);
         }
         void OnRootChanged() {
+            CheckNullRoot();
             if (selecting != Root || Root == null)
                 PrepareNewFilter();
         }
+
+        void CheckNullRoot() {
+            if (Root == null)
+                Root = snoopUi.Root;
+        }
+
         void ProcessNewFilter() {
+            CurrentFilter = Filter;
             PrepareNewFilter();
             Next();
         }
 
         void PrepareNewFilter() {
+            CheckNullRoot();
             items = null;
+            itemsEnumerator = null;
             visitedItems = new HashSet<VisualTreeItem>();
             IsFiltering = Filter != null;
         }
 
         HashSet<VisualTreeItem> visitedItems;
-        IEnumerator<VisualTreeItem> items;
+        IEnumerable<VisualTreeItem> items;
+        IEnumerator<VisualTreeItem> itemsEnumerator;
         bool isFiltering;
 
-        IEnumerator<VisualTreeItem> Items {
+        IEnumerable<VisualTreeItem> Items {
             get { return items ?? (items = GetItems()); }
         }
 
-        IEnumerator<VisualTreeItem> GetItems() {
+        IEnumerator<VisualTreeItem> ItemsEnumerator {
+            get { return itemsEnumerator ?? (itemsEnumerator = Items.GetEnumerator()); }
+        }
+
+        IEnumerable<VisualTreeItem> GetItems() {
             if (Root == null)
                 yield break;
             Stack<VisualTreeItem> itemsStack = new Stack<VisualTreeItem>();
@@ -107,36 +130,41 @@ namespace Snoop {
                 currentParent = currentParent.Parent;
             }
             parents.Reverse();
+            itemsStack.Push(Root);
+            for (int i = 0; i < parents.Count-1; i++) {
+                var parent = parents[i];
+                itemsStack.Push(parent);
+            }
             foreach (var parent in parents) {
                 itemsStack.Push(parent);
             }
             do {
                 var current = itemsStack.Peek();
-                //visitedItems.Add(current);
                 if (itemsStack.Peek() == null) {
                     yield break;
                 }
                 if (jumpOver) {
                     itemsStack.Pop();
-                    //visitedItems.Remove(current);
                     jumpOver = false;
                     continue;
                 }
                 itemsStack.Pop();
                 foreach (var currentChild in current.Children.Reverse()) {
-                    //if (!visitedItems.Contains(currentChild))
-                    itemsStack.Push(currentChild);
+                    if (!visitedItems.Contains(current))
+                        itemsStack.Push(currentChild);
                 }
+                visitedItems.Add(current);
                 yield return current;
             } while (true);
         }
+
         VisualTreeItem selecting;
         public void Next() {
             var lFilter = Filter.ToLower();
-            VisualTreeItem current = null;
-            while (Items.MoveNext()) {
-                current = Items.Current;
-                if (current.MatchesFilter(lFilter)) {
+            VisualTreeItem current = null;            
+            while (ItemsEnumerator.MoveNext()) {
+                current = ItemsEnumerator.Current;
+                if (current.MatchesFilter(lFilter) && current != Root) {
                     break;
                 }
                 current = null;
@@ -155,11 +183,14 @@ namespace Snoop {
                 selecting = current;
                 snoopUi.Tree.Select(current);
                 selecting = null;
+            } else {
+                PrepareNewFilter();
             }
         }
 
         bool jumpOver = false;
         VisualTreeItem root;
+        string currentFilter;
         public void JumpOver() { jumpOver = true; Next(); }
 
         void EnqueueAfterSettingFilter() { filterCall.Enqueue(); }

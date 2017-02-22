@@ -97,8 +97,12 @@ namespace Snoop.TreeList {
                     }
                     return;
                 case NotifyCollectionChangedAction.Remove:
+                    var oldItemsArray = args.OldItems.OfType<object>().ToArray();
+                    if (oldItemsArray.Contains(CurrentItem)) {
+                        MoveCurrentToPosition(args.OldStartingIndex - 1);
+                    }
                     var oldIndex = args.OldStartingIndex;
-                    foreach (VisualTreeItem item in args.OldItems.OfType<object>().ToArray()) {
+                    foreach (VisualTreeItem item in oldItemsArray) {
                         visibleItems.RemoveAt(oldIndex);
                     }
                     return;

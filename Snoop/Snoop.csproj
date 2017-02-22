@@ -210,6 +210,7 @@
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
     <Compile Include="AdornerContainer.cs" />
+    <Compile Include="Controls\HighlightBox.cs" />
     <Compile Include="Properties\Annotations.cs" />
     <Compile Include="Search\SearchEngine.cs" />
     <Compile Include="VisualTreeItem\ApplicationTreeItem.cs" />

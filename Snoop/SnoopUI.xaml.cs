@@ -38,6 +38,12 @@ namespace Snoop {
             "EnableLiveTree", typeof(bool), typeof(SnoopUI),
             new PropertyMetadata(default(bool), (o, e) => VisualDiagnosticsExtensions.Enabled = (bool) e.NewValue));
 
+        public static readonly DependencyProperty SearchEngineInheritedProperty = DependencyProperty.RegisterAttached(
+            "SearchEngineInherited", typeof(SearchEngine), typeof(SnoopUI), new FrameworkPropertyMetadata(default(SearchEngine), FrameworkPropertyMetadataOptions.Inherits));
+
+        public static void SetSearchEngineInherited(DependencyObject element, SearchEngine value) { element.SetValue(SearchEngineInheritedProperty, value); }
+
+        public static SearchEngine GetSearchEngineInherited(DependencyObject element) { return (SearchEngine) element.GetValue(SearchEngineInheritedProperty); }
         public bool EnableLiveTree {
             get { return (bool) GetValue(EnableLiveTreeProperty); }
             set { SetValue(EnableLiveTreeProperty, value); }
@@ -95,7 +101,7 @@ namespace Snoop {
         public SnoopUI() {
             //ThemeManagerHelper.SetThemeName(this, null);
             SearchEngine = new SearchEngine(this);
-
+            SetSearchEngineInherited(this, SearchEngine);
             InheritanceBehavior = InheritanceBehavior.SkipToThemeNext;
             InitializeComponent();
 
@@ -297,6 +303,7 @@ namespace Snoop {
             get { return rootVisualTreeItem; }
             private set {
                 rootVisualTreeItem = value;
+                SearchEngine.Root = value;
                 OnPropertyChanged("Root");
             }
         }
