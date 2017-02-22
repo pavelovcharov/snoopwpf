@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -71,6 +72,7 @@ namespace Snoop {
 
         public SearchEngine(SnoopUI snoopUi) {
             this.snoopUi = snoopUi;
+            matchingItems = new ObservableCollection<VisualTreeItem>();
             filterTimer = new DispatcherTimer();
             filterTimer.Interval = TimeSpan.FromSeconds(0.3);
             filterTimer.Tick += (s, e) => {
@@ -91,6 +93,7 @@ namespace Snoop {
         }
 
         void ProcessNewFilter() {
+            matchingItems.Clear();
             CurrentFilter = Filter;
             PrepareNewFilter();
             Next();
@@ -103,7 +106,7 @@ namespace Snoop {
             visitedItems = new HashSet<VisualTreeItem>();
             IsFiltering = Filter != null;
         }
-
+        ObservableCollection<VisualTreeItem> matchingItems;
         HashSet<VisualTreeItem> visitedItems;
         IEnumerable<VisualTreeItem> items;
         IEnumerator<VisualTreeItem> itemsEnumerator;
@@ -123,7 +126,7 @@ namespace Snoop {
             Stack<VisualTreeItem> itemsStack = new Stack<VisualTreeItem>();
 
             itemsStack.Push(null);
-            var currentParent = Root;
+            var currentParent = Root.Parent;
             List<VisualTreeItem> parents = new List<VisualTreeItem>();
             while (currentParent != null) {
                 parents.Add(currentParent);
@@ -131,17 +134,20 @@ namespace Snoop {
             }
             parents.Reverse();
             itemsStack.Push(Root);
-            for (int i = 0; i < parents.Count-1; i++) {
-                var parent = parents[i];
-                itemsStack.Push(parent);
-            }
-            foreach (var parent in parents) {
-                itemsStack.Push(parent);
-            }
+            //for (int i = 0; i < parents.Count-1; i++) {
+            //    var parent = parents[i];
+            //    itemsStack.Push(parent);
+            //}            
             do {
                 var current = itemsStack.Peek();
-                if (itemsStack.Peek() == null) {
-                    yield break;
+                if (itemsStack.Peek() == null) {                    
+                    if(parents==null)
+                        yield break;
+                    foreach (var parent in parents) {
+                        itemsStack.Push(parent);
+                    }
+                    parents = null;
+                    continue;                    
                 }
                 if (jumpOver) {
                     itemsStack.Pop();
@@ -159,6 +165,7 @@ namespace Snoop {
         }
 
         VisualTreeItem selecting;
+        bool reloading = false;
         public void Next() {
             var lFilter = Filter.ToLower();
             VisualTreeItem current = null;            
@@ -184,7 +191,12 @@ namespace Snoop {
                 snoopUi.Tree.Select(current);
                 selecting = null;
             } else {
+                if(reloading)
+                    return;
+                reloading = true;
                 PrepareNewFilter();
+                Next();
+                reloading = false;
             }
         }
 
