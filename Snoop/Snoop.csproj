@@ -95,8 +95,7 @@
       <RequiredTargetFramework>3.0</RequiredTargetFramework>
     </Reference>
     <Reference Include="ReflectionHelper, Version=1.0.3.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\ReflectionHelper.1.0.3\lib\net40\ReflectionHelper.dll</HintPath>
-      <Private>True</Private>
+      <HintPath>..\packages\ReflectionHelper.1.0.4\lib\net40\ReflectionHelper.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.configuration" />
