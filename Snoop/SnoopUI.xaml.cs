@@ -879,6 +879,12 @@ namespace Snoop {
         void ButtonBase_OnClick(object sender, RoutedEventArgs e) {
             SearchEngine.Next();
         }
+
+        void ButtonBase_OnClick2(object sender, RoutedEventArgs e) {
+            SearchEngine.Previous();
+        }
+
+        void ButtonBase_OnClick3(object sender, RoutedEventArgs e) { SetFilter(""); }
     }
 
     #endregion

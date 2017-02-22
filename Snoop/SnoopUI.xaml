@@ -166,24 +166,86 @@
                         </Viewbox>
                     </ToggleButton>
                     <!-- Filter Combo Box -->
-                    <Button Click="ButtonBase_OnClick" Content="NextFilter"/>
-                    <ComboBox DockPanel.Dock="Left"
+                    <Border DockPanel.Dock="Left" Margin="2,2,2,2" Padding="2,0" BorderThickness="1" BorderBrush="DarkGray" Background="White">
+                        <DockPanel LastChildFill="True">
+                            <DockPanel.Resources>
+                                <ControlTemplate x:Key="ButtonTemplate" TargetType="Button">
+                                    <Border Background="Transparent">
+                                        <ContentPresenter/>
+                                    </Border>
+                                </ControlTemplate>
+                                <Style x:Key="ButtonStyle" TargetType="Button">
+                                    <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+                                    <Setter Property="Foreground" Value="#0B816C"/>
+                                    <Setter Property="Template" Value="{StaticResource ButtonTemplate}"/>
+                                    <Setter Property="IsEnabled" Value="{Binding RelativeSource={RelativeSource Self}, Path=(local:SnoopUI.SearchEngineInherited).IsFiltering}"/>
+                                    <Setter Property="Opacity" Value="0.6"/>
+                                    <Style.Triggers>
+                                        <Trigger Property="IsEnabled" Value="False">
+                                            <Setter Property="Foreground" Value="Gray"/>
+                                        </Trigger>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter Property="Opacity" Value="0.8"/>
+                                        </Trigger>
+                                        <Trigger Property="IsPressed" Value="True">
+                                            <Setter Property="Opacity" Value="1"/>
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </DockPanel.Resources>
+                            <Button Click="ButtonBase_OnClick3" DockPanel.Dock="Right" Style="{StaticResource ButtonStyle}" Foreground="#B0251A">
+                                <Viewbox Width="16" Height="16" Stretch="Uniform">
+                                    <Grid>
+                                        <Path Fill="{Binding RelativeSource={RelativeSource Self}, Path=(TextElement.Foreground)}" Data="M168.352,142.924l25.28-25.28c3.495-3.504,3.495-9.154,0-12.64l-12.64-12.649
+		c-3.495-3.486-9.145-3.495-12.64,0l-25.289,25.289l-25.271-25.271c-3.504-3.504-9.163-3.504-12.658-0.018l-12.64,12.649
+		c-3.495,3.486-3.486,9.154,0.018,12.649l25.271,25.271L92.556,168.15c-3.495,3.495-3.495,9.145,0,12.64l12.64,12.649
+		c3.495,3.486,9.145,3.495,12.64,0l25.226-25.226l25.405,25.414c3.504,3.504,9.163,3.504,12.658,0.009l12.64-12.64
+		c3.495-3.495,3.486-9.154-0.009-12.658L168.352,142.924z M143.027,0.004C64.031,0.004,0,64.036,0,143.022
+		c0,78.996,64.031,143.027,143.027,143.027s143.027-64.031,143.027-143.027C286.054,64.045,222.022,0.004,143.027,0.004z
+		 M143.027,259.232c-64.183,0-116.209-52.026-116.209-116.209s52.026-116.21,116.209-116.21s116.209,52.026,116.209,116.209
+		S207.21,259.232,143.027,259.232z"/>
+                                    </Grid>
+                                </Viewbox>
+                            </Button>
+                            <Button Click="ButtonBase_OnClick" DockPanel.Dock="Right" Style="{StaticResource ButtonStyle}">
+                                <Viewbox Width="16" Height="16" Stretch="Uniform">
+                                    <Grid>
+                                        <Path Fill="{Binding RelativeSource={RelativeSource Self}, Path=(TextElement.Foreground)}" Data="M0,143.027c0,78.987,64.031,143.027,143.027,143.027c79.005,0,143.027-64.04,143.027-143.027
+		C286.054,64.031,222.031,0,143.027,0C64.04,0,0,64.04,0,143.027z M259.236,143.027c0,64.192-52.008,116.209-116.209,116.209
+		S26.835,207.219,26.835,143.027S78.826,26.818,143.027,26.818C207.21,26.818,259.236,78.853,259.236,143.027z M134.088,91.358
+		v24.86H89.392c-4.943,0-8.939,3.987-8.939,8.939v35.757c0,4.934,3.996,8.939,8.939,8.939h44.696v24.842
+		c0,9.708,6.463,13.668,14.338,8.832l51.105-51.695c7.884-4.845,7.884-12.783,0-17.628l-51.105-51.677
+		C140.551,77.681,134.088,81.642,134.088,91.358z"/>
+                                    </Grid>
+                                </Viewbox>
+                            </Button>
+                            <Button Click="ButtonBase_OnClick2" DockPanel.Dock="Right" Style="{StaticResource ButtonStyle}">
+                                <Viewbox Width="16" Height="16" Stretch="Uniform">
+                                    <Grid>
+                                        <Path Fill="{Binding RelativeSource={RelativeSource Self}, Path=(TextElement.Foreground)}" Data="M143.027,0C64.022,0,0,64.04,0,143.027s64.022,143.027,143.027,143.027
+		c78.996,0,143.027-64.04,143.027-143.027S222.014,0,143.027,0z M143.027,26.818c64.192,0,116.192,52.026,116.192,116.209
+		c0,64.192-51.999,116.209-116.192,116.209S26.818,207.219,26.818,143.027C26.818,78.853,78.844,26.818,143.027,26.818z
+		 M137.628,82.535l-51.096,51.677c-7.884,4.845-7.884,12.783,0,17.628l51.096,51.695c7.875,4.836,14.338,0.876,14.338-8.832v-24.851
+		h44.696c4.943,0,8.939-4.005,8.939-8.939v-35.757c0-4.943-3.996-8.939-8.939-8.939h-44.696v-24.86
+		C151.966,81.642,145.503,77.681,137.628,82.535z"/>
+                                    </Grid>
+                                </Viewbox>
+                            </Button>
+                            <TextBox 
+                                Background="Transparent"
+                                BorderThickness="0"
                               x:Name="filterComboBox"
-                              i:ComboBoxSettings.IsSnoopPart="True"
-                              IsEditable="True"
                               Text="{Binding Filter, UpdateSourceTrigger=PropertyChanged}"
-                              Margin="2,2,2,2">
-                        <ComboBox.ToolTip>
-                            <TextBlock Style="{x:Null}"
+                                DockPanel.Dock="Left"
+                                Margin="0,2"
+                              >
+                                <TextBox.ToolTip>
+                                    <TextBlock Style="{x:Null}"
                                        Text="Enter text in the combo box to filter the tree view by name or type" />
-                        </ComboBox.ToolTip>
-                        <ComboBoxItem>
-                            <TextBlock Style="{x:Null}" Text="Clear any filter applied to the tree view" />
-                        </ComboBoxItem>
-                        <ComboBoxItem>
-                            <TextBlock Style="{x:Null}" Text="Show only visuals with binding errors" />
-                        </ComboBoxItem>
-                    </ComboBox>
+                                </TextBox.ToolTip>
+                            </TextBox>
+                        </DockPanel>
+                    </Border>
                 </DockPanel>
                 <!-- Visual Tree TreeView -->
                 <treeList:TreeList x:Name="Tree"

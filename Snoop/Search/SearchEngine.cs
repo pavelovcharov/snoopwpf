@@ -104,7 +104,7 @@ namespace Snoop {
             items = null;
             itemsEnumerator = null;
             visitedItems = new HashSet<VisualTreeItem>();
-            IsFiltering = Filter != null;
+            IsFiltering = !String.IsNullOrEmpty(Filter);
         }
         ObservableCollection<VisualTreeItem> matchingItems;
         HashSet<VisualTreeItem> visitedItems;
@@ -133,11 +133,7 @@ namespace Snoop {
                 currentParent = currentParent.Parent;
             }
             parents.Reverse();
-            itemsStack.Push(Root);
-            //for (int i = 0; i < parents.Count-1; i++) {
-            //    var parent = parents[i];
-            //    itemsStack.Push(parent);
-            //}            
+            itemsStack.Push(Root);            
             do {
                 var current = itemsStack.Peek();
                 if (itemsStack.Peek() == null) {                    
@@ -166,7 +162,22 @@ namespace Snoop {
 
         VisualTreeItem selecting;
         bool reloading = false;
+
+        public void Previous() {
+            if (!IsFiltering)
+                return;
+            if (matchingItems.Count == 0)
+                return;
+            var index = matchingItems.IndexOf(Root);
+            if (index == -1)
+                return;
+            var newIndex = (index - 1 + matchingItems.Count) % matchingItems.Count;
+            SelectElement(matchingItems[newIndex]);
+        }
+
         public void Next() {
+            if (!IsFiltering)
+                return;
             var lFilter = Filter.ToLower();
             VisualTreeItem current = null;            
             while (ItemsEnumerator.MoveNext()) {
@@ -177,19 +188,7 @@ namespace Snoop {
                 current = null;
             }
             if (current != null) {
-                var currentParent = current.Parent;
-                List<VisualTreeItem> parents = new List<VisualTreeItem>();
-                while (currentParent != null) {
-                    parents.Add(currentParent);
-                    currentParent = currentParent.Parent;
-                }
-                parents.Reverse();
-                foreach (var parent in parents) {
-                    parent.IsExpanded = true;
-                }
-                selecting = current;
-                snoopUi.Tree.Select(current);
-                selecting = null;
+                SelectElement(current);
             } else {
                 if(reloading)
                     return;
@@ -200,10 +199,33 @@ namespace Snoop {
             }
         }
 
+        void SelectElement(VisualTreeItem current) {
+            var currentParent = current.Parent;
+            List<VisualTreeItem> parents = new List<VisualTreeItem>();
+            while (currentParent != null) {
+                parents.Add(currentParent);
+                currentParent = currentParent.Parent;
+            }
+            parents.Reverse();
+            foreach (var parent in parents) {
+                parent.IsExpanded = true;
+            }
+            if (!matchingItems.Contains(current))
+                matchingItems.Add(current);
+            selecting = current;
+            snoopUi.Tree.Select(current);
+            selecting = null;
+        }
+
         bool jumpOver = false;
         VisualTreeItem root;
         string currentFilter;
-        public void JumpOver() { jumpOver = true; Next(); }
+
+        public void JumpOver() {
+            if (!IsFiltering)
+                return;
+            jumpOver = true; Next();
+        }
 
         void EnqueueAfterSettingFilter() { filterCall.Enqueue(); }
 
