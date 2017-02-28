@@ -46,7 +46,7 @@
     <CreateWebPageOnPublish>true</CreateWebPageOnPublish>
     <WebPage>publish.htm</WebPage>
     <ApplicationRevision>0</ApplicationRevision>
-    <ApplicationVersion>2.10.13.0</ApplicationVersion>
+    <ApplicationVersion>2.10.16.0</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <PublishWizardCompleted>true</PublishWizardCompleted>
     <BootstrapperEnabled>true</BootstrapperEnabled>
@@ -109,8 +109,8 @@
       <HintPath>..\..\..\..\..\..\Program Files\Reference Assemblies\Microsoft\WinFX\v3.0\PresentationFramework.dll</HintPath>
       <RequiredTargetFramework>3.0</RequiredTargetFramework>
     </Reference>
-    <Reference Include="ReflectionHelper, Version=1.0.5.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\ReflectionHelper.1.0.5\lib\net40\ReflectionHelper.dll</HintPath>
+    <Reference Include="ReflectionHelper, Version=1.0.9.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\ReflectionHelper.1.0.9\lib\net40\ReflectionHelper.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.configuration" />
