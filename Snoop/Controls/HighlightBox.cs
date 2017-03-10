@@ -41,7 +41,8 @@ namespace Snoop.Controls
 
 //
         public string Highlight { get { return (string) GetValue(HighlightProperty); } set { SetValue(HighlightProperty, value); } }
-        public static readonly DependencyProperty TextProperty = DependencyProperty.Register("Text", typeof(string), typeof(HighlightBox), new FrameworkPropertyMetadata(default(string), FrameworkPropertyMetadataOptions.AffectsMeasure, (d, e) => ((HighlightBox) d).OnTextChanged((string) e.OldValue, (string) e.NewValue)));
+
+        public static readonly DependencyProperty TextProperty = DependencyProperty.Register("Text", typeof(string), typeof(HighlightBox), new FrameworkPropertyMetadata(default(string), FrameworkPropertyMetadataOptions.AffectsMeasure, (d, e) => ((HighlightBox) d).OnTextChanged((string) e.OldValue, (string) e.NewValue), (o, value) => value ?? ""));
 
         protected internal virtual void OnTextChanged(string oldValue, string newValue) {
             textLower = newValue?.ToLower();
@@ -69,12 +70,12 @@ namespace Snoop.Controls
             get { return glyphRun ?? (glyphRun = CreateGlyphRun()); }
         }
 
-        GlyphRun CreateGlyphRun() {
+        GlyphRun CreateGlyphRun() {            
             var typeface = new Typeface(TextBlock.GetFontFamily(this), TextBlock.GetFontStyle(this), TextBlock.GetFontWeight(this), TextBlock.GetFontStretch(this));
             GlyphTypeface glyphTypeface;
             if (!typeface.TryGetGlyphTypeface(out glyphTypeface))
                 throw new InvalidOperationException("No glyphtypeface found");            
-            string text = Text;
+            string text = Text;            
             List<int> highlightIndices = new List<int>();
             if (containsText) {
                 var index = 0;
@@ -88,15 +89,15 @@ namespace Snoop.Controls
             }
             double size = TextBlock.GetFontSize(this);
 
-            ushort[] glyphIndexes = new ushort[text.Length];
-            double[] advanceWidths = new double[text.Length];
+            ushort[] glyphIndexes = new ushort[text?.Length ?? 0];
+            double[] advanceWidths = new double[text?.Length ?? 0];
 
             double totalWidth = 0;
             int currentHighlightIndex = -1;
             int currentHighlightValue = -1;
             if (highlightIndices.Count > 0)
                 highlightDeltas = new double[highlightIndices.Count][];
-            for (int n = 0; n < text.Length; n++) {
+            for (int n = 0; n < (text?.Length ?? 0); n++) {
                 if (highlightIndices.Contains(n)) {                    
                     currentHighlightIndex++;
                     highlightDeltas[currentHighlightIndex] = new double[2];
@@ -126,10 +127,21 @@ namespace Snoop.Controls
                                 null, null);
         }
 
-        protected override Size MeasureOverride(Size availableSize) { return AlignmentBox.Size; }
-        protected override Size ArrangeOverride(Size finalSize) { return DesiredSize; }
+        protected override Size MeasureOverride(Size availableSize) {
+            if (String.IsNullOrEmpty(Text))
+                return new Size();
+            return AlignmentBox.Size;
+        }
+
+        protected override Size ArrangeOverride(Size finalSize) {
+            if (String.IsNullOrEmpty(Text))
+                return new Size();
+            return DesiredSize;
+        }
 
         protected override void OnRender(DrawingContext drawingContext) {
+            if (String.IsNullOrEmpty(Text))
+                return;
             var glyphRun = GlyphRun;
             if (highlightDeltas != null) {
                 foreach (double[] delta in highlightDeltas) {

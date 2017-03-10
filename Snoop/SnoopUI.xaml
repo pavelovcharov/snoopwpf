@@ -255,14 +255,19 @@
                                    Focusable="True"
                                    KeyboardNavigation.DirectionalNavigation="Cycle"
                                    Margin="2,0,2,0">
+                    <treeList:TreeList.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <VirtualizingStackPanel/>
+                        </ItemsPanelTemplate>
+                    </treeList:TreeList.ItemsPanel>
                     <treeList:TreeList.Template>
                         <ControlTemplate TargetType="{x:Type treeList:TreeList}">
                             <Border Background="White">
                                 <Grid>
-                                    <ScrollViewer Focusable="False" x:Name="PART_ScrollViewer" HorizontalScrollBarVisibility="Visible"
+                                    <treeList:TreeListScrollViewer Focusable="False" x:Name="PART_ScrollViewer" HorizontalScrollBarVisibility="Visible"
                                                   VerticalScrollBarVisibility="Visible">
                                         <ItemsPresenter />
-                                    </ScrollViewer>
+                                    </treeList:TreeListScrollViewer>
                                 </Grid>
                             </Border>
                         </ControlTemplate>
@@ -274,7 +279,6 @@
                             <Setter Property="ContentTemplate">
                                 <Setter.Value>
                                     <DataTemplate>
-                                        <controls:HighlightBox Text="{Binding}" Highlight="{Binding RelativeSource={RelativeSource Self}, Path=(local:SnoopUI.SearchEngineInherited).CurrentFilter}"/>
                                     </DataTemplate>
                                 </Setter.Value>
                             </Setter>
@@ -293,8 +297,7 @@
                                                               DockPanel.Dock="Left" />
                                                 <Border x:Name="PART_ContentHost" Background="Transparent"
                                                         DockPanel.Dock="Left">
-                                                    <ContentPresenter x:Name="PART_ContentPresenter"
-                                                                      HorizontalAlignment="Left" />
+                                                    <controls:HighlightBox x:Name="PART_ContentPresenter" HorizontalAlignment="Left" Text="{Binding Content, RelativeSource={RelativeSource TemplatedParent}}" Highlight="{Binding RelativeSource={RelativeSource Self}, Path=(local:SnoopUI.SearchEngineInherited).CurrentFilter}"/>
                                                 </Border>
                                             </DockPanel>
                                         </Grid>

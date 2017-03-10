@@ -5,21 +5,25 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:SnoopTestApp"
         xmlns:dxb="http://schemas.devexpress.com/winfx/2008/xaml/bars"
+        xmlns:dxr="http://schemas.devexpress.com/winfx/2008/xaml/ribbon"
         mc:Ignorable="d"
         Title="MainWindow" Height="350" Width="525">
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
-        </Grid.RowDefinitions>
-        <dxb:ToolBarControl>
+    <DockPanel LastChildFill="True">
+        <dxr:RibbonControl>
+            <dxr:RibbonDefaultPageCategory>
+                <dxr:RibbonPage>
+                    <dxr:RibbonPageGroup>
+                        <dxb:BarButtonItem Content="Change theme" ItemClick="BarItem_OnItemClick"></dxb:BarButtonItem>
+                    </dxr:RibbonPageGroup>
+                </dxr:RibbonPage>
+            </dxr:RibbonDefaultPageCategory>
+        </dxr:RibbonControl>
+        <dxb:ToolBarControl DockPanel.Dock="Top">
             <dxb:BarButtonItem Content="Change theme" ItemClick="BarItem_OnItemClick"></dxb:BarButtonItem>
         </dxb:ToolBarControl>
-        <Button Grid.Row="1" Content="Add" Click="OnAddButtonClick" />
-        <Button Grid.Row="2" Content="Add" Click="OnAddButtonClick" IsEnabled="False" />
-        <StackPanel Grid.Row="3" x:Name="sPanel" >
+        <Button DockPanel.Dock="Top" Content="Add" Click="OnAddButtonClick" />
+        <Button DockPanel.Dock="Top" Content="Add" Click="OnAddButtonClick" IsEnabled="False" />
+        <StackPanel DockPanel.Dock="Bottom" x:Name="sPanel" >
         </StackPanel>
-    </Grid>
+    </DockPanel>
 </Window>

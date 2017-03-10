@@ -2,6 +2,7 @@
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
+using Snoop.Controls;
 
 namespace Snoop.TreeList {
     public class TreeListItem : ContentControl {
@@ -44,7 +45,7 @@ namespace Snoop.TreeList {
             }
         }
 
-        protected ContentPresenter Header { get; private set; }
+        protected HighlightBox Header { get; private set; }
         protected FrameworkElement HeaderHost { get; private set; }
 
         void OnIsSelectedChanged(bool oldValue, bool newValue) {
@@ -54,7 +55,7 @@ namespace Snoop.TreeList {
 
         public override void OnApplyTemplate() {
             base.OnApplyTemplate();
-            Header = (ContentPresenter) GetTemplateChild("PART_ContentPresenter");
+            Header = (HighlightBox) GetTemplateChild("PART_ContentPresenter");
             HeaderHost = (FrameworkElement) GetTemplateChild("PART_ContentHost");
             HeaderHost.MouseLeftButtonDown += Header_MouseLeftButtonDown;
         }

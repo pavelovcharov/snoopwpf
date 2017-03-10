@@ -15,7 +15,7 @@ namespace Snoop.TreeList {
         static readonly Func<ItemsControl, Panel> get_ItemsHost;
 
         Border indicator;
-        ScrollViewer scrollViewer;
+        TreeListScrollViewer scrollViewer;
 
         DispatcherOperation updateIndicatorOperation;
 
@@ -27,6 +27,7 @@ namespace Snoop.TreeList {
         }
 
         public TreeList() {
+            VirtualizingPanel.SetVirtualizationMode(this, VirtualizationMode.Recycling);
             IsSynchronizedWithCurrentItem = true;
             ItemsPanel = GetItemsPanelTemplate();
             set_CanSelectMultiple(this, false);
@@ -100,17 +101,19 @@ namespace Snoop.TreeList {
             var tli = element as TreeListItem;
             tli.VisualTreeItem = item as VisualTreeItem;
             base.PrepareContainerForItemOverride(element, item);
+            scrollViewer.AddContainer(tli);
         }
 
         protected override void ClearContainerForItemOverride(DependencyObject element, object item) {
             var tli = element as TreeListItem;
             tli.VisualTreeItem = null;
             base.ClearContainerForItemOverride(element, item);
+            scrollViewer.RemoveContainer(tli);
         }
 
         public override void OnApplyTemplate() {
             base.OnApplyTemplate();
-            scrollViewer = (ScrollViewer) GetTemplateChild("PART_ScrollViewer");
+            scrollViewer = (TreeListScrollViewer) GetTemplateChild("PART_ScrollViewer");
             var aContainer = new AdornerContainer(this);
             aContainer.Child =
                 indicator =
@@ -170,8 +173,7 @@ namespace Snoop.TreeList {
 
         public void Select(VisualTreeItem item) {
             TreeListSource.MoveCurrentTo(item);
-        }
-
+        }        
         //public void Filter(string filter) {            
         //}
 

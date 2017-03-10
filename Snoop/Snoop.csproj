@@ -46,7 +46,7 @@
     <CreateWebPageOnPublish>true</CreateWebPageOnPublish>
     <WebPage>publish.htm</WebPage>
     <ApplicationRevision>0</ApplicationRevision>
-    <ApplicationVersion>2.10.16.0</ApplicationVersion>
+    <ApplicationVersion>2.10.17.0</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <PublishWizardCompleted>true</PublishWizardCompleted>
     <BootstrapperEnabled>true</BootstrapperEnabled>
@@ -227,8 +227,10 @@
   <ItemGroup>
     <Compile Include="AdornerContainer.cs" />
     <Compile Include="Controls\HighlightBox.cs" />
+    <Compile Include="Helpers\AssemblyLoaderHelper.cs" />
     <Compile Include="Properties\Annotations.cs" />
     <Compile Include="Search\SearchEngine.cs" />
+    <Compile Include="TreeList\TreeListScrollVIewer.cs" />
     <Compile Include="VisualTreeItem\ApplicationTreeItem.cs" />
     <Compile Include="Behaviors\BringIntoViewBehavior.cs" />
     <Compile Include="Helpers\Converters\ArgbToPartsConverter.cs" />
@@ -460,7 +462,7 @@
   <ItemGroup>
     <Resource Include="Resources\SnoopCrosshairsCursor.png" />
   </ItemGroup>
-  <ItemGroup>
+  <ItemGroup Condition="'$(Configuration)' == 'Release'">
     <ProjectReference Include="..\ManagedInjectorLauncher\ManagedInjectorLauncher32-4.0.csproj">
       <Project>{837eed94-d254-4f58-8949-635015de371d}</Project>
       <Name>ManagedInjectorLauncher32-4.0</Name>

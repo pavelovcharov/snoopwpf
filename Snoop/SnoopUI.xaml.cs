@@ -28,6 +28,7 @@ using Snoop.Properties;
 using Snoop.Shell;
 using Snoop.TreeList;
 using ReflectionFramework.Attributes;
+using Snoop.Helpers;
 
 namespace Snoop {
 
@@ -77,21 +78,13 @@ namespace Snoop {
         #region Static Constructor
 
         static SnoopUI() {
-            AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
+            AssemblyLoaderHelper.Initialize();            
             IntrospectCommand.InputGestures.Add(new KeyGesture(Key.I, ModifierKeys.Control));
             RefreshCommand.InputGestures.Add(new KeyGesture(Key.F5));
             HelpCommand.InputGestures.Add(new KeyGesture(Key.F1));
             ClearSearchFilterCommand.InputGestures.Add(new KeyGesture(Key.Escape));
             CopyPropertyChangesCommand.InputGestures.Add(new KeyGesture(Key.C, ModifierKeys.Control | ModifierKeys.Shift));
-        }
-
-        static Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args) {
-            if (args.RequestingAssembly == null)
-                return null;
-            var file = Path.Combine(Path.GetDirectoryName(args.RequestingAssembly.Location),
-                new AssemblyName(args.Name).Name + ".dll");
-            return File.Exists(file) ? Assembly.LoadFrom(file) : null;
-        }
+        }        
 
         #endregion
 
