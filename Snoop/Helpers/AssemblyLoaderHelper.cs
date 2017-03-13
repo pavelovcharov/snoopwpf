@@ -11,7 +11,7 @@ namespace Snoop.Helpers
     public class AssemblyLoaderHelper {
         static AssemblyLoaderHelper() {
             AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
-            var directory = Path.GetDirectoryName(Assembly.GetCallingAssembly().CodeBase);
+            var directory = GetDirectory();
             foreach (var assembly in Assembly.GetCallingAssembly().GetReferencedAssemblies()) {
                 var assemblyPath = Path.Combine(directory, $"{assembly.Name}.dll");
                 var absoluteAssemblyPath = new Uri(assemblyPath).AbsolutePath;
@@ -20,6 +20,18 @@ namespace Snoop.Helpers
                 Assembly.LoadFile(absoluteAssemblyPath);
             }            
         }
+
+        static string GetDirectory() {
+            try {
+                var codeBase = Assembly.GetCallingAssembly().CodeBase;
+                UriBuilder uri = new UriBuilder(codeBase);
+                string path = Uri.UnescapeDataString(uri.Path);
+                return Path.GetDirectoryName(path);
+            } catch {
+                return Path.GetDirectoryName(Assembly.GetCallingAssembly().Location);
+            }
+        }
+
         public static void Initialize() { }
 
         static Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args) {

@@ -40,6 +40,6 @@ using System.Runtime.InteropServices;
 //      Revision
 //
 
-[assembly: AssemblyVersion("2.10.17.0")]
-[assembly: AssemblyFileVersion("2.10.17.0")]
+[assembly: AssemblyVersion("2.10.18.0")]
+[assembly: AssemblyFileVersion("2.10.18.0")]
 [assembly: NeutralResourcesLanguage("en-US", UltimateResourceFallbackLocation.MainAssembly)]
