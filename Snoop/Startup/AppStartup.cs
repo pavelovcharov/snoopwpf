@@ -2,19 +2,23 @@
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Security.Principal;
+using System.Text;
 using System.Threading;
-using System.Windows;
+using System.Windows.Forms;
+using System.Windows.Shell;
 using CommandLine;
+using MessageBox = System.Windows.MessageBox;
 
 namespace Snoop.Startup {
     public static class AppStartup {
         [STAThread]
-        public static void Main(string[] param) {
+        public static void Main(string[] param) {            
             if (!IsAdministrator()) {
                 var path = System.Reflection.Assembly.GetExecutingAssembly().CodeBase;
                 ProcessStartInfo info = new ProcessStartInfo(path);
                 info.UseShellExecute = true;
                 info.Verb = "runas";
+                info.Arguments = string.Join(" ", param);
                 try {
                     Process.Start(info);
                 } catch (Win32Exception ex) {
@@ -25,6 +29,10 @@ namespace Snoop.Startup {
                 }
                 return;
             }
+#if DEBUG
+            MessageBox.Show("SNOOP STARTUP!");
+#endif
+                        
             var sOptions = new StartupOptions();
             new Parser().ParseArguments(param, sOptions);
             if (!string.IsNullOrEmpty(sOptions.StartupApp)) {
@@ -54,5 +62,7 @@ namespace Snoop.Startup {
     public class StartupOptions {
         [Option('s', "startup", DefaultValue = null)]
         public string StartupApp { get; set; }
+        [Option('o', "options", DefaultValue = false)]
+        public bool ShowOptions { get; set; }
     }
 }

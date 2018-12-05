@@ -7,6 +7,10 @@ using System.Windows.Controls;
 
 namespace Snoop {
     public static class RegistrySettings {
+        public static bool PinnedView {
+            get { return RegistryHelper.GetBool() ?? false; }
+            set { RegistryHelper.SetBool(value);}
+        }
         public static bool Pinned {
             get { return RegistryHelper.GetBool() ?? false; }
             set { RegistryHelper.SetBool(value);}

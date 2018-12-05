@@ -91,7 +91,7 @@
     <GenerateManifests>true</GenerateManifests>
   </PropertyGroup>
   <PropertyGroup>
-    <SignManifests>true</SignManifests>
+    <SignManifests>false</SignManifests>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="CommandLine, Version=1.9.71.2, Culture=neutral, PublicKeyToken=de6f01bd326f8c32, processorArchitecture=MSIL">
@@ -137,6 +137,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Page Include="OptionsDialog.xaml" />
     <Page Include="Views\Tabs\DebugListenerTab\DebugListenerControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -228,6 +229,10 @@
     <Compile Include="AdornerContainer.cs" />
     <Compile Include="Controls\HighlightBox.cs" />
     <Compile Include="Helpers\AssemblyLoaderHelper.cs" />
+    <Compile Include="Helpers\Converters\BooleanNegationConverter.cs" />
+    <Compile Include="OptionsDialog.xaml.cs">
+      <DependentUpon>OptionsDialog.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Properties\Annotations.cs" />
     <Compile Include="Search\SearchEngine.cs" />
     <Compile Include="TreeList\TreeListScrollVIewer.cs" />
