@@ -20,7 +20,7 @@ namespace Snoop {
     public partial class App : Application {
         protected override void OnStartup(StartupEventArgs e) {
             base.OnStartup(e);
-            
+
             var sOptions = new StartupOptions();
             new Parser().ParseArguments(e.Args, sOptions);
 
@@ -28,6 +28,15 @@ namespace Snoop {
                 e.Wrap<IStartupEventArgsWrapper>().PerformDefaultAction = false;
                 new OptionsDialog().ShowDialog();
                 Shutdown();
+				return;
+            }
+
+            if (!RegistrySettings.PinnedView) {
+                e.Wrap<IStartupEventArgsWrapper>().PerformDefaultAction = false;
+                new QuickWindowChooser();
+                e.Wrap<IStartupEventArgsWrapper>().PerformDefaultAction = false;
+//                Shutdown();
+//				return;
             }
             
             JumpTask task = new JumpTask

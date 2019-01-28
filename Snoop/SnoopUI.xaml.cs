@@ -25,14 +25,16 @@ using ReflectionFramework;
 using ReflectionFramework.Extensions;
 using Snoop.Infrastructure;
 using Snoop.Properties;
+#if !NETCORE
 using Snoop.Shell;
+#endif
 using Snoop.TreeList;
 using ReflectionFramework.Attributes;
 using Snoop.Helpers;
 
 namespace Snoop {
 
-    #region SnoopUI
+#region SnoopUI
 
     public partial class SnoopUI : INotifyPropertyChanged {
         public static readonly DependencyProperty EnableLiveTreeProperty = DependencyProperty.Register(
@@ -50,13 +52,13 @@ namespace Snoop {
             set { SetValue(EnableLiveTreeProperty, value); }
         }
 
-        #region Private Delegates
+#region Private Delegates
 
         delegate void function();
 
-        #endregion
+#endregion
 
-        #region Public Static Routed Commands
+#region Public Static Routed Commands
 
         public static readonly RoutedCommand IntrospectCommand = new RoutedCommand("Introspect", typeof(SnoopUI));
         public static readonly RoutedCommand RefreshCommand = new RoutedCommand("Refresh", typeof(SnoopUI));
@@ -73,9 +75,9 @@ namespace Snoop {
         public static readonly RoutedCommand CopyPropertyChangesCommand = new RoutedCommand("CopyPropertyChanges",
             typeof(SnoopUI));
 
-        #endregion
+#endregion
 
-        #region Static Constructor
+#region Static Constructor
 
         static SnoopUI() {
             AssemblyLoaderHelper.Initialize();            
@@ -86,9 +88,9 @@ namespace Snoop {
             CopyPropertyChangesCommand.InputGestures.Add(new KeyGesture(Key.C, ModifierKeys.Control | ModifierKeys.Shift));
         }        
 
-        #endregion
+#endregion
 
-        #region Public Constructor
+#region Public Constructor
 
         SearchEngine SearchEngine;
         public SnoopUI() {
@@ -133,9 +135,10 @@ namespace Snoop {
 
             // we can't catch the mouse wheel at the ZoomerControl level,
             // so we catch it here, and relay it to the ZoomerControl.
-            MouseWheel += SnoopUI_MouseWheel;            
-
+            MouseWheel += SnoopUI_MouseWheel;
+#if !NETCORE
             InitShell();
+#endif
         }
 
         protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e) {            
@@ -144,7 +147,7 @@ namespace Snoop {
             }
             base.OnPropertyChanged(e);
         }
-
+#if !NETCORE
         void InitShell() {
             if (ShellConstants.IsPowerShellInstalled) {
                 var shell = new EmbeddedShellView();
@@ -170,13 +173,15 @@ namespace Snoop {
                 };
             }
         }
+#endif
 
-        #endregion
+#endregion
 
-        #region Public Static Methods
+#region Public Static Methods
 
         public static bool GoBabyGo() {
             try {
+                MessageBox.Show("abc");
                 SnoopApplication();
                 return true;
             }
@@ -274,20 +279,20 @@ namespace Snoop {
 
         delegate void Action();
 
-        #endregion
+#endregion
 
-        #region Public Properties
+#region Public Properties
 
-        #region VisualTreeItems
+#region VisualTreeItems
 
         /// <summary>
         ///     This is the collection of VisualTreeItem(s) that the visual tree TreeView binds to.
         /// </summary>
         public TreeListSource TreeListSource { get; }
 
-        #endregion
+#endregion
 
-        #region Root
+#region Root
 
         /// <summary>
         ///     Root element of the visual tree
@@ -311,9 +316,9 @@ namespace Snoop {
         /// </summary>
         object root;
 
-        #endregion
+#endregion
 
-        #region CurrentSelection
+#region CurrentSelection
 
         /// <summary>
         ///     Currently selected item in the tree view.
@@ -354,9 +359,9 @@ namespace Snoop {
         VisualTreeItem currentSelection;
         VisualTreeItem _lastNonNullSelection;
 
-        #endregion
+#endregion
 
-        #region Filter
+#region Filter
 
         /// <summary>
         ///     This Filter property is bound to the editable combo box that the user can type in to filter the visual tree
@@ -370,9 +375,9 @@ namespace Snoop {
         }        
 
 
-        #endregion
+#endregion
 
-        #region EventFilter
+#region EventFilter
 
         public string EventFilter {
             get { return eventFilter; }
@@ -382,9 +387,9 @@ namespace Snoop {
             }
         }
 
-        #endregion
+#endregion
 
-        #region CurrentFocus
+#region CurrentFocus
 
         public IInputElement CurrentFocus {
             get {
@@ -399,9 +404,9 @@ namespace Snoop {
             }
         }
 
-        #endregion
+#endregion
 
-        #region CurrentFocusScope
+#region CurrentFocusScope
 
         public object CurrentFocusScope {
             get {
@@ -416,11 +421,11 @@ namespace Snoop {
             }
         }
 
-        #endregion
+#endregion
 
-        #endregion
+#endregion
 
-        #region Public Methods
+#region Public Methods
 
         public void Inspect() {
             var root = FindRoot();
@@ -429,6 +434,7 @@ namespace Snoop {
                     //SnoopModes.MultipleDispatcherMode is always false for all scenarios except for cases where we are running multiple dispatchers.
                     //If SnoopModes.MultipleDispatcherMode was set to true, then there definitely was a root visual found in another dispatcher, so
                     //the message below would be wrong.
+                    Debugger.Launch();
                     MessageBox.Show
                         (
                             "Can't find a current application or a PresentationSource root visual!",
@@ -513,9 +519,9 @@ namespace Snoop {
             }
         }
 
-        #endregion
+#endregion
 
-        #region Protected Event Overrides
+#region Protected Event Overrides
 
         protected override void OnSourceInitialized(EventArgs e) {
             base.OnSourceInitialized(e);
@@ -571,9 +577,9 @@ namespace Snoop {
             EditedPropertiesHelper.DumpObjectsWithEditedProperties();
         }
 
-        #endregion
+#endregion
 
-        #region Private Routed Event Handlers
+#region Private Routed Event Handlers
 
         /// <summary>
         ///     Just for fun, the ability to run Snoop on itself :)
@@ -649,9 +655,9 @@ namespace Snoop {
             }
         }
 
-        #endregion
+#endregion
 
-        #region Private Event Handlers
+#region Private Event Handlers
 
         public interface IMouseDevice {
             [BindingFlags(BindingFlags.Instance | BindingFlags.NonPublic)]
@@ -702,9 +708,9 @@ namespace Snoop {
             PreviewArea.Zoomer.DoMouseWheel(sender, e);
         }
 
-        #endregion
+#endregion
 
-        #region Private Methods
+#region Private Methods
 
         /// <summary>
         ///     Find the VisualTreeItem for the specified visual.
@@ -837,9 +843,9 @@ namespace Snoop {
             OnPropertyChanged("Root");
         }
 
-        #endregion
+#endregion
 
-        #region Private Fields
+#region Private Fields
 
         string propertyFilter = string.Empty;
         string eventFilter = string.Empty;        
@@ -855,9 +861,9 @@ namespace Snoop {
         /// </summary>
         bool returnPreviousFocus;
 
-        #endregion
+#endregion
 
-        #region INotifyPropertyChanged Members
+#region INotifyPropertyChanged Members
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -867,7 +873,7 @@ namespace Snoop {
                 PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        #endregion
+#endregion
 
         void ButtonBase_OnClick(object sender, RoutedEventArgs e) {
             SearchEngine.Next();
@@ -880,9 +886,9 @@ namespace Snoop {
         void ButtonBase_OnClick3(object sender, RoutedEventArgs e) { filterComboBox.Text = ""; }
     }
 
-    #endregion
+#endregion
 
-    #region NoFocusHyperlink
+#region NoFocusHyperlink
 
     public class NoFocusHyperlink : Hyperlink {
         protected override void OnPreviewMouseLeftButtonDown(MouseButtonEventArgs e) {
@@ -894,7 +900,7 @@ namespace Snoop {
         }
     }
 
-    #endregion
+#endregion
 
     public class PropertyValueInfo {
         public string PropertyName { get; set; }

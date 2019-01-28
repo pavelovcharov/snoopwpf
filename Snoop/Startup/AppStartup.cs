@@ -32,9 +32,13 @@ namespace Snoop.Startup {
 #if DEBUG
             MessageBox.Show("SNOOP STARTUP!");
 #endif
-                        
+
+#if !NETCORE
             var sOptions = new StartupOptions();
             new Parser().ParseArguments(param, sOptions);
+#else            
+            var sOptions = new Parser().ParseArguments<StartupOptions>(param).MapResult(x => x, x => new StartupOptions());
+#endif            
             if (!string.IsNullOrEmpty(sOptions.StartupApp)) {
                 var process = new Process();
                 var sInfo = new ProcessStartInfo(sOptions.StartupApp);
@@ -60,9 +64,16 @@ namespace Snoop.Startup {
     }
 
     public class StartupOptions {
+#if !NETCORE
         [Option('s', "startup", DefaultValue = null)]
         public string StartupApp { get; set; }
         [Option('o', "options", DefaultValue = false)]
         public bool ShowOptions { get; set; }
+#else
+        [Option('s', "startup", Default = null)]
+        public string StartupApp { get; set; }
+        [Option('o', "options", Default = false)]
+        public bool ShowOptions { get; set; }
+#endif
     }
 }

@@ -23,12 +23,16 @@ namespace Snoop.DebugListenerTab {
         }
 
         void checkBoxStartListening_Checked(object sender, RoutedEventArgs e) {
+#if !NETCORE
             Debug.Listeners.Add(snoopDebugListener);
+#endif
             PresentationTraceSources.DataBindingSource.Listeners.Add(snoopDebugListener);
         }
 
         void checkBoxStartListening_Unchecked(object sender, RoutedEventArgs e) {
+#if !NETCORE
             Debug.Listeners.Remove(SnoopDebugListener.ListenerName);
+#endif
             PresentationTraceSources.DataBindingSource.Listeners.Remove(snoopDebugListener);
         }
 

@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+#if !NETCORE
 using System.Deployment.Application;
+#endif
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
@@ -25,9 +27,9 @@ namespace Snoop {
                 startNew = true;
                 RegistrySettings.LastVersion = currentVersion;
             }
-            #if DEBUG
+#if DEBUG
                 startNew = true;
-            #endif
+#endif
             if (startNew) {
                 foreach (var process in Process.GetProcessesByName("Snoop")) {
                     var currentId = Process.GetCurrentProcess().Id;

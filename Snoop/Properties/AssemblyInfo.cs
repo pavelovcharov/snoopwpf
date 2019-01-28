@@ -13,11 +13,15 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 
+#if !NETCORE
 [assembly: AssemblyTitle("Snoop")]
+    [assembly: AssemblyVersion("2.10.18.0")]
+    [assembly: AssemblyConfiguration("")]
+    [assembly: AssemblyFileVersion("2.10.18.0")]
+    [assembly: AssemblyCompany("Cory Plotts")]
+    [assembly: AssemblyProduct("Snoop")]
+#endif
 [assembly: AssemblyDescription("")]
-[assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Cory Plotts")]
-[assembly: AssemblyProduct("Snoop")]
 [assembly: AssemblyCopyright("Copyright © Cory Plotts 2010-2012")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -40,6 +44,4 @@ using System.Runtime.InteropServices;
 //      Revision
 //
 
-[assembly: AssemblyVersion("2.10.18.0")]
-[assembly: AssemblyFileVersion("2.10.18.0")]
 [assembly: NeutralResourcesLanguage("en-US", UltimateResourceFallbackLocation.MainAssembly)]

@@ -18,9 +18,11 @@ using ReflectionFramework;
 using ReflectionFramework.Attributes;
 using ReflectionFramework.Internal;
 
-namespace Snoop {
-    public static class NativeMethods {
-        public const int 
+namespace Snoop
+{
+    public static class NativeMethods
+    {
+        public const int
             SWP_NOMOVE = 0x0002,
             SWP_NOSIZE = 0x0001,
             SWP_NOACTIVATE = 0x0010,
@@ -54,15 +56,19 @@ namespace Snoop {
         [DllImport("user32.dll", EntryPoint = "GetWindowLongPtr")]
         static extern IntPtr GetWindowLongPtr64(IntPtr hWnd, int nIndex);
 
-        public static Int32 GetWindowLongPtr(IntPtr hWnd, int nIndex) {
+        public static Int32 GetWindowLongPtr(IntPtr hWnd, int nIndex)
+        {
             int iResult = 0;
             IntPtr result = IntPtr.Zero;
 
-            if (IntPtr.Size == 4) {
+            if (IntPtr.Size == 4)
+            {
                 // use GetWindowLong
                 result = GetWindowLongPtr32(hWnd, nIndex);
                 iResult = Marshal.ReadInt32(result);
-            } else {
+            }
+            else
+            {
                 // use GetWindowLongPtr
                 result = GetWindowLongPtr64(hWnd, nIndex);
                 iResult = IntPtrToInt32(result);
@@ -71,9 +77,10 @@ namespace Snoop {
             return iResult;
         }
 
-        public static int IntPtrToInt32(IntPtr intPtr) { return unchecked((int) intPtr.ToInt64()); }
+        public static int IntPtrToInt32(IntPtr intPtr) { return unchecked((int)intPtr.ToInt64()); }
 
-        public static IntPtr SetWindowLongPtr(HandleRef hWnd, int nIndex, IntPtr dwNewLong) {
+        public static IntPtr SetWindowLongPtr(HandleRef hWnd, int nIndex, IntPtr dwNewLong)
+        {
             if (IntPtr.Size == 8)
                 return SetWindowLongPtr64(hWnd, nIndex, dwNewLong);
             return new IntPtr(SetWindowLong32(hWnd, nIndex, dwNewLong.ToInt32()));
@@ -85,7 +92,8 @@ namespace Snoop {
         [DllImport("user32.dll", EntryPoint = "SetWindowLongPtr")]
         static extern IntPtr SetWindowLongPtr64(HandleRef hWnd, int nIndex, IntPtr dwNewLong);
         [Flags]
-        public enum SnapshotFlags : uint {
+        public enum SnapshotFlags : uint
+        {
             HeapList = 0x00000001,
             Process = 0x00000002,
             Thread = 0x00000004,
@@ -99,10 +107,12 @@ namespace Snoop {
             get {
                 var windowList = new List<IntPtr>();
                 var handle = GCHandle.Alloc(windowList);
-                try {
-                    EnumWindows(EnumWindowsCallback, (IntPtr) handle);
+                try
+                {
+                    EnumWindows(EnumWindowsCallback, (IntPtr)handle);
                 }
-                finally {
+                finally
+                {
                     handle.Free();
                 }
 
@@ -110,20 +120,24 @@ namespace Snoop {
             }
         }
 
-        public static Process GetWindowThreadProcess(IntPtr hwnd) {
+        public static Process GetWindowThreadProcess(IntPtr hwnd)
+        {
             int processID;
             GetWindowThreadProcessId(hwnd, out processID);
 
-            try {
+            try
+            {
                 return Process.GetProcessById(processID);
             }
-            catch (ArgumentException) {
+            catch (ArgumentException)
+            {
                 return null;
             }
         }
 
-        static bool EnumWindowsCallback(IntPtr hwnd, IntPtr lParam) {
-            ((List<IntPtr>) ((GCHandle) lParam).Target).Add(hwnd);
+        static bool EnumWindowsCallback(IntPtr hwnd, IntPtr lParam)
+        {
+            ((List<IntPtr>)((GCHandle)lParam).Target).Add(hwnd);
             return true;
         }
 
@@ -138,6 +152,9 @@ namespace Snoop {
 
         [DllImport("kernel32")]
         public static extern IntPtr LoadLibrary(string librayName);
+
+        [DllImport("kernel32.dll", CharSet = CharSet.Auto)]
+        public static extern IntPtr GetModuleHandle(string lpModuleName);
 
         [DllImport("kernel32.dll", SetLastError = true)]
         public static extern ToolHelpHandle CreateToolhelp32Snapshot(SnapshotFlags dwFlags, int th32ProcessID);
@@ -155,29 +172,34 @@ namespace Snoop {
         // anvaka's changes below
 
 
-        public static Point GetCursorPosition() {
+        public static Point GetCursorPosition()
+        {
             var pos = new Point();
             var win32Point = new POINT();
-            if (GetCursorPos(ref win32Point)) {
+            if (GetCursorPos(ref win32Point))
+            {
                 pos.X = win32Point.X;
                 pos.Y = win32Point.Y;
             }
             return pos;
         }
 
-        public static IntPtr GetWindowUnderMouse() {
+        public static IntPtr GetWindowUnderMouse()
+        {
             var pt = new POINT();
-            if (GetCursorPos(ref pt)) {
+            if (GetCursorPos(ref pt))
+            {
                 return WindowFromPoint(pt);
             }
             return IntPtr.Zero;
         }
 
-        public static Rect GetWindowRect(IntPtr hwnd) {
+        public static Rect GetWindowRect(IntPtr hwnd)
+        {
             var rect = new RECT();
             GetWindowRect(hwnd, out rect);
             return new Rect(rect.Left, rect.Top, rect.Right - rect.Left, rect.Bottom - rect.Top);
-        }
+        }        
 
         [DllImport("user32.dll")]
         [return: MarshalAs(UnmanagedType.Bool)]
@@ -189,11 +211,16 @@ namespace Snoop {
         [DllImport("user32.dll")]
         [return: MarshalAs(UnmanagedType.Bool)]
         static extern bool GetWindowRect(IntPtr hWnd, out RECT lpRect);
+        
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool IsWindowVisible(IntPtr hWnd);
 
         delegate bool EnumWindowsCallBackDelegate(IntPtr hwnd, IntPtr lParam);
 
         [StructLayout(LayoutKind.Sequential)]
-        public struct MODULEENTRY32 {
+        public struct MODULEENTRY32
+        {
             public uint dwSize;
             public uint th32ModuleID;
             public uint th32ProcessID;
@@ -206,29 +233,33 @@ namespace Snoop {
             [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 260)] public string szExePath;
         }
 
-        public class ToolHelpHandle : SafeHandleZeroOrMinusOneIsInvalid {
+        public class ToolHelpHandle : SafeHandleZeroOrMinusOneIsInvalid
+        {
             ToolHelpHandle()
-                : base(true) {}
+                : base(true) { }
 
             [ReliabilityContract(Consistency.WillNotCorruptState, Cer.MayFail)]
-            protected override bool ReleaseHandle() {
+            protected override bool ReleaseHandle()
+            {
                 return CloseHandle(handle);
             }
         }
-    }        
+    }
     [Wrapper]
     [AssignableFrom("DevExpress.Xpf.Core.Native.IFrameworkRenderElementContext")]
-    public interface IIFrameworkRenderElementContext {
+    public interface IIFrameworkRenderElementContext
+    {
         [InterfaceMember("DevExpress.Xpf.Core.Native.IFrameworkRenderElementContext")]
         int RenderChildrenCount { get; }
         [InterfaceMember("DevExpress.Xpf.Core.Native.IFrameworkRenderElementContext")]
         object GetRenderChild(int index);
         [InterfaceMember("DevExpress.Xpf.Core.Native.IFrameworkRenderElementContext")]
         Size RenderSize { get; }
-    }    
+    }
     [Wrapper]
     [AssignableFrom("DevExpress.Xpf.Core.Native.FrameworkRenderElementContext")]
-    public interface IFrameworkRenderElementContext : IIFrameworkRenderElementContext {        
+    public interface IFrameworkRenderElementContext : IIFrameworkRenderElementContext
+    {
         string Name { get; }
         void Render(DrawingContext drawingContext);
         IIElementHost ElementHost { get; }
@@ -236,45 +267,55 @@ namespace Snoop {
         IFrameworkRenderElement Factory { get; }
     }
     [Wrapper]
-    public interface IIElementHost {
+    public interface IIElementHost
+    {
         [InterfaceMember("DevExpress.Xpf.Core.Native.IElementHost")]
         FrameworkElement Parent { get; }
-    }    
+    }
     [Wrapper]
     [AssignableFrom("DevExpress.Xpf.Core.Native.IChrome")]
     [AssignableFrom("DevExpress.Xpf.Grid.LightweightCellEditor", Inverse = true)]
-    public interface IIChrome {
+    public interface IIChrome
+    {
         [InterfaceMember("DevExpress.Xpf.Core.Native.IChrome")]
         IFrameworkRenderElementContext Root { get; }
     }
     [Wrapper]
-    public interface IChrome : IIChrome {
-        
+    public interface IChrome : IIChrome
+    {
+
     }
 
     [Wrapper]
     [AssignableFrom("DevExpress.Xpf.Core.Native.RenderControlBaseContext")]
-    public interface IRenderControlBaseContext : IFrameworkRenderElementContext {
+    public interface IRenderControlBaseContext : IFrameworkRenderElementContext
+    {
         Transform GeneralTransform { get; }
         FrameworkElement Control { get; }
     }
 
     [Wrapper]
-    public interface IFrameworkRenderElement {
+    public interface IFrameworkRenderElement
+    {
         Visibility Visibility { get; set; }
-    }    
+    }
 
-    public class RenderTreeHelper {
-        static bool Is(object obj, string typeName, string typeNamespace, bool isInterface) {
+    public class RenderTreeHelper
+    {
+        static bool Is(object obj, string typeName, string typeNamespace, bool isInterface)
+        {
             if (obj == null)
                 return false;
             var type = obj.GetType();
-            while (type != null) {
+            while (type != null)
+            {
                 Type[] types = { type };
-                if (isInterface) {
+                if (isInterface)
+                {
                     types = types.Concat(type.GetInterfaces()).ToArray();
                 }
-                foreach (var typeOrInterface in types) {
+                foreach (var typeOrInterface in types)
+                {
                     var isValidType =
                         (String.IsNullOrEmpty(typeNamespace) || String.Equals(typeNamespace, typeOrInterface.Namespace))
                         && (String.IsNullOrEmpty(typeName) || String.Equals(typeName, typeOrInterface.Name));
@@ -286,8 +327,10 @@ namespace Snoop {
             return false;
         }
 
-        static Assembly GetCoreAssembly(object obj) {
-            if (Is(obj, null, "DevExpress.Xpf.Core.Native", false)) {
+        static Assembly GetCoreAssembly(object obj)
+        {
+            if (Is(obj, null, "DevExpress.Xpf.Core.Native", false))
+            {
                 return obj.GetType().Assembly;
             }
             return null;
@@ -301,23 +344,26 @@ namespace Snoop {
 
         [ThreadStatic] static Func<object, object, object> hitTest;
 
-        static object Simplify(object obj) {
+        static object Simplify(object obj)
+        {
             return (obj as IReflectionHelperInterfaceWrapper)?.Source ?? obj;
         }
 
-        public static IEnumerable<object> RenderDescendants(object context) {
+        public static IEnumerable<object> RenderDescendants(object context)
+        {
             context = Simplify(context);
             if (renderDescendants == null)
                 renderDescendants = ReflectionHelper.CreateInstanceMethodHandler<Func<object, IEnumerable>>(
                     null,
                     "RenderDescendants",
                     BindingFlags.Public | BindingFlags.Static,
-                    GetCoreAssembly(context).GetType("DevExpress.Xpf.Core.Native.RenderTreeHelper")                    
+                    GetCoreAssembly(context).GetType("DevExpress.Xpf.Core.Native.RenderTreeHelper")
                     );
             return renderDescendants(context).OfType<object>();
         }
 
-        public static Transform TransformToRoot(object frec) {
+        public static Transform TransformToRoot(object frec)
+        {
             frec = Simplify(frec);
             if (transformToRoot == null)
                 transformToRoot = ReflectionHelper.CreateInstanceMethodHandler<Func<object, Transform>>(
@@ -329,26 +375,28 @@ namespace Snoop {
             return transformToRoot(frec);
         }
 
-        public static IEnumerable<object> RenderAncestors(object context) {
+        public static IEnumerable<object> RenderAncestors(object context)
+        {
             context = Simplify(context);
             if (renderAncestors == null)
                 renderAncestors = ReflectionHelper.CreateInstanceMethodHandler<Func<object, IEnumerable>>(
                     null,
                     "RenderAncestors",
                     BindingFlags.Public | BindingFlags.Static,
-                    GetCoreAssembly(context).GetType("DevExpress.Xpf.Core.Native.RenderTreeHelper")                    
+                    GetCoreAssembly(context).GetType("DevExpress.Xpf.Core.Native.RenderTreeHelper")
                     );
             return renderAncestors(context).OfType<object>();
         }
 
-        public static object HitTest(object root, Point point) {
+        public static object HitTest(object root, Point point)
+        {
             root = Simplify(root);
             if (hitTest == null)
                 hitTest = ReflectionHelper.CreateInstanceMethodHandler<Func<object, object, object>>(
                     null,
                     "HitTest",
                     BindingFlags.Public | BindingFlags.Static,
-                    GetCoreAssembly(root).GetType("DevExpress.Xpf.Core.Native.RenderTreeHelper")                    
+                    GetCoreAssembly(root).GetType("DevExpress.Xpf.Core.Native.RenderTreeHelper")
                     );
             return hitTest(root, point);
         }

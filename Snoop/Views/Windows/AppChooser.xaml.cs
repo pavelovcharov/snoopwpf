@@ -8,12 +8,19 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Interop;
+using Snoop.Annotations;
+#if !NETCORE
+using Mono.Cecil;
+#endif
 
 namespace Snoop {
     public partial class AppChooser {
@@ -98,6 +105,17 @@ namespace Snoop {
                     _modules = GetModules().ToArray();
                 return _modules;
             }
+        }
+
+        Rect? bounds;
+        public Rect Bounds { get { return (Rect) (bounds ?? (bounds = GetBounds())); } }
+
+        bool? isVisible;
+        public bool IsVisible { get { return (bool) (isVisible ?? (isVisible = GetIsVisible())); } }
+
+        bool GetIsVisible() { return NativeMethods.IsWindowVisible(HWnd); }
+        Rect GetBounds() {
+            return  NativeMethods.GetWindowRect(HWnd);            
         }
 
         public bool IsValidProcess {
@@ -204,11 +222,62 @@ namespace Snoop {
         public override string ToString() {
             return Description;
         }
-
+        [DllImport("user32.dll", SetLastError=true)]
+        static extern uint GetWindowThreadProcessId(IntPtr hWnd, out int lpdwProcessId);
+        [Flags]
+        public enum ProcessAccessFlags : uint
+        {
+            All = 0x001F0FFF,
+            Terminate = 0x00000001,
+            CreateThread = 0x00000002,
+            VirtualMemoryOperation = 0x00000008,
+            VirtualMemoryRead = 0x00000010,
+            VirtualMemoryWrite = 0x00000020,
+            DuplicateHandle = 0x00000040,
+            CreateProcess = 0x000000080,
+            SetQuota = 0x00000100,
+            SetInformation = 0x00000200,
+            QueryInformation = 0x00000400,
+            QueryLimitedInformation = 0x00001000,
+            Synchronize = 0x00100000
+        }
+        [DllImport("kernel32.dll", SetLastError = true)]
+        public static extern IntPtr OpenProcess(
+            ProcessAccessFlags processAccess,
+            bool bInheritHandle,
+            uint processId
+        );        
+        [DllImport("psapi.dll")]
+        static extern uint GetModuleFileNameEx(IntPtr hProcess, IntPtr hModule, [Out] StringBuilder lpBaseName, [In] [MarshalAs(UnmanagedType.U4)] int nSize);
         public void Snoop() {
             Mouse.OverrideCursor = Cursors.Wait;
             try {
-                Injector.Launch(HWnd, typeof(SnoopUI).Assembly, typeof(SnoopUI).FullName, "GoBabyGo");
+                GetWindowThreadProcessId(HWnd, out var pId);
+                bool isNetCoreApp = false;
+#if !NETCORE
+                using (var proc = Process.GetProcessById(pId)) {
+                    var file = proc.MainModule.FileName;
+                    using (var fileStream = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, true)) {
+                        try {
+                            var platformAsm = AssemblyDefinition.ReadAssembly(file);
+                            foreach (var attr in platformAsm.CustomAttributes) {
+                                if (attr.AttributeType.FullName != "System.Runtime.Versioning.TargetFrameworkAttribute") continue;
+                                var targetFrameworkVersion = attr.Properties[0].Argument.Value.ToString();
+                                if (targetFrameworkVersion.Contains(".NET Framework"))
+                                    isNetCoreApp = false;
+                            }
+                        } catch {
+                            //seems we're in the .netcore app
+                            isNetCoreApp = true;
+                        }
+                    }
+                }
+#endif
+
+                if (!isNetCoreApp)
+                    Injector.Launch(HWnd, typeof(SnoopUI).Assembly, typeof(SnoopUI).FullName, "GoBabyGo");
+                else
+                    Injector.LaunchNetCore(HWnd, typeof(SnoopUI).Assembly, typeof(SnoopUI).FullName, "GoBabyGo", @"NetCore\SnoopNetCorev3.exe");
             }
             catch (Exception e) {
                 OnFailedToAttach(e);

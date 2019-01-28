@@ -30,7 +30,7 @@ namespace Snoop {
                 bounds = VisualTreeHelper.GetDescendantBounds(visual);
             }
 
-            var sizeFactor = dpi/BaseDpi;
+            var sizeFactor = 1d;
             var rtb =
                 new RenderTargetBitmap
                     (
