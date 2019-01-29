@@ -181,7 +181,6 @@ namespace Snoop {
 
         public static bool GoBabyGo() {
             try {
-                MessageBox.Show("abc");
                 SnoopApplication();
                 return true;
             }

@@ -29,9 +29,7 @@ namespace Snoop.Startup {
                 }
                 return;
             }
-#if DEBUG
-            MessageBox.Show("SNOOP STARTUP!");
-#endif
+
 
 #if !NETCORE
             var sOptions = new StartupOptions();

@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Windows;
@@ -13,6 +12,8 @@ using System.Windows.Media;
 using System.Windows.Media.Effects;
 using System.Windows.Media.Imaging;
 using System.Windows.Media.Media3D;
+using System.Windows.Shapes;
+using System.Windows.Threading;
 using Snoop.Shaders.Effects;
 using Application = System.Windows.Application;
 using Brush = System.Windows.Media.Brush;
@@ -24,6 +25,7 @@ using MessageBox = System.Windows.MessageBox;
 using MouseEventArgs = System.Windows.Input.MouseEventArgs;
 using PixelFormat = System.Drawing.Imaging.PixelFormat;
 using Point = System.Windows.Point;
+using Rectangle = System.Drawing.Rectangle;
 
 namespace Snoop {
     public sealed class QuickWindowChooser : IDisposable {
@@ -141,6 +143,12 @@ namespace Snoop {
             Raw = 2,
         }
 
+        double Area(Rect rect) {
+            if (rect.IsEmpty)
+                return 0d;
+            return rect.Size.Width * rect.Size.Height;
+        }
+
         public List<ScreenSelectorData> openedWindows = new List<ScreenSelectorData>();
         public QuickWindowChooser() {
             var windows = GetWindows().OfType<IntPtr>().Select(x => new WindowInfo(x)).Where(x => x.IsVisible).Reverse().ToArray();
@@ -162,9 +170,9 @@ namespace Snoop {
                     HorizontalAlignment = image.HorizontalAlignment,
                     Width = image.Width, Height = image.Height,
                     Effect = new GrayscaleShaderEffect() 
-                };
+                };                
                 data.GrayScaleImage = image2;
-                var windowsInBounds = windows.Where(x => bounds.IntersectsWith(x.Bounds)).Select(x => new WindowInfoEx(x, x.Bounds)).ToArray();
+                var windowsInBounds = windows.Where(x => Area(Rect.Intersect(bounds,x.Bounds))>1d).Select(x => new WindowInfoEx(x, x.Bounds)).ToArray();
                 for (int i = 0; i < windowsInBounds.Length; i++) {
                     var current = windowsInBounds[i];
                     if (current.Bounds.IsEmpty)
@@ -222,10 +230,13 @@ namespace Snoop {
                 }                
                 var wnd = new Window() {Content = vb, WindowStyle = WindowStyle.None, Left = bounds.Left, Top = bounds.Top, AllowsTransparency = true, Background = Brushes.Transparent, Opacity = 0};
                 data.Window = wnd;
-                data.Owner = this;
-                data.Init();
+                data.Owner = this;                
                 openedWindows.Add(data);                
             }
+
+            openedWindows[openedWindows.Count - 1].Last = true;
+            foreach (var element in openedWindows)
+                element.Init();
         }
        
 
@@ -246,6 +257,7 @@ namespace Snoop {
         public Window Window { get; set; }
         public QuickWindowChooser Owner { get; set; }
         public Image GrayScaleImage { get; set; }
+        public bool Last { get; set; }
         Dictionary<Border, WindowInfo> infos = new Dictionary<Border, WindowInfo>();
 
         public void Add(WindowInfo windowInfo, Border border) {
@@ -293,15 +305,25 @@ namespace Snoop {
         }
         
         void WndOnPreviewKeyDown(object sender, KeyEventArgs e) {
+            if (e.Key != Key.Escape)
+                return;
             foreach (var window in Owner.openedWindows) {
                 Application.Current.Shutdown();
             }
         }
 
         void WndOnLoaded(object sender, RoutedEventArgs e) {
-            var wnd = (Window)sender;
-            wnd.WindowState = WindowState.Maximized;
-            wnd.Opacity = 1d;
+            if (Last) {
+                foreach (var element in Owner.openedWindows) {
+                    element.Window.WindowState = WindowState.Maximized;
+                }
+
+                Window.Dispatcher.BeginInvoke(new Action(() => {
+                    foreach (var element in Owner.openedWindows) {
+                        element.Window.Opacity = 1d;
+                    }                    
+                }));
+            }            
         }
     }
     public class WindowInfoEx {
