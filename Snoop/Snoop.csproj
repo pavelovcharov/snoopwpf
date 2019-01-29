@@ -226,6 +226,7 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Shaders\Compiled\grayscaleshader.ps" />
+    <Resource Include="Shaders\Compiled\contourshader.ps" />
     <Content Include="Shaders\Sources\grayscaleshader.fx" />
     <None Include="app.config" />
     <None Include="app.manifest">
@@ -254,7 +255,9 @@
     <Compile Include="Properties\Annotations.cs" />
     <Compile Include="QuickWindowChooser.cs" />
     <Compile Include="Search\SearchEngine.cs" />
+    <Compile Include="Shaders\Effects\ContourShaderEffect.cs" />
     <Compile Include="Shaders\Effects\GrayscaleShaderEffect.cs" />
+    <Content Include="Shaders\Sources\contourshader.fx" />
     <Compile Include="TreeList\TreeListScrollVIewer.cs" />
     <Compile Include="VisualTreeItem\ApplicationTreeItem.cs" />
     <Compile Include="Behaviors\BringIntoViewBehavior.cs" />

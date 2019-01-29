@@ -152,83 +152,62 @@ namespace Snoop {
         public List<ScreenSelectorData> openedWindows = new List<ScreenSelectorData>();
         public QuickWindowChooser() {
             var windows = GetWindows().OfType<IntPtr>().Select(x => new WindowInfo(x)).Where(x => x.IsVisible).Reverse().ToArray();
-            foreach (var screen in Screen.AllScreens) {  
+            foreach (var screen in Screen.AllScreens.Where((x,i)=>i<1)) {  
                 var data = new ScreenSelectorData();
-                var image = new Image() {
+                var image2 = new Image() {
                     Source = CaptureMonitor(screen, out var bounds, out var scaleX, out var scaleY),
                     Stretch = Stretch.UniformToFill,
                     VerticalAlignment = VerticalAlignment.Stretch,
                     HorizontalAlignment = HorizontalAlignment.Stretch,
-                    Width = bounds.Width, 
-                    Height = bounds.Height
-                };
-                data.ColorfulImage = image;
-                Image image2 = new Image() {
-                    Source = image.Source,
-                    Stretch = image.Stretch,
-                    VerticalAlignment = image.VerticalAlignment,
-                    HorizontalAlignment = image.HorizontalAlignment,
-                    Width = image.Width, Height = image.Height,
-                    Effect = new GrayscaleShaderEffect() 
-                };                
+                    Width = bounds.Width,
+                    Height = bounds.Height,
+                    Effect = new GrayscaleShaderEffect()
+                };               
                 data.GrayScaleImage = image2;
-                var windowsInBounds = windows.Where(x => Area(Rect.Intersect(bounds,x.Bounds))>1d).Select(x => new WindowInfoEx(x, x.Bounds)).ToArray();
-                for (int i = 0; i < windowsInBounds.Length; i++) {
-                    var current = windowsInBounds[i];
-                    if (current.Bounds.IsEmpty)
-                        continue;
-                    for (int j = i + 1; j < windowsInBounds.Length; j++) {
-                        var next = windowsInBounds[j];
-                        if (next.Bounds.IsEmpty)
-                            continue;
-                        if (!next.Bounds.IntersectsWith(current.Bounds))
-                            continue;
-                        var intersection = Rect.Intersect(current.Bounds, next.Bounds);                         
+                Viewbox vb = new Viewbox() {
+                    Margin = new Thickness(7)
+                };                
+                var grid = new Grid(){ClipToBounds = true, Width = bounds.Width, Height = bounds.Height, Background = Brushes.White};                
+                var grid3 = new Grid(){ClipToBounds = true, Width = bounds.Width, Height = bounds.Height};
+                grid3.Children.Add(image2);
+                grid3.Children.Add(new Viewbox() {
+                    Child = grid, 
+//                    Effect = new ContourShaderEffect() {Size = new Point(1/grid.Width, 1/grid.Height)}
+                });                
+                vb.Child = grid3;                                
 
-                        current.Bounds = new Rect(
-                            Math.Abs(current.Bounds.Left - intersection.Left) < 0.1 ? intersection.Right : current.Bounds.Left,
-                            Math.Abs(current.Bounds.Top - intersection.Top) < 0.1 ? intersection.Bottom : current.Bounds.Top,
-                            Math.Max(0,current.Bounds.Width - intersection.Width),
-                            Math.Max(0,current.Bounds.Height - intersection.Height)
-                        );
-                    }
-                }
-
-                var results = windowsInBounds.Where(x => x.WindowInfo.IsValidProcess && !x.Bounds.IsEmpty);
-                Viewbox vb = new Viewbox(){};                
-                var grid = new Grid(){ClipToBounds = true, Width = bounds.Width, Height = bounds.Height};
-                vb.Child = grid;
-                grid.Children.Add(image);
-                grid.Children.Add(image2);
-                
-                foreach (var windowInfo in results) {
+                uint index = 10;
+                Dictionary<int, uint> indicesByPID = new Dictionary<int, uint>();
+                foreach (var windowInfo in windows) {
                     var scaledBounds = new Rect(windowInfo.Bounds.Left * scaleX, windowInfo.Bounds.Top * scaleY, windowInfo.Bounds.Width * scaleX, windowInfo.Bounds.Height * scaleY);
                     var boundsInScreen = new Rect(new Point(scaledBounds.Left - bounds.Left, scaledBounds.Top - bounds.Top), scaledBounds.Size);
+					
+                    if (!indicesByPID.TryGetValue(windowInfo.OwningProcess.Id, out var currentIndex)) {
+                        index+=10;
+                        currentIndex = index;
+                        indicesByPID[windowInfo.OwningProcess.Id] = currentIndex;
+                    }
+                    
+                    var byte4 = BitConverter.GetBytes(currentIndex);
+                    var color = Color.FromArgb(255, byte4[0], byte4[1], 255);
+                    if (!windowInfo.IsValidProcess) {
+                        color = Color.FromArgb(255, 255, 0, 255);
+                    }
                     var border = new Border() {
-                        Margin = new Thickness(boundsInScreen.Left, boundsInScreen.Top, 0, 0),
-                        Width = boundsInScreen.Width,
-                        Height = boundsInScreen.Height,
+                        Margin = new Thickness(boundsInScreen.Left-1, boundsInScreen.Top-1, 0, 0),
+                        Width = boundsInScreen.Width+1,
+                        Height = boundsInScreen.Height+1,
                         HorizontalAlignment = HorizontalAlignment.Left,
-                        VerticalAlignment = VerticalAlignment.Top,
-                        BorderThickness = new Thickness(3),
-                        BorderBrush = (Brush)new BrushConverter().ConvertFrom("#FF297BDC"),
-                        Background = Brushes.Transparent,
-                        Effect = new BlurEffect(){Radius = 10, KernelType = KernelType.Gaussian}
+                        VerticalAlignment = VerticalAlignment.Top,                        
+                        Background = new SolidColorBrush(color),
                     };
-                    var border2 = new Border() {
-                        Margin = new Thickness(boundsInScreen.Left, boundsInScreen.Top, 0, 0),
-                        Width = boundsInScreen.Width,
-                        Height = boundsInScreen.Height,
-                        HorizontalAlignment = HorizontalAlignment.Left,
-                        VerticalAlignment = VerticalAlignment.Top,
-                        BorderThickness = new Thickness(3),
-                        BorderBrush = (Brush)new BrushConverter().ConvertFrom("#FF297BDC"),
-                    };
-                    grid.Children.Add(border2);
                     grid.Children.Add(border);
-                    data.Add(windowInfo.WindowInfo, border);
+                    if (windowInfo.IsValidProcess)
+                        data.Add(windowInfo, border);
                 }                
-                var wnd = new Window() {Content = vb, WindowStyle = WindowStyle.None, Left = bounds.Left, Top = bounds.Top, AllowsTransparency = true, Background = Brushes.Transparent, Opacity = 0};
+                var wnd = new Window() {Content = vb, WindowStyle = WindowStyle.None, Left = bounds.Left, Top = bounds.Top, AllowsTransparency = true, Background = Brushes.Transparent, Opacity = 0, UseLayoutRounding = true};
+                RenderOptions.SetEdgeMode(wnd, EdgeMode.Aliased);
+                RenderOptions.SetBitmapScalingMode(wnd, BitmapScalingMode.NearestNeighbor);                
                 data.Window = wnd;
                 data.Owner = this;                
                 openedWindows.Add(data);                
@@ -252,8 +231,7 @@ namespace Snoop {
         ~QuickWindowChooser() { ReleaseUnmanagedResources(); }
     }
 
-    public class ScreenSelectorData {
-        public Image ColorfulImage { get; set; }
+    public class ScreenSelectorData {        
         public Window Window { get; set; }
         public QuickWindowChooser Owner { get; set; }
         public Image GrayScaleImage { get; set; }
@@ -284,13 +262,10 @@ namespace Snoop {
 
         void Update(object sender, bool set) {
             var border = sender as Border;
-            var blur = border.Effect as BlurEffect;
             var effect = ((GrayscaleShaderEffect) GrayScaleImage.Effect); 
             if (!set) {
                 effect.VisibleRect = new Point4D();
-                blur.Radius = 10;
             } else {
-                blur.Radius = 20;                
                 var pos = border.TransformToVisual(Window).TransformBounds(new Rect(new Point(), border.RenderSize));
                 var w = Window.ActualWidth;
                 var h = Window.ActualHeight;
