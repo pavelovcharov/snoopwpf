@@ -460,7 +460,7 @@ namespace Snoop {
 //            } while (sorder.SwapCount != 0);            
 //            new OddEvenTransportSorter<WindowInfo>(comparer, new DefaultSwap<WindowInfo>()).Sort(interestWindows);
 //            interestWindows.Reverse();
-            foreach (var screen in Screen.AllScreens.Where((x,i)=>i==3)) {  
+            foreach (var screen in Screen.AllScreens.Where((x,i)=>true)) {  
                 var data = new ScreenSelectorData();
                 var image2 = new Image() {
                     Source = CaptureMonitor(screen, out var bounds, out var scaleX, out var scaleY, out var primaryScaleX, out var primaryScaleY),
@@ -478,9 +478,10 @@ namespace Snoop {
                 var grid = new Grid(){ClipToBounds = true, Width = bounds.Width, Height = bounds.Height, Background = Brushes.White};                
                 var grid3 = new Grid(){ClipToBounds = true, Width = bounds.Width, Height = bounds.Height};
                 grid3.Children.Add(image2);
+                var effect = new ContourShaderEffect() {Size = new Point(1 / grid.Width, 1 / grid.Height)};
                 grid3.Children.Add(new Viewbox() {
                     Child = grid, 
-                    Effect = new ContourShaderEffect() {Size = new Point(1/grid.Width, 1/grid.Height)}
+                    Effect = effect
                 });                
                 vb.Child = grid3;                                
 
@@ -504,16 +505,16 @@ namespace Snoop {
                         color = Color.FromArgb(255, 255, 0, 255);
                     }
                     var border = new Border() {
-                        Margin = new Thickness(boundsInScreen.Left-1, boundsInScreen.Top-1, 0, 0),
-                        Width = boundsInScreen.Width+1,
-                        Height = boundsInScreen.Height+1,
+                        Margin = new Thickness(boundsInScreen.Left, boundsInScreen.Top, 0, 0),
+                        Width = boundsInScreen.Width,
+                        Height = boundsInScreen.Height,
                         HorizontalAlignment = HorizontalAlignment.Left,
                         VerticalAlignment = VerticalAlignment.Top,                        
                         Background = new SolidColorBrush(color),
                     };
                     grid.Children.Add(border);
                     if (windowInfo.IsValidProcess)
-                        data.Add(windowInfo, border);
+                        data.Add(windowInfo, border, effect);
                 }
 
                 var captionHeight = SystemParameters.CaptionHeight / (primaryScaleY * scaleY);
@@ -552,9 +553,11 @@ namespace Snoop {
         public QuickWindowChooser Owner { get; set; }
         public Image GrayScaleImage { get; set; }
         public bool Last { get; set; }
+        public ContourShaderEffect Effect { get; set; }
         Dictionary<Border, WindowInfo> infos = new Dictionary<Border, WindowInfo>();
 
-        public void Add(WindowInfo windowInfo, Border border) {
+        public void Add(WindowInfo windowInfo, Border border, ContourShaderEffect effect) {
+            Effect = effect;
             infos.Add(border, windowInfo);
             border.MouseEnter+=BorderOnMouseEnter;
             border.MouseLeave+=BorderOnMouseLeave;
@@ -578,6 +581,8 @@ namespace Snoop {
 
         void Update(object sender, bool set) {
             var border = sender as Border;
+            var color = ((SolidColorBrush) border.Background).Color;
+            Effect.SetSelection(color, set ? (Color?) color : null);
             var effect = ((GrayscaleShaderEffect) GrayScaleImage.Effect); 
             if (!set) {
                 effect.VisibleRect = new Point4D();
@@ -590,6 +595,12 @@ namespace Snoop {
         }
 
         public void Init() {
+            if(infos.Keys.Count>1 && infos.Keys.Any(x=>x.Width>10 && x.Height>10))
+                foreach (var border in infos.Keys) {
+                    if (border.Width <= 10 || border.Height <= 10)
+                        border.Visibility = Visibility.Collapsed;
+                }
+
             Window.Loaded += WndOnLoaded;
             Window.PreviewKeyDown += WndOnPreviewKeyDown;
             Window.Show();

@@ -37,6 +37,21 @@ namespace Snoop.Shaders.Effects {
         public static readonly DependencyProperty SizeProperty =
             DependencyProperty.Register("Size", typeof(Point), typeof(ContourShaderEffect),
                                         new UIPropertyMetadata(new Point(1,1), PixelShaderConstantCallback(0)));
+        
+        public Color Selected {
+            get { return (Color)GetValue(SelectedProperty); }
+            set { SetValue(SelectedProperty, value); }
+        }
+
+        public static readonly DependencyProperty SelectedProperty =
+            DependencyProperty.Register("Selected", typeof(Color), typeof(ContourShaderEffect),
+                                        new UIPropertyMetadata(Colors.Transparent, PixelShaderConstantCallback(1)));
+
+        public void SetSelection(Color oldValue, Color? newValue) {
+            if (Selected == oldValue || Selected == Colors.Transparent || newValue!=null) {
+                Selected = newValue ?? Colors.Transparent;
+            }                
+        }
        
     }
 }
