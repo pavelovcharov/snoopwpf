@@ -185,6 +185,12 @@ namespace Snoop {
 
         public IntPtr HWnd { get; }
 
+        IntPtr? parent;
+
+        public IntPtr Parent {
+            get { return (IntPtr) (parent ?? (parent = QuickWindowChooser.GetParent(HWnd))); }
+        }
+
         public string Description {
             get {
                 var process = OwningProcess;
