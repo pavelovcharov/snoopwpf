@@ -432,7 +432,7 @@ namespace Snoop {
                         wfp[pt] = window;
                     }
 
-//                    SetCursorPos(pt.X, pt.Y);
+                    SetCursorPos(pt.X, pt.Y);
                     
                     if (window == first.HWnd)
                         pt1++;
@@ -455,12 +455,12 @@ namespace Snoop {
             var sorder = new MySwap<WindowInfo>();
 //            do {                
 //                sorder.SwapCount = 0;
-//            new BubbleSorter<WindowInfo>(comparer, sorder).Sort(interestWindows);
+            new BubbleSorter<WindowInfo>(comparer, sorder).Sort(interestWindows);
                 new HeapSort<WindowInfo>(comparer, sorder).Sort(interestWindows);
 //            } while (sorder.SwapCount != 0);            
 //            new OddEvenTransportSorter<WindowInfo>(comparer, new DefaultSwap<WindowInfo>()).Sort(interestWindows);
 //            interestWindows.Reverse();
-            foreach (var screen in Screen.AllScreens.Where((x,i)=>true)) {  
+            foreach (var screen in Screen.AllScreens.Where((x,i)=>i==3)) {  
                 var data = new ScreenSelectorData();
                 var image2 = new Image() {
                     Source = CaptureMonitor(screen, out var bounds, out var scaleX, out var scaleY, out var primaryScaleX, out var primaryScaleY),
