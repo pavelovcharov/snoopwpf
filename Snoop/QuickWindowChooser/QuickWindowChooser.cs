@@ -1,47 +1,28 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices;
-using System.Runtime.InteropServices.WindowsRuntime;
-using System.Runtime.Remoting.Messaging;
-using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Forms;
 using System.Windows.Input;
-using System.Windows.Interop;
 using System.Windows.Media;
-using System.Windows.Media.Effects;
-using System.Windows.Media.Imaging;
 using System.Windows.Media.Media3D;
-using System.Windows.Shapes;
-using System.Windows.Threading;
-using Orc.Sort;
-using Orc.Sort.NSort;
-using Orc.Sort.NSort.Generic;
 using Snoop.Shaders.Effects;
 using Application = System.Windows.Application;
-using Brush = System.Windows.Media.Brush;
-using Brushes = System.Windows.Media.Brushes;
 using HorizontalAlignment = System.Windows.HorizontalAlignment;
-using Image = System.Windows.Controls.Image;
 using KeyEventArgs = System.Windows.Input.KeyEventArgs;
-using MessageBox = System.Windows.MessageBox;
 using MouseEventArgs = System.Windows.Input.MouseEventArgs;
-using PixelFormat = System.Drawing.Imaging.PixelFormat;
-using Point = System.Windows.Point;
-using Rectangle = System.Drawing.Rectangle;
 
 namespace Snoop {
-    public sealed class QuickWindowChooser {                                                           
-        public List<ScreenSelectorData> openedWindows = new List<ScreenSelectorData>();      
+    public sealed class QuickWindowChooser {
+        public List<ScreenSelectorData> openedWindows = new List<ScreenSelectorData>();
+
         public QuickWindowChooser() {
             var interestWindows = QWCWindowFinder.GetSortedWindows();
-            Dictionary<int, uint> indicesByPID = new Dictionary<int, uint>();
-            foreach (var screen in Screen.AllScreens.Where((x,i)=>true)) {  
+            var indicesByPID = new Dictionary<int, uint>();
+            foreach (var screen in Screen.AllScreens.Where((x, i) => true)) {
                 var data = new ScreenSelectorData();
-                var image2 = new Image() {
+                var image2 = new Image {
                     Source = ScreenCaptureHelper.CaptureMonitor(screen, out var bounds, out var scaleX, out var scaleY, out var primaryScaleX, out var primaryScaleY),
                     Stretch = Stretch.UniformToFill,
                     VerticalAlignment = VerticalAlignment.Stretch,
@@ -49,46 +30,44 @@ namespace Snoop {
                     Width = bounds.Width,
                     Height = bounds.Height,
                     Effect = new GrayscaleShaderEffect()
-                };               
+                };
                 data.GrayScaleImage = image2;
-                Viewbox vb = new Viewbox() {
+                var vb = new Viewbox {
                     Margin = new Thickness(0)
-                };                
-                var grid = new Grid(){ClipToBounds = true, Width = bounds.Width, Height = bounds.Height, Background = Brushes.White};                
-                var grid3 = new Grid(){ClipToBounds = true, Width = bounds.Width, Height = bounds.Height};
+                };
+                var grid = new Grid {ClipToBounds = true, Width = bounds.Width, Height = bounds.Height, Background = Brushes.White};
+                var grid3 = new Grid {ClipToBounds = true, Width = bounds.Width, Height = bounds.Height};
                 grid3.Children.Add(image2);
-                var effect = new ContourShaderEffect() {Size = new Point(1 / grid.Width, 1 / grid.Height)};
-                grid3.Children.Add(new Viewbox() {
-                    Child = grid, 
+                var effect = new ContourShaderEffect {Size = new Point(1 / grid.Width, 1 / grid.Height)};
+                grid3.Children.Add(new Viewbox {
+                    Child = grid,
                     Effect = effect
-                });                
-                vb.Child = grid3;                                
+                });
+                vb.Child = grid3;
 
-                uint index = 10;                
+                uint index = 10;
                 var realBounds = new Rect(screen.Bounds.Left, screen.Bounds.Top, screen.Bounds.Width, screen.Bounds.Height);
                 var windowsInBounds = interestWindows.Where(x => realBounds.IntersectsWith(x.Bounds)).ToArray();
                 foreach (var windowInfo in windowsInBounds) {
                     var scaledBounds = new Rect(windowInfo.Bounds.Left * scaleX, windowInfo.Bounds.Top * scaleY, windowInfo.Bounds.Width * scaleX, windowInfo.Bounds.Height * scaleY);
                     var boundsInScreen = new Rect(new Point(scaledBounds.Left - bounds.Left, scaledBounds.Top - bounds.Top), scaledBounds.Size);
-					
+
                     if (!indicesByPID.TryGetValue(windowInfo.OwningProcess.Id, out var currentIndex)) {
-                        index+=10;
+                        index += 10;
                         currentIndex = index;
                         indicesByPID[windowInfo.OwningProcess.Id] = currentIndex;
                     }
-                    
+
                     var byte4 = BitConverter.GetBytes(currentIndex);
                     var color = Color.FromArgb(255, byte4[0], byte4[1], 255);
-                    if (!windowInfo.IsValidProcess) {
-                        color = Color.FromArgb(255, 255, 0, 255);
-                    }
-                    var border = new Border() {
+                    if (!windowInfo.IsValidProcess) color = Color.FromArgb(255, 255, 0, 255);
+                    var border = new Border {
                         Margin = new Thickness(boundsInScreen.Left, boundsInScreen.Top, 0, 0),
                         Width = boundsInScreen.Width,
                         Height = boundsInScreen.Height,
                         HorizontalAlignment = HorizontalAlignment.Left,
-                        VerticalAlignment = VerticalAlignment.Top,                        
-                        Background = new SolidColorBrush(color),
+                        VerticalAlignment = VerticalAlignment.Top,
+                        Background = new SolidColorBrush(color)
                     };
                     grid.Children.Add(border);
                     if (windowInfo.IsValidProcess)
@@ -96,12 +75,12 @@ namespace Snoop {
                 }
 
                 var captionHeight = SystemParameters.CaptionHeight / (primaryScaleY * scaleY);
-                
-                var wnd = new Window() {Content = vb, WindowStyle = WindowStyle.None, Topmost = true, ResizeMode =ResizeMode.NoResize ,Left = bounds.Left, Top = bounds.Top-captionHeight, Width = bounds.Width*primaryScaleX, Height = bounds.Height*primaryScaleY+captionHeight*2, UseLayoutRounding = true};
+
+                var wnd = new Window {Content = vb, WindowStyle = WindowStyle.None, Topmost = true, ResizeMode = ResizeMode.NoResize, Left = bounds.Left, Top = bounds.Top - captionHeight, Width = bounds.Width * primaryScaleX, Height = bounds.Height * primaryScaleY + captionHeight * 2, UseLayoutRounding = true};
                 RenderOptions.SetEdgeMode(wnd, EdgeMode.Aliased);
-                RenderOptions.SetBitmapScalingMode(wnd, BitmapScalingMode.NearestNeighbor);                
+                RenderOptions.SetBitmapScalingMode(wnd, BitmapScalingMode.NearestNeighbor);
                 data.Window = wnd;
-                openedWindows.Add(data);                
+                openedWindows.Add(data);
             }
 
             foreach (var element in openedWindows)
@@ -109,18 +88,18 @@ namespace Snoop {
         }
     }
 
-    public class ScreenSelectorData {        
+    public class ScreenSelectorData {
+        readonly Dictionary<Border, WindowInfo> infos = new Dictionary<Border, WindowInfo>();
         public Window Window { get; set; }
         public Image GrayScaleImage { get; set; }
         public ContourShaderEffect Effect { get; set; }
-        Dictionary<Border, WindowInfo> infos = new Dictionary<Border, WindowInfo>();
 
         public void Add(WindowInfo windowInfo, Border border, ContourShaderEffect effect) {
             Effect = effect;
             infos.Add(border, windowInfo);
-            border.MouseEnter+=BorderOnMouseEnter;
-            border.MouseLeave+=BorderOnMouseLeave;
-            border.MouseLeftButtonUp+=BorderOnMouseLeftButtonUp;
+            border.MouseEnter += BorderOnMouseEnter;
+            border.MouseLeave += BorderOnMouseLeave;
+            border.MouseLeftButtonUp += BorderOnMouseLeftButtonUp;
         }
 
         void BorderOnMouseLeftButtonUp(object sender, MouseButtonEventArgs e) {
@@ -130,35 +109,31 @@ namespace Snoop {
             Application.Current.Shutdown();
         }
 
-        void BorderOnMouseLeave(object sender, MouseEventArgs e) {
-            Update(sender, false);
-        }
-        void BorderOnMouseEnter(object sender, MouseEventArgs e) {            
-            Update(sender, true);
-        }
+        void BorderOnMouseLeave(object sender, MouseEventArgs e) { Update(sender, false); }
+
+        void BorderOnMouseEnter(object sender, MouseEventArgs e) { Update(sender, true); }
 
         void Update(object sender, bool set) {
             var border = sender as Border;
             var color = ((SolidColorBrush) border.Background).Color;
             Effect.SetSelection(color, set ? (Color?) color : null);
-            var effect = ((GrayscaleShaderEffect) GrayScaleImage.Effect); 
+            var effect = (GrayscaleShaderEffect) GrayScaleImage.Effect;
             if (!set) {
                 effect.VisibleRect = new Point4D();
             } else {
                 var pos = border.TransformToVisual(Window).TransformBounds(new Rect(new Point(), border.RenderSize));
                 var w = Window.ActualWidth;
                 var h = Window.ActualHeight;
-                effect.VisibleRect = new Point4D(pos.Left/w, pos.Top/h, pos.Right/w, pos.Bottom/h);
+                effect.VisibleRect = new Point4D(pos.Left / w, pos.Top / h, pos.Right / w, pos.Bottom / h);
             }
         }
 
         public void Init() {
-            if(infos.Keys.Count>1 && infos.Keys.Any())
-                foreach (var border in infos.Keys.Where(x => x.Width > 10 && x.Height > 10)) {
+            if (infos.Keys.Count > 1 && infos.Keys.Any())
+                foreach (var border in infos.Keys.Where(x => x.Width > 10 && x.Height > 10))
                     if (border.Width <= 10 || border.Height <= 10)
                         border.Visibility = Visibility.Collapsed;
-                }
-            
+
             Window.PreviewKeyDown += WndOnPreviewKeyDown;
             Window.Show();
         }
@@ -168,5 +143,5 @@ namespace Snoop {
                 return;
             Application.Current.Shutdown();
         }
-    }    
+    }
 }

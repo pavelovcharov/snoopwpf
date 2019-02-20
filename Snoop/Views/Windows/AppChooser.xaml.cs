@@ -18,9 +18,9 @@ using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Interop;
 using Snoop.Annotations;
-#if !NETCORE
-using Mono.Cecil;
-#endif
+//#if !NETCORE
+//using Mono.Cecil;
+//#endif
 
 namespace Snoop {
     public partial class AppChooser {
@@ -179,8 +179,9 @@ namespace Snoop {
             }
         }
 
+        Process op;
         public Process OwningProcess {
-            get { return NativeMethods.GetWindowThreadProcess(HWnd); }
+            get { return op ?? (op = NativeMethods.GetWindowThreadProcess(HWnd)); }
         }
 
         public IntPtr HWnd { get; }
@@ -264,18 +265,18 @@ namespace Snoop {
                 using (var proc = Process.GetProcessById(pId)) {
                     var file = proc.MainModule.FileName;
                     using (var fileStream = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, true)) {
-                        try {
-                            var platformAsm = AssemblyDefinition.ReadAssembly(file);
-                            foreach (var attr in platformAsm.CustomAttributes) {
-                                if (attr.AttributeType.FullName != "System.Runtime.Versioning.TargetFrameworkAttribute") continue;
-                                var targetFrameworkVersion = attr.Properties[0].Argument.Value.ToString();
-                                if (targetFrameworkVersion.Contains(".NET Framework"))
+                        //try {
+                            //var platformAsm = AssemblyDefinition.ReadAssembly(file);
+                            //foreach (var attr in platformAsm.CustomAttributes) {
+                            //    if (attr.AttributeType.FullName != "System.Runtime.Versioning.TargetFrameworkAttribute") continue;
+                            //    var targetFrameworkVersion = attr.Properties[0].Argument.Value.ToString();
+                            //    if (targetFrameworkVersion.Contains(".NET Framework"))
                                     isNetCoreApp = false;
-                            }
-                        } catch {
-                            //seems we're in the .netcore app
-                            isNetCoreApp = true;
-                        }
+                        //    }
+                        //} catch {
+                        //    //seems we're in the .netcore app
+                        //    isNetCoreApp = true;
+                        //}
                     }
                 }
 #endif

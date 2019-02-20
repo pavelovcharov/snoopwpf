@@ -8,7 +8,7 @@ using System.Windows.Controls;
 namespace Snoop {
     public static class RegistrySettings {
         public static bool PinnedView {
-            get { return RegistryHelper.GetBool() ?? false; }
+            get { return RegistryHelper.GetBool() ?? true; }
             set { RegistryHelper.SetBool(value);}
         }
         public static bool Pinned {
