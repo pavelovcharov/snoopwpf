@@ -291,7 +291,10 @@
       <DependentUpon>OptionsDialog.xaml</DependentUpon>
     </Compile>
     <Compile Include="Properties\Annotations.cs" />
-    <Compile Include="QuickWindowChooser.cs" />
+    <Compile Include="QuickWindowChooser\NativeMethods.cs" />
+    <Compile Include="QuickWindowChooser\QuickWindowChooser.cs" />
+    <Compile Include="QuickWindowChooser\QWCWindowFinder.cs" />
+    <Compile Include="QuickWindowChooser\ScreenCaptureHelper.cs" />
     <Compile Include="Search\SearchEngine.cs" />
     <Compile Include="Shaders\Effects\ContourShaderEffect.cs" />
     <Compile Include="Shaders\Effects\GrayscaleShaderEffect.cs" />

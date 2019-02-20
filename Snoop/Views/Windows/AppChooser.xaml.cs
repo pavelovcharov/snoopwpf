@@ -188,7 +188,7 @@ namespace Snoop {
         IntPtr? parent;
 
         public IntPtr Parent {
-            get { return (IntPtr) (parent ?? (parent = QuickWindowChooser.GetParent(HWnd))); }
+            get { return (IntPtr) (parent ?? (parent = QWCNativeMethods.GetParent(HWnd))); }
         }
 
         public string Description {
