@@ -7,6 +7,7 @@ using System.Windows.Forms;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Media3D;
+using System.Windows.Shell;
 using Snoop.Shaders.Effects;
 using Application = System.Windows.Application;
 using HorizontalAlignment = System.Windows.HorizontalAlignment;
@@ -29,7 +30,7 @@ namespace Snoop {
                     HorizontalAlignment = HorizontalAlignment.Stretch,
                     Width = bounds.Width,
                     Height = bounds.Height,
-                    Effect = new GrayscaleShaderEffect()
+//                    Effect = new GrayscaleShaderEffect()
                 };
                 data.GrayScaleImage = image2;
                 var vb = new Viewbox {
@@ -49,6 +50,8 @@ namespace Snoop {
                 var realBounds = new Rect(screen.Bounds.Left, screen.Bounds.Top, screen.Bounds.Width, screen.Bounds.Height);
                 var windowsInBounds = interestWindows.Where(x => realBounds.IntersectsWith(x.Bounds)).ToArray();
                 foreach (var windowInfo in windowsInBounds) {
+                    if (windowInfo.Bounds.Width <= 10 || windowInfo.Bounds.Height <= 10)
+                        continue;
                     var scaledBounds = new Rect(windowInfo.Bounds.Left * scaleX, windowInfo.Bounds.Top * scaleY, windowInfo.Bounds.Width * scaleX, windowInfo.Bounds.Height * scaleY);
                     var boundsInScreen = new Rect(new Point(scaledBounds.Left - bounds.Left, scaledBounds.Top - bounds.Top), scaledBounds.Size);
 
@@ -74,9 +77,9 @@ namespace Snoop {
                         data.Add(windowInfo, border, effect);
                 }
 
-                var captionHeight = SystemParameters.CaptionHeight / (primaryScaleY * scaleY);
-
-                var wnd = new Window {Content = vb, WindowStyle = WindowStyle.None, Topmost = true, ResizeMode = ResizeMode.NoResize, Left = bounds.Left, Top = bounds.Top - captionHeight, Width = bounds.Width * primaryScaleX, Height = bounds.Height * primaryScaleY + captionHeight * 2, UseLayoutRounding = true};
+                var wnd = new Window {Content = vb, WindowStyle = WindowStyle.None, Topmost = true, ResizeMode = ResizeMode.NoResize, Left = bounds.Left, Top = bounds.Top, Width = bounds.Width * primaryScaleX, Height = bounds.Height * primaryScaleY, UseLayoutRounding = true};
+                var wc = new WindowChrome() {CaptionHeight = 0d, CornerRadius = new CornerRadius(0), GlassFrameThickness = new Thickness(0), ResizeBorderThickness = new Thickness(0), NonClientFrameEdges = NonClientFrameEdges.None, UseAeroCaptionButtons = false};
+                WindowChrome.SetWindowChrome(wnd, wc);
                 RenderOptions.SetEdgeMode(wnd, EdgeMode.Aliased);
                 RenderOptions.SetBitmapScalingMode(wnd, BitmapScalingMode.NearestNeighbor);
                 data.Window = wnd;
@@ -117,22 +120,22 @@ namespace Snoop {
             var border = sender as Border;
             var color = ((SolidColorBrush) border.Background).Color;
             Effect.SetSelection(color, set ? (Color?) color : null);
-            var effect = (GrayscaleShaderEffect) GrayScaleImage.Effect;
-            if (!set) {
-                effect.VisibleRect = new Point4D();
-            } else {
-                var pos = border.TransformToVisual(Window).TransformBounds(new Rect(new Point(), border.RenderSize));
-                var w = Window.ActualWidth;
-                var h = Window.ActualHeight;
-                effect.VisibleRect = new Point4D(pos.Left / w, pos.Top / h, pos.Right / w, pos.Bottom / h);
-            }
+//            var effect = (GrayscaleShaderEffect) GrayScaleImage.Effect;
+//            if (!set) {
+//                effect.VisibleRect = new Point4D();
+//            } else {
+//                var pos = border.TransformToVisual(Window).TransformBounds(new Rect(new Point(), border.RenderSize));
+//                var w = Window.ActualWidth;
+//                var h = Window.ActualHeight;
+//                effect.VisibleRect = new Point4D(pos.Left / w, pos.Top / h, pos.Right / w, pos.Bottom / h);
+//            }
         }
 
         public void Init() {
-            if (infos.Keys.Count > 1 && infos.Keys.Any())
-                foreach (var border in infos.Keys.Where(x => x.Width > 10 && x.Height > 10))
-                    if (border.Width <= 10 || border.Height <= 10)
-                        border.Visibility = Visibility.Collapsed;
+//            if (infos.Keys.Count > 1 && infos.Keys.Any())
+//                foreach (var border in infos.Keys.Where(x => x.Width > 10 && x.Height > 10))
+//                    if (border.Width <= 10 || border.Height <= 10)
+//                        border.Visibility = Visibility.Collapsed;
 
             Window.PreviewKeyDown += WndOnPreviewKeyDown;
             Window.Show();

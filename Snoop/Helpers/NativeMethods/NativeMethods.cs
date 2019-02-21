@@ -12,10 +12,13 @@ using System.Reflection;
 using System.Runtime.ConstrainedExecution;
 using System.Runtime.InteropServices;
 using System.Windows;
+using System.Windows.Data;
+using System.Windows.Forms;
 using System.Windows.Media;
 using Microsoft.Win32.SafeHandles;
 using ReflectionFramework;
 using ReflectionFramework.Attributes;
+using ReflectionFramework.Extensions;
 using ReflectionFramework.Internal;
 
 namespace Snoop
@@ -120,19 +123,33 @@ namespace Snoop
             }
         }
 
-        public static Process GetWindowThreadProcess(IntPtr hwnd)
-        {
+        static NativeMethods() {            
+        }
+       
+        static readonly Action<Process, string> set_machineName = ReflectionHelper.CreateFieldSetter<Process, string>(typeof(Process), "machineName", BindingFlags.Instance | BindingFlags.NonPublic);
+        static readonly Action<Process, bool> set_isRemoteMachine = ReflectionHelper.CreateFieldSetter<Process, bool>(typeof(Process), "isRemoteMachine", BindingFlags.Instance | BindingFlags.NonPublic);
+        static readonly Action<Process, int> set_processId = ReflectionHelper.CreateFieldSetter<Process, int>(typeof(Process), "processId", BindingFlags.Instance | BindingFlags.NonPublic);
+        static readonly Action<Process, bool> set_haveProcessId = ReflectionHelper.CreateFieldSetter<Process, bool>(typeof(Process), "haveProcessId", BindingFlags.Instance | BindingFlags.NonPublic);
+
+        public static Process GetWindowThreadProcess(IntPtr hwnd) {
+            
             int processID;
             GetWindowThreadProcessId(hwnd, out processID);
 
-            try
-            {
-                return Process.GetProcessById(processID);
-            }
-            catch (ArgumentException)
-            {
-                return null;
-            }
+            var proc = new Process();
+            set_machineName(proc, ".");
+            set_isRemoteMachine(proc, false);
+            set_processId(proc, processID);
+            set_haveProcessId(proc, true);
+            return proc;
+//            try
+//            {
+//                return Process.GetProcessById(processID);
+//            }
+//            catch (ArgumentException)
+//            {
+//                return null;
+//            }
         }
 
         static bool EnumWindowsCallback(IntPtr hwnd, IntPtr lParam)

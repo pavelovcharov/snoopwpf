@@ -45,7 +45,7 @@ namespace Snoop {
             IntPtr hObject = QWCNativeMethods.SelectObject(compatibleDc, dibSection);
             QWCNativeMethods.BitBlt(compatibleDc, 0, 0, captureRect.Width, captureRect.Height, dc, captureRect.Left, captureRect.Top, 0x00CC0020 | 0x40000000);
             Int32Rect sourceRect = new Int32Rect(0, 0, captureRect.Width, captureRect.Height);
-            FormatConvertedBitmap formatConvertedBitmap = new FormatConvertedBitmap(Imaging.CreateBitmapSourceFromHBitmap(dibSection, IntPtr.Zero, sourceRect, BitmapSizeOptions.FromEmptyOptions()), PixelFormats.Rgb24, (BitmapPalette) null, 1.0);
+            FormatConvertedBitmap formatConvertedBitmap = new FormatConvertedBitmap(Imaging.CreateBitmapSourceFromHBitmap(dibSection, IntPtr.Zero, sourceRect, BitmapSizeOptions.FromEmptyOptions()), PixelFormats.Gray32Float, (BitmapPalette) null, 1.0);
             QWCNativeMethods.ReleaseDC(IntPtr.Zero, dc);
             QWCNativeMethods.SelectObject(compatibleDc, hObject);
             QWCNativeMethods.DeleteObject(dibSection);

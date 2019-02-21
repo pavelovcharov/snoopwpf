@@ -102,7 +102,7 @@ namespace Snoop {
         public IEnumerable<NativeMethods.MODULEENTRY32> Modules {
             get {
                 if (_modules == null)
-                    _modules = GetModules().ToArray();
+                    _modules = GetModules();
                 return _modules;
             }
         }

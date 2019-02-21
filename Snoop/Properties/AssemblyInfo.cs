@@ -15,9 +15,9 @@ using System.Runtime.InteropServices;
 
 #if !NETCORE
 [assembly: AssemblyTitle("Snoop")]
-    [assembly: AssemblyVersion("2.11.2.0")]
+    [assembly: AssemblyVersion("2.11.3.0")]
     [assembly: AssemblyConfiguration("")]
-    [assembly: AssemblyFileVersion("2.11.2.0")]
+    [assembly: AssemblyFileVersion("2.11.3.0")]
     [assembly: AssemblyCompany("Cory Plotts")]
     [assembly: AssemblyProduct("Snoop")]
 #endif
