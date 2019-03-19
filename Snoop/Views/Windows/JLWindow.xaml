@@ -81,6 +81,13 @@
                 <snoop:WindowFinder Margin="0,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center"
                              ToolTip="Drag and drop this crosshairs over a WPF window in order to Snoop it." />
             </Button>
+            <Border MinWidth="2" MinHeight="2"  Background="{Binding ElementName=Root, Path=BorderBrush}" x:Name="splitter4" Visibility="{Binding ExtendedVisibility}"/>
+            <Button x:Name="chooseButton" Visibility="{Binding ExtendedVisibility}" Click="ChooseClick">
+                <Grid>
+                    <Border Margin="3,3,10,14" BorderThickness="2" BorderBrush="{Binding Path=(TextElement.Foreground), RelativeSource={RelativeSource Self}}"/>
+                    <Border Margin="10,14,3,3" BorderThickness="2" BorderBrush="{Binding Path=(TextElement.Foreground), RelativeSource={RelativeSource Self}}"/>
+                </Grid>
+            </Button>
             <Border MinWidth="2" MinHeight="2"  Background="{Binding ElementName=Root, Path=BorderBrush}" x:Name="splitter2" Visibility="{Binding ExtendedVisibility}"/>
             <Button x:Name="closeButton" Visibility="{Binding ExtendedVisibility}" Click="ExitButtonClick">
                 <Path Fill="{Binding Path=(TextElement.Foreground), RelativeSource={RelativeSource Self}}" Data="F1M0,0L2,0 5,3 8,0 10,0 6,4 10,8 8,8 5,5 2,8 0,8 4,4 0,0z" Stretch="Uniform" Margin="5"></Path>

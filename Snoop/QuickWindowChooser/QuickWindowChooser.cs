@@ -18,11 +18,11 @@ namespace Snoop {
     public sealed class QuickWindowChooser {
         public List<ScreenSelectorData> openedWindows = new List<ScreenSelectorData>();
 
-        public QuickWindowChooser() {
+        public QuickWindowChooser(bool closeOnExit = true) {
             var interestWindows = QWCWindowFinder.GetSortedWindows();
             var indicesByPID = new Dictionary<int, uint>();
             foreach (var screen in Screen.AllScreens.Where((x, i) => true)) {
-                var data = new ScreenSelectorData();
+                var data = new ScreenSelectorData(openedWindows);
                 var image2 = new Image {
                     Source = ScreenCaptureHelper.CaptureMonitor(screen, out var bounds, out var scaleX, out var scaleY, out var primaryScaleX, out var primaryScaleY),
                     Stretch = Stretch.UniformToFill,
@@ -87,15 +87,19 @@ namespace Snoop {
             }
 
             foreach (var element in openedWindows)
-                element.Init();
+                element.Init(closeOnExit);
         }
     }
 
     public class ScreenSelectorData {
+        readonly List<ScreenSelectorData> openedWindows;
         readonly Dictionary<Border, WindowInfo> infos = new Dictionary<Border, WindowInfo>();
         public Window Window { get; set; }
         public Image GrayScaleImage { get; set; }
         public ContourShaderEffect Effect { get; set; }
+        private bool closeOnExit;
+
+        public ScreenSelectorData(List<ScreenSelectorData> openedWindows) { this.openedWindows = openedWindows; }
 
         public void Add(WindowInfo windowInfo, Border border, ContourShaderEffect effect) {
             Effect = effect;
@@ -109,7 +113,16 @@ namespace Snoop {
             var border = sender as Border;
             var info = infos[border];
             info.Snoop();
-            Application.Current.Shutdown();
+            Shutdown();
+        }
+
+        void Shutdown() {
+            if (closeOnExit)
+                Application.Current.Shutdown();
+            else {
+                foreach(var wnd in openedWindows)
+                    wnd.Window.Close();
+            }
         }
 
         void BorderOnMouseLeave(object sender, MouseEventArgs e) { Update(sender, false); }
@@ -131,7 +144,8 @@ namespace Snoop {
 //            }
         }
 
-        public void Init() {
+        public void Init(bool closeOnExit) {
+            this.closeOnExit = closeOnExit;
 //            if (infos.Keys.Count > 1 && infos.Keys.Any())
 //                foreach (var border in infos.Keys.Where(x => x.Width > 10 && x.Height > 10))
 //                    if (border.Width <= 10 || border.Height <= 10)
@@ -144,7 +158,7 @@ namespace Snoop {
         void WndOnPreviewKeyDown(object sender, KeyEventArgs e) {
             if (e.Key != Key.Escape)
                 return;
-            Application.Current.Shutdown();
+            Shutdown();
         }
     }
 }

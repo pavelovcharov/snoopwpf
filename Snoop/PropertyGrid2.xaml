@@ -47,6 +47,11 @@ All other rights reserved.
                         <TextBlock Style="{x:Null}" Text="Copy this brush" />
                     </MenuItem.Header>
                 </MenuItem>
+                <MenuItem Command="{x:Static my:PropertyGrid2.MakeObjectIDCommand}" CommandParameter="{Binding}">
+                    <MenuItem.Header>
+                        <TextBlock Style="{x:Null}" Text="Toggle object ID" />
+                    </MenuItem.Header>
+                </MenuItem>
             </ContextMenu>
 
             <Style TargetType="{x:Type GridViewColumnHeader}">
@@ -207,9 +212,9 @@ All other rights reserved.
         <ListView.ItemContainerStyle>
             <Style TargetType="{x:Type ListViewItem}">
                 <Setter Property="ContextMenu" Value="{StaticResource PropertyMenu}" />
+                <Setter Property="Tag" Value="{Binding Path=Value, Converter={my:ObjectIDToBooleanConverter}}"/>
                 <Setter Property="HorizontalContentAlignment" Value="Stretch" />
                 <Style.Triggers>
-
                     <Trigger Property="ItemsControl.AlternationIndex" Value="0">
                         <Setter Property="Background" Value="Transparent" />
                     </Trigger>
@@ -239,6 +244,9 @@ All other rights reserved.
                     <DataTrigger Binding="{Binding HasChangedRecently}" Value="True">
                         <Setter Property="Background" Value="Yellow" />
                     </DataTrigger>
+                    <Trigger Property="Tag" Value="True">
+                        <Setter Property="Background" Value="{Binding Path=Value, Converter={my:ObjectIDToColorConverter}}" />
+                    </Trigger>
                 </Style.Triggers>
             </Style>
         </ListView.ItemContainerStyle>

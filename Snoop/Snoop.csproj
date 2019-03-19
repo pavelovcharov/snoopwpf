@@ -46,7 +46,7 @@
     <CreateWebPageOnPublish>true</CreateWebPageOnPublish>
     <WebPage>publish.htm</WebPage>
     <ApplicationRevision>0</ApplicationRevision>
-    <ApplicationVersion>2.11.3.0</ApplicationVersion>
+    <ApplicationVersion>2.11.8.0</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <PublishWizardCompleted>true</PublishWizardCompleted>
     <BootstrapperEnabled>true</BootstrapperEnabled>
@@ -372,17 +372,10 @@
     <Compile Include="Controls\ZoomerControl.xaml.cs">
       <DependentUpon>ZoomerControl.xaml</DependentUpon>
     </Compile>
-    <Page Include="Views\Windows\AppChooser.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
     <Page Include="Icons.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Compile Include="Views\Windows\AppChooser.xaml.cs">
-      <DependentUpon>AppChooser.xaml</DependentUpon>
-    </Compile>
     <Page Include="Controls\Previewer.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

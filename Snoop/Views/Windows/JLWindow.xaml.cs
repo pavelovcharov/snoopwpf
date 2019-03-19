@@ -256,5 +256,10 @@ namespace Snoop {
                 get { return this.screen.DeviceName; }
             }
         }
+
+        private void ChooseClick(object sender, RoutedEventArgs e)
+        {
+            new QuickWindowChooser(false);
+        }
     }   
 }

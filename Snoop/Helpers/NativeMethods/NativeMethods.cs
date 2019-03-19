@@ -292,6 +292,7 @@ namespace Snoop
     [Wrapper]
     [AssignableFrom("DevExpress.Xpf.Core.Native.IChrome")]
     [AssignableFrom("DevExpress.Xpf.Grid.LightweightCellEditor", Inverse = true)]
+    [AssignableFrom("DevExpress.Xpf.Core.DXBorder", Inverse = true)]
     public interface IIChrome
     {
         [InterfaceMember("DevExpress.Xpf.Core.Native.IChrome")]
