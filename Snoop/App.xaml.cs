@@ -8,9 +8,6 @@ using System.Reflection;
 using System.Windows;
 using System.Windows.Shell;
 using CommandLine;
-using ReflectionFramework;
-using ReflectionFramework.Attributes;
-using ReflectionFramework.Extensions;
 using Snoop.Properties;
 using Snoop.Startup;
 

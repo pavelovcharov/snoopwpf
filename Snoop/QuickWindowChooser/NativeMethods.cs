@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows;
 using System.Windows.Input;
+using NetInjection;
 
 namespace Snoop {
     public class QWCNativeMethods {
@@ -244,31 +245,7 @@ namespace Snoop {
             Mouse.OverrideCursor = Cursors.Wait;
             try {
                 GetWindowThreadProcessId(HWnd, out var pId);
-                bool isNetCoreApp = false;
-#if !NETCORE
-                using (var proc = Process.GetProcessById(pId)) {
-                    var file = proc.MainModule.FileName;
-                    using (var fileStream = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, true)) {
-                        //try {
-                            //var platformAsm = AssemblyDefinition.ReadAssembly(file);
-                            //foreach (var attr in platformAsm.CustomAttributes) {
-                            //    if (attr.AttributeType.FullName != "System.Runtime.Versioning.TargetFrameworkAttribute") continue;
-                            //    var targetFrameworkVersion = attr.Properties[0].Argument.Value.ToString();
-                            //    if (targetFrameworkVersion.Contains(".NET Framework"))
-                                    isNetCoreApp = false;
-                        //    }
-                        //} catch {
-                        //    //seems we're in the .netcore app
-                        //    isNetCoreApp = true;
-                        //}
-                    }
-                }
-#endif
-
-                if (!isNetCoreApp)
-                    Injector.Launch(HWnd, typeof(SnoopUI).Assembly, typeof(SnoopUI).FullName, "GoBabyGo");
-                else
-                    Injector.LaunchNetCore(HWnd, typeof(SnoopUI).Assembly, typeof(SnoopUI).FullName, "GoBabyGo", @"NetCore\SnoopNetCorev3.exe");
+                Injector.Inject(HWnd, SnoopUI.GoBabyGo, "unused");
             }
             catch (Exception e) {
                 OnFailedToAttach(e);

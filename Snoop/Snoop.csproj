@@ -46,7 +46,7 @@
     <CreateWebPageOnPublish>true</CreateWebPageOnPublish>
     <WebPage>publish.htm</WebPage>
     <ApplicationRevision>0</ApplicationRevision>
-    <ApplicationVersion>2.11.8.0</ApplicationVersion>
+    <ApplicationVersion>2.12.1.0</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <PublishWizardCompleted>true</PublishWizardCompleted>
     <BootstrapperEnabled>true</BootstrapperEnabled>
@@ -94,6 +94,7 @@
     <SignManifests>false</SignManifests>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="netstandard" />
     <Reference Include="Catel.Core, Version=5.9.0.0, Culture=neutral, PublicKeyToken=null">
       <HintPath>..\packages\Catel.Core.5.9.0-beta0000\lib\net46\Catel.Core.dll</HintPath>
       <Private>True</Private>
@@ -108,6 +109,9 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="mscorlib" />
+    <Reference Include="NetInjection, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>Binaries\NetInjection.dll</HintPath>
+    </Reference>
     <Reference Include="PresentationCore, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=x86">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\..\Program Files\Reference Assemblies\Microsoft\WinFX\v3.0\PresentationCore.dll</HintPath>
@@ -118,8 +122,8 @@
       <HintPath>..\..\..\..\..\..\Program Files\Reference Assemblies\Microsoft\WinFX\v3.0\PresentationFramework.dll</HintPath>
       <RequiredTargetFramework>3.0</RequiredTargetFramework>
     </Reference>
-    <Reference Include="ReflectionHelper, Version=1.0.9.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\ReflectionHelper.1.0.9\lib\net40\ReflectionHelper.dll</HintPath>
+    <Reference Include="ReflectionFramework, Version=19.2.1.0, Culture=neutral, PublicKeyToken=03580c3b1adf8445">
+      <HintPath>Binaries\ReflectionFramework.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Collections.Immutable, Version=1.2.3.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
@@ -322,7 +326,6 @@
     <Compile Include="Infrastructure\ResourceKeyCache.cs" />
     <Compile Include="Infrastructure\WhenLoaded.cs" />
     <Compile Include="Infrastructure\ZoomerUtilities.cs" />
-    <Compile Include="Injector.cs" />
     <Compile Include="Inspector.cs" />
     <Compile Include="Views\Windows\JLWindow.xaml.cs">
       <DependentUpon>JLWindow.xaml</DependentUpon>
@@ -503,24 +506,6 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Resources\SnoopCrosshairsCursor.png" />
-  </ItemGroup>
-  <ItemGroup Condition="'$(Configuration)' == 'Release'">
-    <ProjectReference Include="..\ManagedInjectorLauncher\ManagedInjectorLauncher32-4.0.csproj">
-      <Project>{837eed94-d254-4f58-8949-635015de371d}</Project>
-      <Name>ManagedInjectorLauncher32-4.0</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\ManagedInjectorLauncher\ManagedInjectorLauncher64-4.0.csproj">
-      <Project>{21e131d3-760f-4e93-8bdd-502591bd1f97}</Project>
-      <Name>ManagedInjectorLauncher64-4.0</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\ManagedInjector\ManagedInjector32-4.0.vcxproj">
-      <Project>{8072b47b-5611-4bab-8ef4-cb3125d676a5}</Project>
-      <Name>ManagedInjector32-4.0</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\ManagedInjector\ManagedInjector64-4.0.vcxproj">
-      <Project>{a27c8b34-2527-4258-8c07-d2720c576b90}</Project>
-      <Name>ManagedInjector64-4.0</Name>
-    </ProjectReference>
   </ItemGroup>
   <ProjectExtensions>
     <InteractiveDesigner>

@@ -8,7 +8,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Windows.Data;
-using ReflectionFramework.Attributes;
 using ReflectionFramework.Extensions;
 
 namespace Snoop.TreeList {

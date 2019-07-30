@@ -17,7 +17,6 @@ using System.Windows.Forms;
 using System.Windows.Media;
 using Microsoft.Win32.SafeHandles;
 using ReflectionFramework;
-using ReflectionFramework.Attributes;
 using ReflectionFramework.Extensions;
 using ReflectionFramework.Internal;
 

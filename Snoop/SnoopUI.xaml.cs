@@ -25,11 +25,8 @@ using ReflectionFramework;
 using ReflectionFramework.Extensions;
 using Snoop.Infrastructure;
 using Snoop.Properties;
-#if !NETCORE
 using Snoop.Shell;
-#endif
 using Snoop.TreeList;
-using ReflectionFramework.Attributes;
 using Snoop.Helpers;
 
 namespace Snoop {
@@ -136,9 +133,7 @@ namespace Snoop {
             // we can't catch the mouse wheel at the ZoomerControl level,
             // so we catch it here, and relay it to the ZoomerControl.
             MouseWheel += SnoopUI_MouseWheel;
-#if !NETCORE
             InitShell();
-#endif
         }
 
         protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e) {            
@@ -147,7 +142,6 @@ namespace Snoop {
             }
             base.OnPropertyChanged(e);
         }
-#if !NETCORE
         void InitShell() {
             if (ShellConstants.IsPowerShellInstalled) {
                 var shell = new EmbeddedShellView();
@@ -173,22 +167,21 @@ namespace Snoop {
                 };
             }
         }
-#endif
 
 #endregion
 
 #region Public Static Methods
 
-        public static bool GoBabyGo() {
+        public static int GoBabyGo(string param) {
             try {
                 SnoopApplication();
-                return true;
+                return 0;
             }
             catch (Exception ex) {
                 MessageBox.Show(
                     string.Format("There was an error snooping! Message = {0}\n\nStack Trace:\n{1}", ex.Message,
                         ex.StackTrace), "Error Snooping", MessageBoxButton.OK);
-                return false;
+                return 1;
             }
         }
 

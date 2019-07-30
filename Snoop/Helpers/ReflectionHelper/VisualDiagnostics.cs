@@ -1,7 +1,6 @@
 ﻿using System.Reflection;
 using System.Windows.Diagnostics;
 using ReflectionFramework;
-using ReflectionFramework.Attributes;
 using ReflectionFramework.Extensions;
 
 namespace Snoop {

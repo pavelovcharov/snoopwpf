@@ -13,14 +13,12 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 
-#if !NETCORE
 [assembly: AssemblyTitle("Snoop")]
-    [assembly: AssemblyVersion("2.11.8.0")]
-    [assembly: AssemblyConfiguration("")]
-    [assembly: AssemblyFileVersion("2.11.8.0")]
-    [assembly: AssemblyCompany("Cory Plotts")]
+    [assembly: AssemblyVersion("2.12.1.0")]
+[assembly: AssemblyConfiguration("")]
+    [assembly: AssemblyFileVersion("2.12.1.0")]
+[assembly: AssemblyCompany("Cory Plotts")]
     [assembly: AssemblyProduct("Snoop")]
-#endif
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyCopyright("Copyright © Cory Plotts 2010-2012")]
 [assembly: AssemblyTrademark("")]

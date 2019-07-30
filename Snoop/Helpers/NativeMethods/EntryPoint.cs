@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-#if !NETCORE
 using System.Deployment.Application;
-#endif
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
