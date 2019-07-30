@@ -10,24 +10,28 @@ namespace Snoop {
     public class ScreenCaptureHelper {
         public static BitmapSource CaptureMonitor(Screen monitor, out Rect bounds, out double scaleX, out double scaleY, out double scaleIfPrimaryX, out double scaleIfPrimaryY) {
             QWCNativeMethods.GetDpiForMonitor(new IntPtr(monitor.GetHashCode()), QWCNativeMethods.DpiType.Effective, out var dpiX, out var dpiY);
-            if (!monitor.Primary) {
-                scaleX = 96d / (double) dpiX;
+//            if (!monitor.Primary) {
+//                scaleX = 96d / (double) dpiX;
+//                scaleY = 96d / (double) dpiY;
+//                scaleIfPrimaryX = 1d;
+//                scaleIfPrimaryY = 1d;
+//            } else {
+//                scaleIfPrimaryX = 96d / (double) dpiX;
+//                scaleIfPrimaryY = 96d / (double) dpiY;
+//                scaleX = 1d;
+//                scaleY = 1d;
+//            }
+            scaleX = 96d / (double) dpiX;
                 scaleY = 96d / (double) dpiY;
-                scaleIfPrimaryX = 1d;
-                scaleIfPrimaryY = 1d;
-            } else {
-                scaleIfPrimaryX = 96d / (double) dpiX;
-                scaleIfPrimaryY = 96d / (double) dpiY;
-                scaleX = 1d;
-                scaleY = 1d;
-            }
+            scaleIfPrimaryX = 1d;
+            scaleIfPrimaryY = 1d;
 
 
             var captureRect = new Rectangle(
-                (int) (monitor.Bounds.Left * scaleX),
-                (int) (monitor.Bounds.Top * scaleY),
-                (int) (monitor.Bounds.Width * scaleX),
-                (int) (monitor.Bounds.Height * scaleY));
+                (int) (monitor.Bounds.Left ),
+                (int) (monitor.Bounds.Top ),
+                (int) (monitor.Bounds.Width ),
+                (int) (monitor.Bounds.Height ));
             bounds = new Rect(captureRect.Left, captureRect.Top, captureRect.Width, captureRect.Height);
             IntPtr dc = QWCNativeMethods.GetDC(IntPtr.Zero);
             IntPtr compatibleDc = QWCNativeMethods.CreateCompatibleDC(dc);

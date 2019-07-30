@@ -21,6 +21,7 @@ using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Threading;
+using Catel.Reflection;
 using ReflectionFramework;
 using ReflectionFramework.Extensions;
 using Snoop.Infrastructure;
@@ -196,7 +197,7 @@ namespace Snoop {
                 var snoop = new SnoopUI();
                 var title = TryGetMainWindowTitle();
                 if (!string.IsNullOrEmpty(title)) {
-                    snoop.Title = string.Format("{0} - Snoop", title);
+                    snoop.Title = $"{title} - [Snoop v{EntryPoint.GetVersion()}]";
                 }
 
                 snoop.Inspect();

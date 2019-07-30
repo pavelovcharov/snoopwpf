@@ -47,12 +47,13 @@ namespace Snoop {
                 vb.Child = grid3;
 
                 uint index = 10;
+                var scale = 1d / JlWindow.WpfScreen.Primary.DPI;
                 var realBounds = new Rect(screen.Bounds.Left, screen.Bounds.Top, screen.Bounds.Width, screen.Bounds.Height);
                 var windowsInBounds = interestWindows.Where(x => realBounds.IntersectsWith(x.Bounds)).ToArray();
                 foreach (var windowInfo in windowsInBounds) {
                     if (windowInfo.Bounds.Width <= 10 || windowInfo.Bounds.Height <= 10)
                         continue;
-                    var scaledBounds = new Rect(windowInfo.Bounds.Left * scaleX, windowInfo.Bounds.Top * scaleY, windowInfo.Bounds.Width * scaleX, windowInfo.Bounds.Height * scaleY);
+                    var scaledBounds = new Rect(windowInfo.Bounds.Left , windowInfo.Bounds.Top , windowInfo.Bounds.Width , windowInfo.Bounds.Height );
                     var boundsInScreen = new Rect(new Point(scaledBounds.Left - bounds.Left, scaledBounds.Top - bounds.Top), scaledBounds.Size);
 
                     if (!indicesByPID.TryGetValue(windowInfo.OwningProcess.Id, out var currentIndex)) {
@@ -77,7 +78,11 @@ namespace Snoop {
                         data.Add(windowInfo, border, effect);
                 }
 
-                var wnd = new Window {Content = vb, WindowStyle = WindowStyle.None, Topmost = true, ResizeMode = ResizeMode.NoResize, Left = bounds.Left, Top = bounds.Top, Width = bounds.Width * primaryScaleX, Height = bounds.Height * primaryScaleY, UseLayoutRounding = true};
+                var wnd = new Window {
+                    Content = vb, WindowStyle = WindowStyle.None, Topmost = true, ResizeMode = ResizeMode.NoResize,
+                    Left = bounds.Left * scale, Top = bounds.Top * scale, Width = bounds.Width * scale,
+                    Height = bounds.Height * scale, UseLayoutRounding = true
+                };
                 var wc = new WindowChrome() {CaptionHeight = 0d, CornerRadius = new CornerRadius(0), GlassFrameThickness = new Thickness(0), ResizeBorderThickness = new Thickness(0), NonClientFrameEdges = NonClientFrameEdges.None, UseAeroCaptionButtons = false};
                 WindowChrome.SetWindowChrome(wnd, wc);
                 RenderOptions.SetEdgeMode(wnd, EdgeMode.Aliased);

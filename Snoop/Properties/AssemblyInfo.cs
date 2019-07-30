@@ -14,9 +14,9 @@ using System.Runtime.InteropServices;
 // associated with an assembly.
 
 [assembly: AssemblyTitle("Snoop")]
-    [assembly: AssemblyVersion("2.12.1.0")]
+    [assembly: AssemblyVersion("2.12.2.0")]
 [assembly: AssemblyConfiguration("")]
-    [assembly: AssemblyFileVersion("2.12.1.0")]
+    [assembly: AssemblyFileVersion("2.12.2.0")]
 [assembly: AssemblyCompany("Cory Plotts")]
     [assembly: AssemblyProduct("Snoop")]
 [assembly: AssemblyDescription("")]
