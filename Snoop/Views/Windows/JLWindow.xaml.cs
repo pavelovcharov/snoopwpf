@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -12,6 +13,7 @@ using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Forms;
 using System.Windows.Interop;
+using System.Windows.Markup;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
@@ -24,7 +26,16 @@ using MouseEventArgs = System.Windows.Input.MouseEventArgs;
 using Orientation = System.Windows.Controls.Orientation;
 using Rectangle = System.Drawing.Rectangle;
 
-namespace Snoop {    
+namespace Snoop {
+    public class ScaledWidthExtension : MarkupExtension {
+        readonly double result;
+        public ScaledWidthExtension(double value) {
+            result = RegistrySettings.ScaleFactor * value;
+        }
+        public override object ProvideValue(IServiceProvider serviceProvider) {
+            return result;
+        }
+    }
     public partial class JlWindow : Window {
         public static readonly DependencyProperty ExtendedVisibilityProperty = DependencyProperty.Register(
             "ExtendedVisibility", typeof(Visibility), typeof(JlWindow), new FrameworkPropertyMetadata(Visibility.Collapsed, null, new CoerceValueCallback((o, value) => ((JlWindow)o).IsPinned ? Visibility.Visible : (Visibility)value)));
@@ -60,7 +71,7 @@ namespace Snoop {
             DataContext = this;
             MouseEnter += JlWindow_MouseEnter;
             MouseLeave += JlWindow_MouseLeave;
-            Update();            
+            Opacity = 0;
             flickTimer = new DispatcherTimer();
             flickTimer.Interval = TimeSpan.FromMilliseconds(200);
             flickTimer.Tick += FlickTimer_Tick;
@@ -82,6 +93,8 @@ namespace Snoop {
         }
 
         void JlWindow_HandleUpdateTopMost(object sender, EventArgs e) {
+            Opacity = 1d;
+            Update();
             UpdateTopMost();
         }
 
@@ -125,6 +138,15 @@ namespace Snoop {
         }
 
         IntPtr OnHwndSourceHook(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled) {
+            if (msg == 0x02E0 /*WM_DPICHANGED*/) {
+                if (Content != null) {
+                    var iWparam = wParam.ToInt32();
+                    var dpiX = (iWparam & 0xFFFF0000) >>16;
+                    var dpiY = iWparam & 0x0000FFFF;
+                    var dpi = ((double) dpiX) / 96;
+                    UpdateScale(dpi, dpi);                    
+                }
+            }
             if (msg == NativeMethods.WM_SHOWSNOOP /*|| HotKeyHelper.ProcessMessage(msg, wParam)*/) {                
                 Activate();
                 flickTimer.Start();
@@ -170,7 +192,8 @@ namespace Snoop {
             {Position.Bottom, new Thickness(0,0,0,-60)}
         };
         void Update() {
-            var screen = WpfScreen.GetScreenFrom(this);
+            var screen = WpfScreen.GetScreenFrom(Left*WpfScreen.Primary.PrimaryScreenDPI, Top*WpfScreen.Primary.PrimaryScreenDPI);
+            var dpi = screen.DPI;
             var offsets = new[] {
                 new {Pos = Position.Left, Value = Math.Abs(screen.WorkingArea.Left - Left)},
                 new {Pos = Position.Top, Value = Math.Abs(screen.WorkingArea.Top - Top)},
@@ -182,25 +205,34 @@ namespace Snoop {
             switch (primary) {
                 case Position.Left:
                     Left = screen.WorkingArea.Left;
+                    Top = Math.Max(screen.DeviceBounds.Top, Math.Min(Top, screen.DeviceBounds.Bottom));
                     rootPanel.Orientation = Orientation.Vertical;                    
                     break;
                 case Position.Top:
                     Top = screen.WorkingArea.Top;
+                    Left = Math.Max(screen.DeviceBounds.Left, Math.Min(Left, screen.DeviceBounds.Right));
                     rootPanel.Orientation = Orientation.Horizontal;
                     break;
                 case Position.Right:
-                    Left = screen.WorkingArea.Right - 32;
+                    Left = screen.WorkingArea.Right - Math.Min(DesiredSize.Width, DesiredSize.Height);
+                    Top = Math.Max(screen.DeviceBounds.Top, Math.Min(Top, screen.DeviceBounds.Bottom));
                     rootPanel.Orientation = Orientation.Vertical;
                     break;
                 case Position.Bottom:
-                    Top = screen.WorkingArea.Bottom - 32;
+                    Top = screen.WorkingArea.Bottom - Math.Min(DesiredSize.Width, DesiredSize.Height);
+                    Left = Math.Max(screen.DeviceBounds.Left, Math.Min(Left, screen.DeviceBounds.Right));
                     rootPanel.Orientation = Orientation.Horizontal;
                     break;
             }
             RegistrySettings.Top = (int)Top;
             RegistrySettings.Left = (int)Left;
             RegistrySettings.Orientation = rootPanel.Orientation;
-        }        
+            UpdateScale(dpi, dpi);
+        }
+
+        void UpdateScale(double scaleX, double scaleY) {
+            ((FrameworkElement) Content).LayoutTransform = new ScaleTransform(scaleX, scaleY);
+        }
 
         void ExitButtonClick(object sender, RoutedEventArgs e) {
             App.Current.Shutdown(0);
@@ -213,9 +245,8 @@ namespace Snoop {
                 }
             }
 
-            public static WpfScreen GetScreenFrom(Window window) {
-                WindowInteropHelper windowInteropHelper = new WindowInteropHelper(window);
-                Screen screen = System.Windows.Forms.Screen.FromHandle(windowInteropHelper.Handle);
+            public static WpfScreen GetScreenFrom(double left, double top) {
+                Screen screen = Screen.FromPoint(new System.Drawing.Point((int) left, (int) top));
                 WpfScreen wpfScreen = new WpfScreen(screen);
                 return wpfScreen;
             }
@@ -241,11 +272,35 @@ namespace Snoop {
             private Rect GetRect(Rectangle value) {
                 // should x, y, width, height be device-independent-pixels ??
                 return new Rect {
-                    X = value.X,
-                    Y = value.Y,
-                    Width = value.Width,
-                    Height = value.Height
+                    X = value.X/PrimaryScreenDPI,
+                    Y = value.Y/PrimaryScreenDPI,
+                    Width = value.Width/PrimaryScreenDPI,
+                    Height = value.Height/PrimaryScreenDPI
                 };
+            }
+
+            private double? dpi;
+            public double DPI {
+                get {
+                    if (dpi == null) {
+                        QWCNativeMethods.GetDpiForMonitor(new IntPtr(screen.GetHashCode()), QWCNativeMethods.DpiType.Effective, out var dpiX, out var dpiY);
+                        dpi = (double) dpiX / 96;
+                    }
+
+                    return dpi.Value;
+                }
+            }
+            
+            private double? primaryScreendpi;
+            public double PrimaryScreenDPI {
+                get {
+                    if (primaryScreendpi == null) {
+                        QWCNativeMethods.GetDpiForMonitor(new IntPtr(Screen.PrimaryScreen.GetHashCode()), QWCNativeMethods.DpiType.Effective, out var dpiX, out var dpiY);
+                        primaryScreendpi = (double) dpiX / 96;
+                    }
+
+                    return primaryScreendpi.Value;
+                }
             }
 
             public bool IsPrimary {

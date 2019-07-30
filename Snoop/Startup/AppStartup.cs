@@ -30,6 +30,12 @@ namespace Snoop.Startup {
                 return;
             }
 
+            try { NativeMethods.SetProcessDpiAwarenessContext((int) NativeMethods.DPI_AWARENESS_CONTEXT.DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2); }
+            catch {
+                try { NativeMethods.SetProcessDpiAwareness(NativeMethods.PROCESS_DPI_AWARENESS.Process_Per_Monitor_DPI_Aware); }
+                catch { NativeMethods.SetProcessDPIAware(); }
+            }
+
 
             var sOptions = new StartupOptions();
             new Parser().ParseArguments(param, sOptions);

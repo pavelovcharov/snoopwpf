@@ -27,6 +27,9 @@ namespace Snoop {
                 key.SetValue(valueName, value, kind);
             }
         }
+        public static void SetDouble(double value, [CallerMemberName]string valueName = null) {
+            SetString(Convert.ToString(value), valueName);
+        }
         public static void SetString(string value, [CallerMemberName]string valueName = null) {            
             SetValue(valueName, value, RegistryValueKind.String);
         }
@@ -38,6 +41,10 @@ namespace Snoop {
             SetInt(value ? 1 : 0, valueName);
         }
 
+        public static double? GetDouble([CallerMemberName]string valueName = null) {
+            var res = GetString(valueName);
+            return res == null ? null : (double?)Double.Parse(res);
+        }
         public static string GetString([CallerMemberName]string valueName = null) {
             return (string)GetKey().GetValue(valueName);
         }

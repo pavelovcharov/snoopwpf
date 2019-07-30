@@ -7,6 +7,10 @@ using System.Windows.Controls;
 
 namespace Snoop {
     public static class RegistrySettings {
+        public static double ScaleFactor {
+            get { return RegistryHelper.GetDouble() ?? 0.5d; }
+            set { RegistryHelper.SetDouble(value);}
+        }
         public static bool PinnedView {
             get { return RegistryHelper.GetBool() ?? true; }
             set { RegistryHelper.SetBool(value);}

@@ -24,6 +24,30 @@ namespace Snoop
 {
     public static class NativeMethods
     {
+        [DllImport("user32.dll", SetLastError = true)]
+        public static extern bool SetProcessDpiAwarenessContext(int dpiFlag);
+
+        [DllImport("SHCore.dll", SetLastError = true)]
+        public static extern bool SetProcessDpiAwareness(PROCESS_DPI_AWARENESS awareness);
+
+        [DllImport("user32.dll")]
+        public static extern bool SetProcessDPIAware();
+
+        public enum PROCESS_DPI_AWARENESS
+        {
+            Process_DPI_Unaware = 0,
+            Process_System_DPI_Aware = 1,
+            Process_Per_Monitor_DPI_Aware = 2
+        }
+
+        public enum DPI_AWARENESS_CONTEXT
+        {
+            DPI_AWARENESS_CONTEXT_UNAWARE = 16,
+            DPI_AWARENESS_CONTEXT_SYSTEM_AWARE = 17,
+            DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE = 18,
+            DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2 = 34
+        }
+        
         public const int
             SWP_NOMOVE = 0x0002,
             SWP_NOSIZE = 0x0001,
